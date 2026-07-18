@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { findCatalogProduct } from "../lib/arzana-catalog/src/index.js";
 
 const QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
+const QUOTE_SENDER_ADDRESS = "quotes@mail.arzanaco.com";
 const MAX_REQUESTS_PER_WINDOW = 5;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FIELD_LENGTH = 160;
@@ -34,21 +35,35 @@ type VercelRequest = IncomingMessage & {
  * read from RESEND_API_KEY and QUOTE_FROM_EMAIL at request time.
  */
 export default async function handler(req: VercelRequest, res: ServerResponse) {
+  console.info("[quote] request received", { method: req.method ?? "unknown" });
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-    sendJson(res, 405, { message: "Method not allowed." });
+    sendJson(res, 405, {
+      success: false,
+      code: "METHOD_NOT_ALLOWED",
+      message: "Method not allowed.",
+    });
     return;
   }
 
   const body = readJsonBody(req.body);
 
   if (hasHoneypotValue(body.website)) {
-    sendJson(res, 400, { message: "Unable to submit this quote request." });
+    console.warn("[quote] request rejected", { reason: "honeypot" });
+    sendJson(res, 400, {
+      success: false,
+      code: "HONEYPOT_REJECTED",
+      message: "Unable to submit this quote request.",
+    });
     return;
   }
 
   if (!isWithinRateLimit(getClientIp(req))) {
+    console.warn("[quote] request rejected", { reason: "rate_limited" });
     sendJson(res, 429, {
+      success: false,
+      code: "RATE_LIMITED",
       message: "Too many quote requests. Please wait a few minutes and try again.",
     });
     return;
@@ -56,7 +71,13 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
 
   const validation = validateQuoteRequest(body);
   if ("errors" in validation) {
+    console.warn("[quote] request rejected", {
+      reason: "validation_failed",
+      fields: Object.keys(validation.errors),
+    });
     sendJson(res, 400, {
+      success: false,
+      code: "VALIDATION_FAILED",
       message: "Please correct the highlighted quote details and try again.",
       errors: validation.errors,
     });
@@ -66,6 +87,8 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
   const deliveryResult = await sendQuoteEmail(validation.quote);
   if (deliveryResult === "not-configured") {
     sendJson(res, 503, {
+      success: false,
+      code: "QUOTE_SERVICE_UNAVAILABLE",
       message:
         "Quote email delivery is not configured yet. Please try again later or contact Arzana directly.",
     });
@@ -74,6 +97,8 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
 
   if (deliveryResult === "failed") {
     sendJson(res, 502, {
+      success: false,
+      code: "EMAIL_DELIVERY_FAILED",
       message:
         "We could not deliver your quote email. Your details are still available in this form—please try again.",
     });
@@ -82,6 +107,7 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
 
   sendJson(res, 201, {
     success: true,
+    message: "Quote request delivered successfully.",
     productNames: validation.quote.productNames,
   });
 }
@@ -206,7 +232,19 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
   const senderEmail = process.env.QUOTE_FROM_EMAIL?.trim();
 
-  if (!resendApiKey || !senderEmail) return "not-configured";
+  if (!resendApiKey || !senderEmail || !isExpectedSender(senderEmail)) {
+    console.error("[quote] email configuration unavailable", {
+      hasResendApiKey: Boolean(resendApiKey),
+      hasSender: Boolean(senderEmail),
+      senderMatchesVerifiedAddress: senderEmail ? isExpectedSender(senderEmail) : false,
+    });
+    return "not-configured";
+  }
+
+  console.info("[quote] email delivery attempted", {
+    language: quote.language,
+    productCount: quote.productNames.length,
+  });
 
   const submittedAt = new Date().toISOString();
   const languageLabel = quote.language === "ar" ? "Arabic" : "English";
@@ -257,10 +295,22 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
       }),
     });
 
-    return response.ok ? "sent" : "failed";
+    if (!response.ok) {
+      console.error("[quote] email delivery failed", { resendStatus: response.status });
+      return "failed";
+    }
+
+    console.info("[quote] email delivered");
+    return "sent";
   } catch {
+    console.error("[quote] email delivery failed", { reason: "network_error" });
     return "failed";
   }
+}
+
+function isExpectedSender(value: string): boolean {
+  const address = value.match(/<\s*([^<>\s]+@[^<>\s]+)\s*>$/u)?.[1] ?? value.trim();
+  return address.toLowerCase() === QUOTE_SENDER_ADDRESS;
 }
 
 function escapeHtml(value: string): string {

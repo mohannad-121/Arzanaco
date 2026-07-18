@@ -104,6 +104,25 @@ export default function RequestQuote() {
           preparedProducts: 'Products included in the request:',
         };
 
+  const quoteErrorCopy =
+    language === 'ar'
+      ? {
+          generic: 'تعذر إرسال طلب عرض السعر. بياناتك ما زالت موجودة؛ يرجى المحاولة مرة أخرى.',
+          serviceUnavailable: 'خدمة طلب عرض السعر غير متاحة مؤقتاً. يرجى التواصل مع أرزانا مباشرة عبر واتساب.',
+          emailDelivery: 'تعذر إرسال طلب عرض السعر عبر البريد الإلكتروني. تم الاحتفاظ ببياناتك؛ يرجى المحاولة مرة أخرى أو المتابعة عبر واتساب.',
+          rateLimited: 'تم إجراء محاولات كثيرة. يرجى الانتظار قليلاً ثم المحاولة مجدداً.',
+          validation: 'يرجى مراجعة الحقول المميزة.',
+          network: 'تعذر الاتصال بخدمة طلب عرض السعر. يرجى التحقق من اتصالك بالإنترنت ثم المحاولة مرة أخرى.',
+        }
+      : {
+          generic: 'We could not submit your quote request. Your details are still here—please try again.',
+          serviceUnavailable: 'The quote service is temporarily unavailable. Please contact Arzana directly through WhatsApp.',
+          emailDelivery: 'We could not deliver your quote by email. Your information has been preserved. Please try again or continue through WhatsApp.',
+          rateLimited: 'Too many attempts were made. Please wait a moment and try again.',
+          validation: 'Please review the highlighted fields.',
+          network: 'We could not connect to the quote service. Please check your connection and try again.',
+        };
+
   const validate = () => {
     const nextErrors: QuoteErrors = {};
     const selectedProducts = formData.productIds.map((productId) =>
@@ -131,6 +150,8 @@ export default function RequestQuote() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting || success) return;
+
     const nextErrors = validate();
     setErrors(nextErrors);
     setSubmissionError(null);
@@ -161,12 +182,22 @@ export default function RequestQuote() {
           website: formData.website,
         }),
       });
-      const result: unknown = await response.json().catch(() => null);
+      const result = await readQuoteResponse(response);
 
       if (!response.ok || !isSuccessfulQuote(result)) {
         if (popup && !popup.closed) popup.close();
         popupRef.current = null;
-        setSubmissionError(getApiError(result, copy.genericError));
+        const apiFieldErrors = getApiValidationErrors(result, copy);
+        if (Object.keys(apiFieldErrors).length > 0) {
+          setErrors((current) => ({ ...current, ...apiFieldErrors }));
+        }
+        if (import.meta.env.DEV) {
+          console.warn('[quote] submission rejected', {
+            status: response.status,
+            code: getApiErrorCode(result),
+          });
+        }
+        setSubmissionError(getSubmissionError(result, response.status, quoteErrorCopy));
         return;
       }
 
@@ -185,10 +216,13 @@ export default function RequestQuote() {
         popup.focus();
       }
       popupRef.current = null;
-    } catch {
+    } catch (error) {
       if (popup && !popup.closed) popup.close();
       popupRef.current = null;
-      setSubmissionError(copy.genericError);
+      if (import.meta.env.DEV) {
+        console.warn('[quote] network request failed', { name: error instanceof Error ? error.name : 'unknown' });
+      }
+      setSubmissionError(quoteErrorCopy.network);
     } finally {
       setIsSubmitting(false);
     }
@@ -514,8 +548,67 @@ function isSuccessfulQuote(value: unknown): value is { success: true; productNam
   return candidate.success === true && Array.isArray(candidate.productNames) && candidate.productNames.every((name) => typeof name === 'string');
 }
 
-function getApiError(value: unknown, fallback: string): string {
-  if (typeof value !== 'object' || value === null) return fallback;
-  const message = (value as { message?: unknown }).message;
-  return typeof message === 'string' && message.trim() ? message : fallback;
+async function readQuoteResponse(response: Response): Promise<unknown> {
+  if (!response.headers.get('content-type')?.includes('application/json')) return null;
+  return response.json().catch(() => null);
+}
+
+function getApiErrorCode(value: unknown): string | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const code = (value as { code?: unknown }).code;
+  return typeof code === 'string' ? code : null;
+}
+
+function getSubmissionError(
+  value: unknown,
+  status: number,
+  copy: {
+    generic: string;
+    serviceUnavailable: string;
+    emailDelivery: string;
+    rateLimited: string;
+    validation: string;
+  },
+): string {
+  switch (getApiErrorCode(value)) {
+    case 'QUOTE_SERVICE_UNAVAILABLE':
+      return copy.serviceUnavailable;
+    case 'EMAIL_DELIVERY_FAILED':
+      return copy.emailDelivery;
+    case 'RATE_LIMITED':
+      return copy.rateLimited;
+    case 'VALIDATION_FAILED':
+      return copy.validation;
+    default:
+      if (status === 429) return copy.rateLimited;
+      if (status === 400) return copy.validation;
+      if (status === 404 || status >= 500) return copy.serviceUnavailable;
+      return copy.generic;
+  }
+}
+
+function getApiValidationErrors(
+  value: unknown,
+  copy: {
+    requiredError: string;
+    emailError: string;
+    phoneError: string;
+    productsError: string;
+  },
+): QuoteErrors {
+  if (getApiErrorCode(value) !== 'VALIDATION_FAILED' || typeof value !== 'object' || value === null) {
+    return {};
+  }
+
+  const errors = (value as { errors?: unknown }).errors;
+  if (typeof errors !== 'object' || errors === null || Array.isArray(errors)) return {};
+
+  const hasError = (field: QuoteField) => Object.hasOwn(errors, field);
+  return {
+    ...(hasError('fullName') ? { fullName: copy.requiredError } : {}),
+    ...(hasError('companyName') ? { companyName: copy.requiredError } : {}),
+    ...(hasError('email') ? { email: copy.emailError } : {}),
+    ...(hasError('phone') ? { phone: copy.phoneError } : {}),
+    ...(hasError('productIds') ? { productIds: copy.productsError } : {}),
+  };
 }
