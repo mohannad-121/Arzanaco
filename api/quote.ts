@@ -1,5 +1,3 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-
 import { findCatalogProduct } from "../lib/arzana-catalog/src/index.js";
 
 const QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
@@ -26,16 +24,45 @@ type QuoteRequest = {
 
 type QuoteValidation = { quote: QuoteRequest } | { errors: Record<string, string> };
 
-type VercelRequest = IncomingMessage & {
+type VercelRequest = {
+  method?: string;
   body?: unknown;
+  headers: Record<string, string | string[] | undefined>;
+  socket?: { remoteAddress?: string };
+};
+
+type VercelResponse = {
+  statusCode: number;
+  setHeader(name: string, value: string): void;
+  end(body: string): void;
+};
+
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+};
+
+type FetchFunction = (
+  input: string,
+  init: {
+    method: string;
+    headers: Record<string, string>;
+    body: string;
+  },
+) => Promise<FetchResponse>;
+
+type SafeLogger = {
+  info?: (event: string, context?: Record<string, unknown>) => void;
+  warn?: (event: string, context?: Record<string, unknown>) => void;
+  error?: (event: string, context?: Record<string, unknown>) => void;
 };
 
 /**
  * Handles POST /api/quote on Vercel. Credentials remain server-side and are
  * read from RESEND_API_KEY and QUOTE_FROM_EMAIL at request time.
  */
-export default async function handler(req: VercelRequest, res: ServerResponse) {
-  console.info("[quote] request received", { method: req.method ?? "unknown" });
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  logQuote("info", "[quote] request received", { method: req.method ?? "unknown" });
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -50,7 +77,7 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
   const body = readJsonBody(req.body);
 
   if (hasHoneypotValue(body.website)) {
-    console.warn("[quote] request rejected", { reason: "honeypot" });
+    logQuote("warn", "[quote] request rejected", { reason: "honeypot" });
     sendJson(res, 400, {
       success: false,
       code: "HONEYPOT_REJECTED",
@@ -60,7 +87,7 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
   }
 
   if (!isWithinRateLimit(getClientIp(req))) {
-    console.warn("[quote] request rejected", { reason: "rate_limited" });
+    logQuote("warn", "[quote] request rejected", { reason: "rate_limited" });
     sendJson(res, 429, {
       success: false,
       code: "RATE_LIMITED",
@@ -71,7 +98,7 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
 
   const validation = validateQuoteRequest(body);
   if ("errors" in validation) {
-    console.warn("[quote] request rejected", {
+    logQuote("warn", "[quote] request rejected", {
       reason: "validation_failed",
       fields: Object.keys(validation.errors),
     });
@@ -206,10 +233,10 @@ function hasHoneypotValue(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function getClientIp(req: IncomingMessage): string {
+function getClientIp(req: VercelRequest): string {
   const forwardedFor = req.headers["x-forwarded-for"];
   const value = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
-  return value?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+  return value?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
 }
 
 function isWithinRateLimit(ip: string): boolean {
@@ -229,11 +256,12 @@ function isWithinRateLimit(ip: string): boolean {
 }
 
 async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-configured" | "failed"> {
-  const resendApiKey = process.env.RESEND_API_KEY?.trim();
-  const senderEmail = process.env.QUOTE_FROM_EMAIL?.trim();
+  const environment = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  const resendApiKey = environment?.RESEND_API_KEY?.trim();
+  const senderEmail = environment?.QUOTE_FROM_EMAIL?.trim();
 
   if (!resendApiKey || !senderEmail || !isExpectedSender(senderEmail)) {
-    console.error("[quote] email configuration unavailable", {
+    logQuote("error", "[quote] email configuration unavailable", {
       hasResendApiKey: Boolean(resendApiKey),
       hasSender: Boolean(senderEmail),
       senderMatchesVerifiedAddress: senderEmail ? isExpectedSender(senderEmail) : false,
@@ -241,10 +269,16 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
     return "not-configured";
   }
 
-  console.info("[quote] email delivery attempted", {
+  logQuote("info", "[quote] email delivery attempted", {
     language: quote.language,
     productCount: quote.productNames.length,
   });
+
+  const fetchFunction = (globalThis as { fetch?: FetchFunction }).fetch;
+  if (!fetchFunction) {
+    logQuote("error", "[quote] email delivery failed", { reason: "fetch_unavailable" });
+    return "failed";
+  }
 
   const submittedAt = new Date().toISOString();
   const languageLabel = quote.language === "ar" ? "Arabic" : "English";
@@ -279,7 +313,7 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
   ].join("");
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetchFunction("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
@@ -296,14 +330,14 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
     });
 
     if (!response.ok) {
-      console.error("[quote] email delivery failed", { resendStatus: response.status });
+      logQuote("error", "[quote] email delivery failed", { resendStatus: response.status });
       return "failed";
     }
 
-    console.info("[quote] email delivered");
+    logQuote("info", "[quote] email delivered");
     return "sent";
   } catch {
-    console.error("[quote] email delivery failed", { reason: "network_error" });
+    logQuote("error", "[quote] email delivery failed", { reason: "network_error" });
     return "failed";
   }
 }
@@ -311,6 +345,11 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
 function isExpectedSender(value: string): boolean {
   const address = value.match(/<\s*([^<>\s]+@[^<>\s]+)\s*>$/u)?.[1] ?? value.trim();
   return address.toLowerCase() === QUOTE_SENDER_ADDRESS;
+}
+
+function logQuote(level: keyof SafeLogger, event: string, context?: Record<string, unknown>) {
+  const logger = (globalThis as { console?: SafeLogger }).console;
+  logger?.[level]?.(event, context);
 }
 
 function escapeHtml(value: string): string {
@@ -330,7 +369,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function sendJson(res: ServerResponse, statusCode: number, body: unknown) {
+function sendJson(res: VercelResponse, statusCode: number, body: unknown) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(body));
