@@ -1,5 +1,3 @@
-import { findCatalogProduct } from "../lib/arzana-catalog/src/index.js";
-
 const QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
 const QUOTE_SENDER_ADDRESS = "quotes@mail.arzanaco.com";
 const MAX_REQUESTS_PER_WINDOW = 5;
@@ -57,6 +55,32 @@ type SafeLogger = {
   error?: (event: string, context?: Record<string, unknown>) => void;
 };
 
+type CatalogProduct = {
+  nameEn: string;
+  nameAr: string;
+};
+
+type CatalogModule = {
+  findCatalogProduct?: (productId: string) => CatalogProduct | undefined;
+};
+
+let catalogModulePromise: Promise<CatalogModule> | undefined;
+
+/**
+ * The approved catalog package is ESM. Keep this as a native runtime import so
+ * Vercel does not transpile it into a CommonJS require call.
+ */
+async function getCatalogProductFinder(): Promise<NonNullable<CatalogModule["findCatalogProduct"]>> {
+  catalogModulePromise ??= import("../lib/arzana-catalog/src/index.js") as Promise<CatalogModule>;
+  const { findCatalogProduct } = await catalogModulePromise;
+
+  if (typeof findCatalogProduct !== "function") {
+    throw new Error("Approved catalog export is unavailable.");
+  }
+
+  return findCatalogProduct;
+}
+
 /**
  * Handles POST /api/quote on Vercel. Credentials remain server-side and are
  * read from RESEND_API_KEY and QUOTE_FROM_EMAIL at request time.
@@ -96,7 +120,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const validation = validateQuoteRequest(body);
+  let validation: QuoteValidation;
+  try {
+    validation = await validateQuoteRequest(body);
+  } catch {
+    logQuote("error", "[quote] catalog unavailable", { reason: "module_import_failed" });
+    sendJson(res, 503, {
+      success: false,
+      code: "QUOTE_SERVICE_UNAVAILABLE",
+      message:
+        "Quote validation is temporarily unavailable. Please try again later or contact Arzana directly.",
+    });
+    return;
+  }
+
   if ("errors" in validation) {
     logQuote("warn", "[quote] request rejected", {
       reason: "validation_failed",
@@ -139,7 +176,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 }
 
-function validateQuoteRequest(body: Record<string, unknown>): QuoteValidation {
+async function validateQuoteRequest(body: Record<string, unknown>): Promise<QuoteValidation> {
   const errors: Record<string, string> = {};
   const fullName = cleanText(body.fullName, MAX_FIELD_LENGTH);
   const companyName = cleanText(body.companyName, MAX_FIELD_LENGTH);
@@ -169,6 +206,7 @@ function validateQuoteRequest(body: Record<string, unknown>): QuoteValidation {
     errors.productIds = "Select valid catalog products.";
   }
 
+  const findCatalogProduct = await getCatalogProductFinder();
   const selectedProducts = normalizedProductIds.map((productId) => findCatalogProduct(productId));
   if (selectedProducts.some((product) => !product)) {
     errors.productIds = "One or more selected products are not in the Arzana catalog.";
