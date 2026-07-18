@@ -1,0 +1,1173 @@
+Build a complete, premium, modern, responsive corporate website for:
+
+ARZANA Arabia Company
+Arabic name: ارزانا العربية
+
+This is an electrical products, power distribution, automation, safety systems, and testing & commissioning company based in Riyadh, Saudi Arabia.
+
+IMPORTANT:
+- Use the installed UI/UX Pro Max skill.
+- Use the installed Origin UI / OriginKit components whenever they improve the quality of the design.
+- Create the complete website, not only a landing page.
+- The website must include every product, solution, service, and contact detail listed below.
+- Do not omit any product.
+- Do not invent technical specifications, certifications, project numbers, statistics, or product capabilities that are not provided.
+- Where detailed technical specifications are unavailable, use a professional short general description and add a “Request Technical Datasheet” CTA.
+- Use reusable components and clean production-ready code.
+- The website must be fully responsive on desktop, tablet, and mobile.
+- Support both English and Arabic.
+- English should be the default language.
+- Arabic pages must use RTL layout correctly.
+- Add a visible EN / AR language switcher in the header.
+- Translate all website interface text and product category names professionally into Arabic.
+- Preserve product and brand names in English when appropriate.
+
+==================================================
+COMPANY INFORMATION
+==================================================
+
+Company name:
+ARZANA Arabia Company
+
+Arabic company name:
+ارزانا العربية
+
+Main business areas:
+- Power Distribution
+- Electrical Products
+- Electrical and Automation
+- Safety Fall Protection Systems
+- Testing & Commissioning
+
+Company location:
+ServCorp Building 13
+Laysen Valley Complex
+Al Urubah Road
+Umm Al Hamam Al Gharbi District
+Riyadh 12329
+Saudi Arabia
+
+Telephone:
++966 11 2041144
+
+Mobile numbers:
++966 56 667 6600
++966 59 708 0480
+
+Email addresses:
+m.saadi@arzanaco.com
+moaath@arzanaco.com
+
+Website:
+www.arzanaco.com
+
+==================================================
+DESIGN DIRECTION
+==================================================
+
+Create a professional industrial and engineering visual identity inspired by the existing ARZANA company profile.
+
+Primary visual style:
+- Premium Saudi engineering and electrical solutions company
+- Clean, modern, technical, reliable, and corporate
+- Strong industrial feel without making the website look old-fashioned
+- High-quality product presentation
+- Spacious layout with excellent readability
+- Elegant motion and subtle technical animations
+- Avoid excessive glassmorphism
+- Avoid cartoonish graphics
+- Avoid overly playful design
+- Avoid generic startup-style gradients
+
+Suggested brand colors:
+- Deep burgundy / dark crimson inspired by the company profile
+- Warm beige / sand color
+- White
+- Charcoal gray
+- Small red accents inspired by the logo
+
+Suggested approximate palette:
+- Burgundy: #98183D
+- Dark Burgundy: #651128
+- Warm Beige: #C7B99D
+- Soft Beige: #F4F0E8
+- Charcoal: #292929
+- White: #FFFFFF
+- Accent Red: #B41F2D
+
+Use the official ARZANA logo supplied by the user.
+Do not recreate, redesign, distort, recolor, or replace the logo.
+Keep the logo’s original proportions.
+
+Typography:
+- Use a strong modern sans-serif font for English.
+- Use a professional Arabic font such as IBM Plex Sans Arabic, Tajawal, or Noto Kufi Arabic.
+- Headings should look bold and technical.
+- Body text must remain highly readable.
+
+Animations:
+- Use subtle Framer Motion animations.
+- Smooth page transitions.
+- Product cards may reveal on scroll.
+- Add subtle animated electrical grid lines, energy flow, or circuit-line patterns in suitable backgrounds.
+- Do not use heavy animations that reduce performance.
+- Respect prefers-reduced-motion.
+
+==================================================
+WEBSITE STRUCTURE
+==================================================
+
+Create the following pages:
+
+1. Home
+2. About Us
+3. Products & Solutions
+4. Individual Product Category pages
+5. Testing & Commissioning
+6. Safety Systems
+7. Clients
+8. Contact Us
+9. Request a Quote
+10. Product Search Results
+11. Privacy Policy
+12. 404 Page
+
+The website header must include:
+- Company logo
+- Home
+- About
+- Products & Solutions with a large mega menu
+- Testing & Commissioning
+- Safety Systems
+- Clients
+- Contact
+- Search icon
+- EN / AR language switcher
+- Prominent “Request a Quote” button
+
+The website footer must include:
+- ARZANA logo
+- Short company description
+- Main navigation links
+- Product category links
+- Contact information
+- Telephone and mobile numbers
+- Both email addresses
+- Saudi Arabia location
+- Website address
+- Social media placeholders that can be configured later
+- Copyright notice
+- Privacy Policy link
+- Back-to-top button
+
+==================================================
+HOME PAGE
+==================================================
+
+Create a premium homepage with the following sections:
+
+1. HERO SECTION
+
+Use a high-quality industrial visual showing electrical power distribution, substations, switchgear, transmission infrastructure, transformers, or electrical engineering operations.
+
+Suggested English headline:
+“Integrated Power, Electrical and Safety Solutions”
+
+Suggested supporting text:
+“ARZANA Arabia Company provides comprehensive power distribution, electrical automation, safety systems, specialized products, and testing and commissioning services across Saudi Arabia.”
+
+Primary CTA:
+“Explore Our Solutions”
+
+Secondary CTA:
+“Request a Quote”
+
+Additional CTA:
+“Contact Our Team”
+
+Include subtle animated energy lines or a technical grid in the background.
+
+2. BUSINESS AREAS SECTION
+
+Display five main business areas:
+
+- Power Distribution
+- Electrical Products
+- Electrical & Automation
+- Safety Fall Protection Systems
+- Testing & Commissioning
+
+Each card must include:
+- Relevant icon
+- Short description
+- Link to the relevant page
+- Hover interaction
+- Strong accessible contrast
+
+3. FEATURED SOLUTIONS SECTION
+
+Show selected featured categories:
+- MV / LV Turnkey Solutions
+- UPS & Stabilizers
+- Batteries
+- Meters & Precision Instruments
+- Safety & Fall Protection
+- Testing & Commissioning
+
+4. MV / LV TURNKEY SOLUTIONS SHOWCASE
+
+Create a visual section explaining that ARZANA provides integrated medium-voltage and low-voltage solutions.
+
+Include:
+- Ring Main Units
+- Transformers
+- Automatic Transfer Switches
+- Low Voltage Switchboards
+- Disconnect Switches
+- Power Factor Correction
+
+CTA:
+“View MV / LV Solutions”
+
+5. SAFETY SYSTEMS SECTION
+
+Highlight:
+- Safety Nets
+- Edge Protection
+- Loading Platforms
+- Shaft Gates
+
+Use professional construction and industrial safety imagery.
+
+6. TESTING & COMMISSIONING SECTION
+
+Use an electrical substation or engineers-at-work visual.
+
+Headline:
+“Testing and Commissioning of Electrical Substations”
+
+Include a short overview of the systems covered:
+- Low voltage switchgear
+- Medium voltage switchgear
+- Transformers
+- Protection relays
+- AC and DC panels
+- Batteries
+- Power cables
+- Capacitor banks
+- Cable terminations
+
+CTA:
+“Explore Testing Services”
+
+7. INDUSTRIES / APPLICATIONS SECTION
+
+Use general, non-fabricated application areas such as:
+- Utilities
+- Commercial Buildings
+- Industrial Facilities
+- Infrastructure
+- Telecommunications
+- Data Centres
+- Construction Sites
+
+Do not claim previous projects in these sectors unless supported by the supplied client list.
+
+8. CLIENTS PREVIEW
+
+Show a selection of client logos from the supplied company profile.
+Use a clean logo grid or slow marquee.
+Do not modify client logos.
+Add a “View Our Clients” CTA.
+
+9. CONTACT CTA
+
+Headline:
+“Discuss Your Next Electrical or Safety Project”
+
+Buttons:
+- Request a Quote
+- Call Us
+- Email Us
+
+==================================================
+PRODUCTS & SOLUTIONS PAGE
+==================================================
+
+Create a complete searchable and filterable products catalogue.
+
+Required functionality:
+- Search by product name
+- Search by keyword
+- Filter by category
+- Filter by application when applicable
+- Clear all filters
+- Product count
+- Responsive grid
+- Category navigation
+- Breadcrumbs
+- Product detail modal or dedicated product detail page
+- “Request a Quote” button on every product card
+- “Request Technical Datasheet” button
+- Product image gallery when images are available
+- Related products section
+- Share product link
+- Empty-state message when no results are found
+
+Do not show fake prices.
+Use “Contact for Pricing” where needed.
+
+Each product card should display:
+- Product image
+- Product name
+- Category
+- Short professional description
+- View Details
+- Request a Quote
+
+==================================================
+CATEGORY 1: MV / LV TURNKEY SOLUTIONS
+==================================================
+
+Category title:
+MV / LV Turnkey Solutions
+
+Category introduction:
+Present ARZANA’s medium-voltage and low-voltage products as part of integrated power distribution solutions for utility, commercial, infrastructure, and industrial applications.
+
+Include every product below:
+
+1. Ring Main Unit – RMU
+Short description:
+Compact medium-voltage switchgear used for reliable power distribution, switching, isolation, and network protection.
+
+2. Metering RMU
+Short description:
+A ring main unit configuration designed to support medium-voltage power distribution and electrical metering applications.
+
+3. Dry-Type Transformer
+Available types:
+- Auto Transformer
+- Isolation Transformer
+
+Short description:
+Dry-type transformer solutions for electrical isolation, voltage transformation, and power distribution applications.
+
+4. Oil Distribution Transformer
+Available conductor options:
+- Aluminium
+- Copper
+
+Short description:
+Oil-filled distribution transformer solutions for dependable voltage transformation and electrical distribution networks.
+
+5. Automatic Transfer Switch
+Short description:
+Automatic switching solutions designed to transfer electrical loads between normal and backup power sources.
+
+6. Low Voltage Switchboard
+Short description:
+Low-voltage electrical distribution and control switchboards for commercial, infrastructure, and industrial installations.
+
+7. Disconnect Switch
+Short description:
+Electrical isolation and disconnection solutions supporting safe operation and maintenance of electrical systems.
+
+8. Power Factor Correction
+Short description:
+Power factor correction solutions designed to improve electrical system efficiency and manage reactive power.
+
+Display relevant manufacturer or partner logos only when supplied by the user, including logos visible in the company profile such as:
+- Schneider Electric
+- ATC
+
+Do not falsely state official partnership, dealership, or authorization unless confirmed by the user.
+When showing these logos, use neutral wording such as:
+“Featured brands and technologies shown in the company profile.”
+
+==================================================
+CATEGORY 2: UPS & STABILIZERS
+==================================================
+
+Category title:
+UPS & Stabilizers
+
+Category introduction:
+Power quality, backup power, voltage regulation, transfer, conversion, and battery charging solutions.
+
+Include all products:
+
+1. Uninterruptible Power Supply – UPS
+
+Available types:
+- Line Interactive UPS
+- Online UPS
+- Modular UPS
+
+Short description:
+Backup power solutions designed to protect critical electrical and electronic loads from outages and power-quality disturbances.
+
+2. Static Transfer Switches – STS
+Short description:
+High-speed static switching solutions used to transfer critical loads between independent power sources.
+
+3. Static Voltage Regulators
+Short description:
+Voltage-regulation solutions designed to maintain stable output voltage for sensitive electrical equipment.
+
+4. Automatic Voltage Regulators / Stabilizers – AVR
+Short description:
+Automatic voltage stabilization solutions for fluctuating electrical supplies.
+
+5. Frequency Converters
+
+Available frequency options:
+- 60 Hz
+- 50 Hz
+- 400 Hz
+
+Short description:
+Frequency conversion solutions for equipment and systems requiring different operating frequencies.
+
+6. Battery Chargers
+Short description:
+Battery charging systems for industrial, standby, control, and backup-power applications.
+
+Show brand logos from the company profile when assets are available, including:
+- Riello UPS
+- Tescom
+
+Do not claim authorized distributor status unless separately confirmed.
+
+==================================================
+CATEGORY 3: SAFETY & FALL PROTECTION SYSTEMS
+==================================================
+
+Category title:
+Safety & Fall Protection Systems
+
+Create a strong safety-focused page using construction-site imagery and clear product explanations.
+
+Include all systems:
+
+1. Safety Nets
+Short description:
+Collective fall-protection net systems designed to reduce the risks associated with work at height.
+
+2. Edge Protection
+Short description:
+Temporary edge-protection systems designed to help secure exposed slab edges, platforms, and elevated working areas.
+
+3. Loading Platforms
+Short description:
+Temporary construction loading platforms used to support the safe transfer of materials between building levels.
+
+4. Shaft Gates
+Short description:
+Temporary access-control and protection systems for open shafts and other hazardous construction openings.
+
+Use “Safety & Protection Fall System” as an additional page subtitle or label.
+
+Add CTAs:
+- Request Safety System Consultation
+- Request a Quote
+
+Do not promise regulatory compliance with a specific standard unless the standard is later supplied.
+
+==================================================
+CATEGORY 4: BATTERIES
+==================================================
+
+Category title:
+Industrial Batteries
+
+Include all battery types:
+
+1. Nickel-Cadmium Batteries – Ni-Cd
+Short description:
+Industrial rechargeable batteries suitable for demanding standby and backup-power applications.
+
+2. Lead-Acid Batteries
+
+Include the following types:
+- AGM Batteries
+- GEL Batteries
+- Flooded Lead-Acid Batteries
+
+Short description:
+Lead-acid battery solutions for backup power, UPS systems, control systems, and industrial applications.
+
+3. OPzS Batteries
+Short description:
+Stationary flooded tubular-plate battery solutions commonly used in long-duration standby and industrial applications.
+
+4. Lithium Batteries
+Short description:
+Lithium battery solutions providing compact and efficient energy storage for suitable backup-power applications.
+
+Display battery-related logos from the profile when supplied, such as:
+- EnerSys
+- YUASA
+- EverExceed
+- CSB
+- GNB
+
+Do not make unverified claims about official partnerships.
+
+==================================================
+CATEGORY 5: METERS & PRECISION INSTRUMENTS
+==================================================
+
+Category title:
+Meters & Precision Instruments
+
+Include every product below:
+
+1. Multifunction Meters
+Description:
+Electrical meters designed to measure and display multiple electrical parameters from a single device.
+
+2. Digital Multimeters
+Description:
+Portable or panel-based instruments for measuring electrical values such as voltage, current, and resistance.
+
+3. Digital Panel Meters
+Description:
+Panel-mounted digital instruments used to display electrical and process measurements.
+
+4. Analog Panel Meters
+Description:
+Panel-mounted analog instruments for visual monitoring of electrical values.
+
+5. kWh Energy Meters
+Description:
+Energy meters used to measure electrical energy consumption.
+
+6. Current Transformers
+Description:
+Instrument transformers used to scale electrical current for measurement and protection systems.
+
+7. Protection Relays
+Description:
+Electrical protection devices used to detect abnormal system conditions and initiate protective action.
+
+8. Transducers and Isolators
+Description:
+Signal conversion, measurement, and electrical isolation devices for automation and monitoring systems.
+
+9. Temperature Controllers
+Description:
+Controllers used to monitor and regulate temperature in electrical and industrial processes.
+
+10. Converters and Recorders
+Description:
+Devices used for signal conversion, monitoring, recording, and process-data documentation.
+
+11. Insulation Testers
+Description:
+Test instruments used to evaluate electrical insulation resistance.
+
+12. Rotary Switches
+Description:
+Multi-position electrical switches used for selection, control, and measurement circuits.
+
+Show product or manufacturer logos visible in the company profile when supplied, including:
+- Rishabh
+- CEWE Instrument
+
+Use the corrected spelling “Digital Multimeters” and “Insulation Testers” throughout the website.
+
+==================================================
+CATEGORY 6: SHELTERS & CONTAINERS
+==================================================
+
+Category title:
+Shelters & Containers
+
+Include:
+
+1. Telecommunication Shelter
+Short description:
+Purpose-built shelter solutions for telecommunications equipment and supporting electrical systems.
+
+2. LCC Container
+Short description:
+Containerized electrical and control solutions designed around project-specific equipment requirements.
+
+3. Electrical House
+Short description:
+Prefabricated electrical-house solutions for housing switchgear, control panels, power systems, and related equipment.
+
+Use professional modular-building and containerized electrical-room imagery.
+
+Display the Refcor logo only when the original asset is supplied.
+
+==================================================
+CATEGORY 7: RACKS & CABINETS
+==================================================
+
+Category title:
+Racks & Cabinets
+
+Include:
+
+1. Data Centre Cabinets
+Short description:
+Cabinet solutions for organizing, protecting, and managing data-centre and network equipment.
+
+2. Battery Cabinets
+Short description:
+Dedicated cabinets designed to organize and protect battery systems and their associated connections.
+
+3. Battery Racks
+Short description:
+Structural rack systems designed to support and organize stationary battery installations.
+
+Add product enquiry CTAs to every item.
+
+==================================================
+CATEGORY 8: FIRE ALARM & FIREFIGHTING SYSTEMS
+==================================================
+
+Category title:
+Fire Alarm & Firefighting Systems
+
+Include:
+
+1. Fire Alarm Systems
+Short description:
+Detection, notification, and alarm-system solutions for suitable commercial, industrial, and infrastructure applications.
+
+2. Firefighting Systems
+Short description:
+Fire-protection and firefighting system solutions configured according to project requirements.
+
+3. Fire Extinguishers
+Short description:
+Portable fire-extinguishing products for appropriate fire-risk applications.
+
+4. LED Obstruction Lights
+Short description:
+LED warning and obstruction lighting used to improve the visibility of structures and potential hazards.
+
+Do not state specific civil-defence approvals or standards unless confirmed.
+
+==================================================
+TESTING & COMMISSIONING PAGE
+==================================================
+
+Page title:
+Testing & Commissioning
+
+Main headline:
+“Testing and Commissioning of Electrical Substations”
+
+Create a highly professional service page explaining that ARZANA performs testing and commissioning activities for electrical-substation equipment and systems.
+
+Include all listed testing and commissioning areas:
+
+1. Low Voltage Switchgear
+2. Medium Voltage Switchgear
+3. Power Transformers
+4. Auxiliary Transformers
+5. Protection Relays
+6. AC Panels
+7. DC Panels
+8. Batteries
+9. Battery Chargers
+10. Medium Voltage Power Cables
+11. Capacitor Banks
+12. Cable Terminations
+
+Structure the page using:
+
+- Service overview
+- Equipment and systems covered
+- Typical testing workflow
+- Documentation and reporting
+- Request for testing and commissioning service
+- Contact engineering team
+
+Suggested workflow presentation:
+1. Project and document review
+2. Equipment inspection
+3. Testing preparation
+4. Electrical and functional testing
+5. Verification of protection and control systems
+6. Commissioning support
+7. Reporting and documentation
+
+Clearly label this workflow as a general service workflow.
+Do not claim a specific testing standard, accredited laboratory status, or certification unless later supplied.
+
+Add a service enquiry form with:
+- Full name
+- Company
+- Email
+- Phone
+- Project location
+- Substation voltage level
+- Equipment requiring testing
+- Required service
+- Preferred date
+- Project description
+- File upload
+- Submit request
+
+==================================================
+ABOUT US PAGE
+==================================================
+
+Create an elegant About Us page.
+
+Suggested content:
+“ARZANA Arabia Company supplies integrated electrical, power-distribution, automation, safety, and engineering solutions for clients in Saudi Arabia. Its offering includes MV and LV equipment, transformers, UPS systems, batteries, meters and instruments, shelters, cabinets, fire systems, fall-protection systems, and electrical-substation testing and commissioning.”
+
+Include:
+- Company introduction
+- Core business areas
+- Solutions-focused approach
+- Commitment to quality
+- Technical and engineering support
+- Saudi Arabia location
+- Contact CTA
+
+Do not create:
+- A fake founding year
+- Fake employee count
+- Fake completed-project count
+- Fake awards
+- Fake accreditations
+- Fake mission statistics
+
+A general mission statement may be used:
+“To support customers with dependable electrical products, integrated solutions, responsive technical support, and professional engineering services.”
+
+A general vision statement may be used:
+“To be a trusted provider of electrical, power, safety, and engineering solutions in Saudi Arabia.”
+
+==================================================
+CLIENTS PAGE
+==================================================
+
+Create a dedicated clients page.
+
+Use the original client logos supplied in the company profile.
+Present them in a clean responsive logo grid.
+Do not recreate or alter the logos.
+Do not invent client testimonials, project names, values, or contract details.
+
+The company profile appears to include client logos such as:
+- Saudi Electricity Company
+- Saudi Customs
+- Ministry of Media
+- King Saud University
+- ABB
+- Alfanar
+- Safari
+- SANS
+- Teleco
+- L&T Construction
+- Al Ajwani
+- EG&G
+- EHS
+- EL SEIF
+- Additional logos included in the supplied company profile
+
+Only display a logo when the actual image asset is available and clear enough to use.
+If a logo name cannot be verified, show the original logo image without adding an invented company name beneath it.
+
+Add this neutral text:
+“ARZANA has supported organizations across utility, infrastructure, commercial, government, and industrial environments.”
+
+Do not imply endorsement by any client.
+
+==================================================
+CONTACT PAGE
+==================================================
+
+Create a complete contact page containing:
+
+ARZANA Arabia Company
+
+Address:
+ServCorp Building 13
+Laysen Valley Complex
+Al Urubah Road
+Umm Al Hamam Al Gharbi District
+Riyadh 12329
+Saudi Arabia
+
+Telephone:
++966 11 2041144
+
+Mobile:
++966 56 667 6600
++966 59 708 0480
+
+Emails:
+m.saadi@arzanaco.com
+moaath@arzanaco.com
+
+Website:
+www.arzanaco.com
+
+Add:
+- Click-to-call telephone links
+- Click-to-email links
+- WhatsApp buttons for both mobile numbers
+- Google Maps embedded location section
+- Business enquiry form
+- Department selection
+- Product category selection
+- File attachment field
+- Consent checkbox
+- Success and error states
+
+Contact form fields:
+- Full name
+- Company name
+- Job title
+- Email
+- Phone number
+- Country
+- City
+- Enquiry type
+- Product or service category
+- Subject
+- Message
+- Attachment
+- Consent checkbox
+
+Enquiry type options:
+- Product Enquiry
+- Request a Quote
+- Technical Support
+- Testing & Commissioning
+- Safety System Enquiry
+- General Enquiry
+
+==================================================
+REQUEST A QUOTE PAGE
+==================================================
+
+Create a detailed multi-step quotation form.
+
+Step 1: Contact Information
+- Full name
+- Company
+- Job title
+- Email
+- Phone
+- Country
+- City
+
+Step 2: Required Category
+- MV / LV Turnkey Solutions
+- UPS & Stabilizers
+- Safety & Fall Protection
+- Batteries
+- Meters & Precision Instruments
+- Shelters & Containers
+- Racks & Cabinets
+- Fire Alarm & Firefighting
+- Testing & Commissioning
+
+Step 3: Product Selection
+Dynamically display products belonging to the chosen category.
+
+Step 4: Project Information
+- Project name
+- Project location
+- Required quantity
+- Required delivery date
+- Project stage
+- Technical requirements
+- Message
+- Upload specification, BOQ, drawing, or datasheet
+
+Step 5: Review and Submit
+
+Add:
+- Validation
+- Upload-progress state
+- Submission-success page
+- Reference number
+- Email confirmation placeholder
+- Privacy consent checkbox
+
+Do not connect the form to an external backend without approval.
+Initially create a clean frontend implementation with a clearly marked integration point.
+
+==================================================
+PRODUCT DETAIL PAGE TEMPLATE
+==================================================
+
+Every product should have a dedicated SEO-friendly page using this structure:
+
+- Breadcrumbs
+- Product category
+- Product name
+- Product images
+- Short overview
+- General applications
+- Available types or options, only when provided
+- Request technical datasheet
+- Request a quote
+- Contact engineering team
+- Related products
+- Download area placeholder
+- Enquiry form
+
+Do not generate fake model numbers or technical tables.
+
+For products with supplied options, show only these verified options:
+
+Dry-Type Transformer:
+- Auto Transformer
+- Isolation Transformer
+
+Oil Distribution Transformer:
+- Aluminium
+- Copper
+
+UPS:
+- Line Interactive
+- Online
+- Modular
+
+Frequency Converters:
+- 50 Hz
+- 60 Hz
+- 400 Hz
+
+Lead-Acid Batteries:
+- AGM
+- GEL
+- Flooded
+
+==================================================
+SEARCH AND MEGA MENU
+==================================================
+
+Create a desktop mega menu under “Products & Solutions”.
+
+Columns:
+
+Power Distribution:
+- Ring Main Unit
+- Metering RMU
+- Dry-Type Transformer
+- Oil Distribution Transformer
+- Automatic Transfer Switch
+- Low Voltage Switchboard
+- Disconnect Switch
+- Power Factor Correction
+
+Power Quality:
+- UPS
+- Static Transfer Switches
+- Static Voltage Regulators
+- AVR Stabilizers
+- Frequency Converters
+- Battery Chargers
+
+Energy Storage and Instruments:
+- Industrial Batteries
+- Meters & Precision Instruments
+- Current Transformers
+- Protection Relays
+- Temperature Controllers
+- Insulation Testers
+
+Infrastructure:
+- Shelters & Containers
+- Racks & Cabinets
+- Fire Alarm & Firefighting
+- Safety & Fall Protection
+
+Services:
+- Testing & Commissioning
+- Request a Quote
+- Contact Engineering Team
+
+Mobile navigation should use an accessible accordion.
+
+==================================================
+SEO REQUIREMENTS
+==================================================
+
+Create proper SEO metadata for every page.
+
+Use relevant keyword themes naturally, such as:
+- Electrical products Saudi Arabia
+- Power distribution solutions Riyadh
+- MV switchgear Saudi Arabia
+- LV switchboards Riyadh
+- Ring Main Unit supplier Saudi Arabia
+- Transformers Saudi Arabia
+- UPS systems Saudi Arabia
+- Industrial batteries Riyadh
+- Electrical testing and commissioning Saudi Arabia
+- Substation testing Saudi Arabia
+- Fall protection systems Saudi Arabia
+- Safety nets and edge protection Saudi Arabia
+- Electrical meters and protection relays
+- Containerized electrical houses Saudi Arabia
+
+Include:
+- Unique page titles
+- Meta descriptions
+- Canonical URL structure
+- Open Graph metadata
+- Twitter card metadata
+- Organization schema
+- LocalBusiness schema
+- Product schema where appropriate
+- Breadcrumb schema
+- Sitemap
+- robots.txt
+- Semantic HTML
+- Descriptive alt text
+
+Do not add fake ratings, reviews, pricing, stock status, or product SKUs to structured data.
+
+==================================================
+ACCESSIBILITY REQUIREMENTS
+==================================================
+
+- Meet WCAG-friendly contrast levels
+- Keyboard-accessible navigation
+- Visible focus states
+- Proper label and input associations
+- Accessible mobile menu
+- Accessible modals
+- Proper heading hierarchy
+- Alt text for all meaningful images
+- Decorative images should use empty alt text
+- ARIA labels only where necessary
+- Do not rely only on color to communicate information
+
+==================================================
+PERFORMANCE REQUIREMENTS
+==================================================
+
+- Optimize all images
+- Use modern image formats when possible
+- Lazy-load below-the-fold images
+- Avoid unnecessary JavaScript
+- Use route-based code splitting
+- Avoid layout shifts
+- Keep animations performant
+- Use optimized font loading
+- Build reusable product data from a structured data file
+- Target strong Lighthouse results
+- Add loading skeletons for product grids
+- Add error boundaries and useful empty states
+
+==================================================
+TECHNICAL IMPLEMENTATION
+==================================================
+
+Use:
+- React
+- TypeScript
+- Vite or the project’s existing framework
+- Tailwind CSS
+- shadcn/ui where appropriate
+- Origin UI / OriginKit components
+- Framer Motion for subtle animations
+- Lucide icons
+- React Router when needed
+- Clean reusable component architecture
+
+Suggested structure:
+- components/layout
+- components/navigation
+- components/products
+- components/forms
+- components/sections
+- pages
+- data/products.ts
+- data/categories.ts
+- data/clients.ts
+- i18n/en
+- i18n/ar
+- assets/logos
+- assets/products
+- assets/clients
+
+Store all product information in structured data rather than manually repeating cards.
+
+Each product data object should support:
+- id
+- slug
+- name
+- Arabic name
+- category
+- short description
+- Arabic short description
+- image
+- gallery
+- options
+- applications
+- featured
+- brand logo
+- related products
+
+==================================================
+IMAGE HANDLING
+==================================================
+
+Use the original product images and logos extracted from the supplied ARZANA company profile whenever their quality is sufficient.
+
+When an original image is not usable:
+- Use a high-quality relevant industrial placeholder image.
+- Do not use an image of a different product while presenting it as the real product.
+- Clearly structure the image source so it can be replaced later.
+
+Required image themes:
+- Electrical substations
+- RMUs
+- Switchboards
+- Transformers
+- UPS systems
+- Industrial batteries
+- Electrical meters
+- Protection relays
+- Data-centre cabinets
+- Battery racks
+- Telecommunication shelters
+- Electrical houses
+- Fire alarm systems
+- Fire extinguishers
+- Safety nets
+- Edge protection
+- Loading platforms
+- Shaft gates
+- Testing instruments
+- Electrical engineers performing commissioning
+
+==================================================
+FINAL QUALITY CHECK
+==================================================
+
+Before finishing, verify that:
+
+- Every product and service listed in this prompt exists on the website.
+- All eight main product categories are present.
+- All testing and commissioning items are present.
+- Contact details exactly match the provided company profile.
+- Both mobile numbers are included.
+- Both email addresses are included.
+- Arabic RTL works correctly.
+- No fake product specifications are added.
+- No fake statistics are added.
+- No fake certifications or partnerships are claimed.
+- Product cards work on mobile.
+- Search and filtering work.
+- Every product has a quote CTA.
+- Header and footer links work.
+- Forms have validation and useful status messages.
+- The website looks like a premium engineering company website, not a generic template.
+- The final result is polished, professional, responsive, fast, and ready for future backend integration.

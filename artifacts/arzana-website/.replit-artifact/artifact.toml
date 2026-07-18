@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "ARZANA Arabia Company Website"
+version = "1.0.0"
+id = "artifacts/arzana-website"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26157
+
+[services.development]
+run = "pnpm --filter @workspace/arzana-website run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/arzana-website", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/arzana-website/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26157"
+BASE_PATH = "/"
