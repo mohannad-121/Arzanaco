@@ -11,6 +11,22 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
 
+### Quote delivery
+
+The quote form submits to the existing Express endpoint at `POST /api/quote`.
+It validates the central catalog product IDs, sends an email through Resend, and
+then prepares a WhatsApp message for `966566676600`. Configure the following
+as API-service secrets before deploying:
+
+- `RESEND_API_KEY`
+- `QUOTE_FROM_EMAIL` — a Resend-verified sender, for example
+  `Arzana Website <quotes@your-verified-domain.com>`
+
+The email recipient is deliberately fixed server-side to
+`m.saadi@arzanaco.com`. Do not add any secret to the frontend or a `VITE_`
+variable. Resend must have the sender domain verified before successful email
+delivery can occur.
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9

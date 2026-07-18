@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { Checkbox } from '../components/ui/checkbox';
@@ -7,36 +7,44 @@ import { categories } from '../data/categories';
 import { products } from '../data/products';
 import { useLanguage } from '../contexts/LanguageContext';
 
+const WHATSAPP_NUMBER = '966566676600';
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
+const PHONE_ALLOWED_PATTERN = /^[0-9+().\-\s]+$/;
+
 type QuoteFormData = {
   fullName: string;
-  company: string;
+  companyName: string;
   email: string;
   phone: string;
   productIds: string[];
+  website: string;
 };
 
-type QuoteField = keyof QuoteFormData;
+type QuoteField = Exclude<keyof QuoteFormData, 'website'>;
 type QuoteErrors = Partial<Record<QuoteField, string>>;
+
+type QuoteSuccess = {
+  productNames: string[];
+  whatsappUrl: string;
+};
 
 const initialFormData: QuoteFormData = {
   fullName: '',
-  company: '',
+  companyName: '',
   email: '',
   phone: '',
   productIds: [],
+  website: '',
 };
 
 export default function RequestQuote() {
   const { language } = useLanguage();
   const [formData, setFormData] = useState<QuoteFormData>(initialFormData);
   const [errors, setErrors] = useState<QuoteErrors>({});
-  const [preparedRequest, setPreparedRequest] = useState<{
-    fullName: string;
-    company: string;
-    email: string;
-    phone: string;
-    products: string[];
-  } | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<QuoteSuccess | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const popupRef = useRef<Window | null>(null);
 
   const copy =
     language === 'ar'
@@ -52,13 +60,19 @@ export default function RequestQuote() {
           required: 'مطلوب',
           selectProducts: 'اختر منتجاً واحداً على الأقل من كتالوج الشركة.',
           submit: 'إعداد طلب عرض السعر',
+          sending: 'جارٍ الإرسال…',
+          prepared: 'تم إعداد الطلب',
           reset: 'إعادة تعيين',
+          tryAgain: 'إرسال طلب جديد',
+          openWhatsApp: 'فتح واتساب',
           requiredError: 'هذا الحقل مطلوب.',
           emailError: 'أدخل عنوان بريد إلكتروني صالحاً.',
-          productsError: 'اختر منتجاً واحداً على الأقل.',
-          noticeTitle: 'إرسال طلبات عروض الأسعار غير متصل بعد.',
-          noticeDescription:
-            'تم التحقق من البيانات أدناه وتجهيزها للتكامل مع خدمة الإرسال لاحقاً. يرجى التواصل مع فريق أرزانا العربية لإرسال الطلب حالياً.',
+          phoneError: 'أدخل رقم هاتف صالحاً.',
+          productsError: 'اختر منتجاً واحداً على الأقل من الكتالوج.',
+          genericError: 'تعذر إرسال طلب عرض السعر. بياناتك ما زالت موجودة؛ يرجى المحاولة مرة أخرى.',
+          successTitle: 'تم إرسال طلبك عبر البريد الإلكتروني',
+          successDescription:
+            'تم إرسال تفاصيل الطلب إلى أرزانا. تم تجهيز رسالة واتساب أيضاً؛ اضغط إرسال داخل واتساب لإكمال الإرسال عبر واتساب.',
           preparedProducts: 'المنتجات المجهزة للطلب:',
         }
       : {
@@ -72,61 +86,119 @@ export default function RequestQuote() {
           products: 'Products You Are Interested In',
           required: 'Required',
           selectProducts: 'Select at least one product from the company catalog.',
-          submit: 'Prepare Quote Request',
+          submit: 'Prepare Quote',
+          sending: 'Sending…',
+          prepared: 'Quote Prepared',
           reset: 'Reset',
+          tryAgain: 'Try Again',
+          openWhatsApp: 'Open WhatsApp',
           requiredError: 'This field is required.',
           emailError: 'Enter a valid email address.',
-          productsError: 'Select at least one product.',
-          noticeTitle: 'Quote request submission is not connected yet.',
-          noticeDescription:
-            'The details below have been validated and prepared for a future submission integration. Please contact ARZANA Arabia to submit the request today.',
-          preparedProducts: 'Products prepared for the request:',
+          phoneError: 'Enter a valid phone number.',
+          productsError: 'Select at least one catalog product.',
+          genericError:
+            'We could not submit your quote request. Your details are still here—please try again.',
+          successTitle: 'Your quote request was emailed to Arzana',
+          successDescription:
+            'Your email request was delivered. A WhatsApp message is also prepared; press Send inside WhatsApp to complete the WhatsApp submission.',
+          preparedProducts: 'Products included in the request:',
         };
 
   const validate = () => {
     const nextErrors: QuoteErrors = {};
+    const selectedProducts = formData.productIds.map((productId) =>
+      products.find((product) => product.id === productId),
+    );
 
     if (!formData.fullName.trim()) nextErrors.fullName = copy.requiredError;
-    if (!formData.company.trim()) nextErrors.company = copy.requiredError;
+    if (!formData.companyName.trim()) nextErrors.companyName = copy.requiredError;
     if (!formData.email.trim()) {
       nextErrors.email = copy.requiredError;
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    } else if (!EMAIL_PATTERN.test(formData.email.trim())) {
       nextErrors.email = copy.emailError;
     }
-    if (!formData.phone.trim()) nextErrors.phone = copy.requiredError;
-    if (formData.productIds.length === 0) nextErrors.productIds = copy.productsError;
+    if (!isValidPhone(formData.phone)) nextErrors.phone = formData.phone.trim() ? copy.phoneError : copy.requiredError;
+    if (
+      formData.productIds.length === 0 ||
+      selectedProducts.some((product) => !product) ||
+      new Set(formData.productIds).size !== formData.productIds.length
+    ) {
+      nextErrors.productIds = copy.productsError;
+    }
 
     return nextErrors;
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
+    setSubmissionError(null);
 
     if (Object.keys(nextErrors).length > 0) {
-      setPreparedRequest(null);
+      setSuccess(null);
       return;
     }
 
-    const quoteRequest = {
-      fullName: formData.fullName.trim(),
-      company: formData.company.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      products: formData.productIds
-        .map((productId) => products.find((product) => product.id === productId))
-        .filter((product): product is (typeof products)[number] => Boolean(product))
-        .map((product) => (language === 'ar' ? product.nameAr : product.nameEn)),
-    };
+    // This blank tab is opened synchronously from the customer action. It is redirected
+    // to WhatsApp only after the API confirms that the email was delivered.
+    const popup = window.open('about:blank', '_blank');
+    if (popup) popup.opener = null;
+    popupRef.current = popup;
+    setIsSubmitting(true);
 
-    setPreparedRequest(quoteRequest);
+    try {
+      const response = await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName.trim(),
+          companyName: formData.companyName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          productIds: formData.productIds,
+          language,
+          website: formData.website,
+        }),
+      });
+      const result: unknown = await response.json().catch(() => null);
+
+      if (!response.ok || !isSuccessfulQuote(result)) {
+        if (popup && !popup.closed) popup.close();
+        popupRef.current = null;
+        setSubmissionError(getApiError(result, copy.genericError));
+        return;
+      }
+
+      const whatsappUrl = buildWhatsAppUrl({
+        fullName: formData.fullName,
+        companyName: formData.companyName,
+        email: formData.email,
+        phone: formData.phone,
+        productNames: result.productNames,
+        language,
+      });
+
+      setSuccess({ productNames: result.productNames, whatsappUrl });
+      if (popup && !popup.closed) {
+        popup.location.replace(whatsappUrl);
+        popup.focus();
+      }
+      popupRef.current = null;
+    } catch {
+      if (popup && !popup.closed) popup.close();
+      popupRef.current = null;
+      setSubmissionError(copy.genericError);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const updateField = (field: Exclude<QuoteField, 'productIds'>, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
-    setPreparedRequest(null);
+    setSubmissionError(null);
+    setSuccess(null);
   };
 
   const toggleProduct = (productId: string) => {
@@ -137,13 +209,17 @@ export default function RequestQuote() {
         : [...current.productIds, productId],
     }));
     setErrors((current) => ({ ...current, productIds: undefined }));
-    setPreparedRequest(null);
+    setSubmissionError(null);
+    setSuccess(null);
   };
 
   const resetForm = () => {
+    if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
+    popupRef.current = null;
     setFormData(initialFormData);
     setErrors({});
-    setPreparedRequest(null);
+    setSubmissionError(null);
+    setSuccess(null);
   };
 
   return (
@@ -160,7 +236,19 @@ export default function RequestQuote() {
 
       <section className="bg-background py-14 md:py-20">
         <div className="container mx-auto max-w-4xl px-4">
-          <form noValidate onSubmit={handleSubmit} className="rounded-2xl border bg-card p-6 shadow-sm md:p-10">
+          <form noValidate onSubmit={handleSubmit} className="relative rounded-2xl border bg-card p-6 shadow-sm md:p-10">
+            <div className="hidden" aria-hidden="true">
+              <label htmlFor="quote-website">Website</label>
+              <input
+                id="quote-website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={formData.website}
+                onChange={(event) => setFormData((current) => ({ ...current, website: event.target.value }))}
+              />
+            </div>
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 id="quote-full-name"
@@ -172,6 +260,7 @@ export default function RequestQuote() {
                   id="quote-full-name"
                   name="fullName"
                   autoComplete="name"
+                  maxLength={160}
                   value={formData.fullName}
                   onChange={(event) => updateField('fullName', event.target.value)}
                   aria-invalid={Boolean(errors.fullName)}
@@ -182,17 +271,18 @@ export default function RequestQuote() {
               <FormField
                 id="quote-company"
                 label={copy.company}
-                error={errors.company}
+                error={errors.companyName}
                 requiredLabel={copy.required}
               >
                 <Input
                   id="quote-company"
-                  name="company"
+                  name="companyName"
                   autoComplete="organization"
-                  value={formData.company}
-                  onChange={(event) => updateField('company', event.target.value)}
-                  aria-invalid={Boolean(errors.company)}
-                  aria-describedby={errors.company ? 'quote-company-error' : undefined}
+                  maxLength={160}
+                  value={formData.companyName}
+                  onChange={(event) => updateField('companyName', event.target.value)}
+                  aria-invalid={Boolean(errors.companyName)}
+                  aria-describedby={errors.companyName ? 'quote-company-error' : undefined}
                 />
               </FormField>
 
@@ -207,6 +297,7 @@ export default function RequestQuote() {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  maxLength={254}
                   value={formData.email}
                   onChange={(event) => updateField('email', event.target.value)}
                   aria-invalid={Boolean(errors.email)}
@@ -224,7 +315,9 @@ export default function RequestQuote() {
                   id="quote-phone"
                   name="phone"
                   type="tel"
+                  inputMode="tel"
                   autoComplete="tel"
+                  maxLength={32}
                   value={formData.phone}
                   onChange={(event) => updateField('phone', event.target.value)}
                   aria-invalid={Boolean(errors.phone)}
@@ -289,21 +382,37 @@ export default function RequestQuote() {
               </div>
             </fieldset>
 
+            {submissionError && (
+              <p role="alert" className="mt-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm font-medium text-destructive">
+                {submissionError}
+              </p>
+            )}
+
             <div className="mt-8 flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={resetForm}>
-                {copy.reset}
+              <Button type="button" variant="outline" onClick={resetForm} disabled={isSubmitting}>
+                {success ? copy.tryAgain : copy.reset}
               </Button>
-              <Button type="submit">{copy.submit}</Button>
+              <Button type="submit" disabled={isSubmitting || Boolean(success)}>
+                {isSubmitting ? copy.sending : success ? copy.prepared : copy.submit}
+              </Button>
             </div>
           </form>
 
-          {preparedRequest && (
+          {success && (
             <div role="status" className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm">
-              <h2 className="font-semibold text-foreground">{copy.noticeTitle}</h2>
-              <p className="mt-2 leading-relaxed text-foreground/75">{copy.noticeDescription}</p>
+              <h2 className="font-semibold text-foreground">{copy.successTitle}</h2>
+              <p className="mt-2 leading-relaxed text-foreground/75">{copy.successDescription}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => window.open(success.whatsappUrl, '_blank', 'noopener,noreferrer')}
+              >
+                {copy.openWhatsApp}
+              </Button>
               <p className="mt-4 font-medium text-foreground">{copy.preparedProducts}</p>
               <ul className="mt-2 list-disc space-y-1 ps-5 text-foreground/75">
-                {preparedRequest.products.map((productName) => (
+                {success.productNames.map((productName) => (
                   <li key={productName}>{productName}</li>
                 ))}
               </ul>
@@ -341,4 +450,72 @@ function FormField({
       )}
     </div>
   );
+}
+
+function isValidPhone(value: string): boolean {
+  const phone = value.trim();
+  if (!phone || !PHONE_ALLOWED_PATTERN.test(phone)) return false;
+  const digitCount = phone.replace(/\D/g, '').length;
+  return digitCount >= 7 && digitCount <= 15;
+}
+
+function buildWhatsAppUrl({
+  fullName,
+  companyName,
+  email,
+  phone,
+  productNames,
+  language,
+}: {
+  fullName: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  productNames: string[];
+  language: 'en' | 'ar';
+}): string {
+  const clean = (value: string) =>
+    value.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim();
+  const message =
+    language === 'ar'
+      ? [
+          'طلب عرض سعر جديد – شركة أرزانا',
+          '',
+          `الاسم الكامل:\n${clean(fullName)}`,
+          `اسم الشركة أو النشاط التجاري:\n${clean(companyName)}`,
+          `البريد الإلكتروني:\n${clean(email)}`,
+          `رقم الهاتف:\n${clean(phone)}`,
+          'المنتجات المطلوبة:',
+          ...productNames.map((productName) => `- ${clean(productName)}`),
+          '',
+          'المصدر:',
+          'موقع أرزانا',
+        ].join('\n')
+      : [
+          'New Quote Request – Arzana Co',
+          '',
+          `Full Name:\n${clean(fullName)}`,
+          `Company / Business:\n${clean(companyName)}`,
+          `Email:\n${clean(email)}`,
+          `Phone:\n${clean(phone)}`,
+          'Interested Products:',
+          ...productNames.map((productName) => `- ${clean(productName)}`),
+          '',
+          'Source:',
+          'Arzana Website',
+        ].join('\n');
+
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+function isSuccessfulQuote(value: unknown): value is { success: true; productNames: string[] } {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as { success?: unknown; productNames?: unknown };
+  return candidate.success === true && Array.isArray(candidate.productNames) && candidate.productNames.every((name) => typeof name === 'string');
+}
+
+function getApiError(value: unknown, fallback: string): string {
+  if (typeof value !== 'object' || value === null) return fallback;
+  const message = (value as { message?: unknown }).message;
+  return typeof message === 'string' && message.trim() ? message : fallback;
 }
