@@ -10,6 +10,9 @@
   "include": ["src"],
   "references": [
     {
+      "path": "../../lib/arzana-catalog"
+    },
+    {
       "path": "../../lib/db"
     },
     {
