@@ -1,74 +1,49 @@
-import React from 'react';
+import { Link } from 'wouter';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Building2, Target, Award, MapPin } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { useLocation } from 'wouter';
 
 export default function About() {
-  const { t } = useLanguage();
-  const [, setLocation] = useLocation();
+  const { language } = useLanguage();
+  const copy =
+    language === 'ar'
+      ? {
+          title: 'عن شركة أرزانا العربية',
+          introduction: 'تعرض هذه الصفحة المعلومات والمنتجات الواردة في ملف شركة أرزانا العربية.',
+          catalog: 'ملف الشركة',
+          catalogDescription:
+            'يشمل الملف منتجات الجهد المتوسط والمنخفض، وأنظمة عدم انقطاع التيار والبطاريات، وأجهزة القياس، وأنظمة السلامة، واختبار وتشغيل المحطات الكهربائية.',
+          explore: 'استعرض المنتجات',
+        }
+      : {
+          title: 'About ARZANA Arabia Company',
+          introduction: 'This site presents the information and products listed in the ARZANA Arabia company profile.',
+          catalog: 'Company Profile',
+          catalogDescription:
+            'The profile includes medium- and low-voltage products, UPS and batteries, measurement instruments, safety systems, and testing and commissioning of electrical substations.',
+          explore: 'Explore Products',
+        };
 
   return (
     <PageWrapper>
-      {/* Header */}
-      <section className="bg-muted py-24 border-b">
-        <div className="container mx-auto px-4 text-center max-w-3xl">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            About ARZANA Arabia Company
-          </h1>
-          <p className="text-xl text-foreground/70 leading-relaxed">
-            A premium Saudi engineering and electrical solutions provider offering integrated power, automation, safety, and testing services.
-          </p>
+      <section className="border-b bg-muted py-20 md:py-24">
+        <div className="container mx-auto max-w-3xl px-4 text-center">
+          <h1 className="text-4xl font-bold text-foreground md:text-5xl">{copy.title}</h1>
+          <p className="mt-6 text-lg leading-relaxed text-foreground/70 md:text-xl">{copy.introduction}</p>
         </div>
       </section>
 
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-24">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-foreground">Who We Are</h2>
-              <p className="text-lg text-foreground/80 leading-relaxed">
-                ARZANA Arabia Company is a specialized provider of engineering and electrical solutions based in Riyadh, Saudi Arabia. We serve utilities, government bodies, industrial complexes, and major construction projects with precision-engineered equipment and reliable services.
-              </p>
-              <p className="text-lg text-foreground/80 leading-relaxed">
-                Our portfolio spans medium and low voltage power distribution, uninterruptible power supplies, precision instrumentation, industrial safety systems, and comprehensive testing and commissioning services.
-              </p>
-            </div>
-            <div className="bg-card border rounded-2xl p-8 shadow-sm">
-              <div className="space-y-8">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0 text-primary">
-                    <Target className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">Our Mission</h3>
-                    <p className="text-foreground/70">To support customers with dependable electrical products, integrated solutions, responsive technical support, and professional engineering services.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0 text-primary">
-                    <Award className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">Our Vision</h3>
-                    <p className="text-foreground/70">To be a trusted provider of electrical, power, safety, and engineering solutions in Saudi Arabia.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Commitment */}
-          <div className="bg-foreground text-background rounded-3xl p-12 text-center max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-white mb-6">Commitment to Quality & Support</h2>
-            <p className="text-lg text-white/80 leading-relaxed mb-8">
-              We operate with a solutions-focused approach. Supplying equipment is only part of our mandate; ensuring that equipment integrates seamlessly, operates reliably, and is maintained professionally is where we deliver true value. Our engineering support team stands ready to assist at every project stage.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button size="lg" className="bg-primary text-white hover:bg-primary/90" onClick={() => setLocation('/contact')}>Contact Our Team</Button>
-            </div>
-          </div>
+      <section className="bg-background py-16 md:py-24">
+        <div className="container mx-auto max-w-4xl px-4">
+          <article className="rounded-2xl border bg-card p-8 shadow-sm md:p-12">
+            <h2 className="text-2xl font-bold text-foreground">{copy.catalog}</h2>
+            <p className="mt-5 max-w-3xl text-lg leading-relaxed text-foreground/75">{copy.catalogDescription}</p>
+            <Link
+              href="/products"
+              className="mt-8 inline-flex rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              {copy.explore}
+            </Link>
+          </article>
         </div>
       </section>
     </PageWrapper>
