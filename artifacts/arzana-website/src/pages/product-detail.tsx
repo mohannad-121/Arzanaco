@@ -1,143 +1,120 @@
-import React from 'react';
+import { Link, useLocation } from 'wouter';
+import { CheckCircle2, ChevronRight, Mail } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
-import { useLanguage } from '../contexts/LanguageContext';
+import { Button } from '../components/ui/button';
 import { categories } from '../data/categories';
 import { products } from '../data/products';
-import { Link, useLocation } from 'wouter';
-import { Button } from '../components/ui/button';
-import { ChevronRight, Download, Mail, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import NotFound from './not-found';
 
-import defaultProductImg from '@assets/product_rmu.jpg'; 
-import upsImg from '@assets/product_ups.jpg';
-import batteryImg from '@assets/product_batteries.jpg';
-import meterImg from '@assets/product_meters.jpg';
-import safetyImg from '@assets/area_safety.jpg';
-
-const getImageForProduct = (slug: string) => {
-  if (slug.includes('ups') || slug.includes('converter')) return upsImg;
-  if (slug.includes('batter')) return batteryImg;
-  if (slug.includes('meter') || slug.includes('relay')) return meterImg;
-  if (slug.includes('safety') || slug.includes('protection') || slug.includes('gate')) return safetyImg;
-  return defaultProductImg;
-};
-
-export default function ProductDetail({ params }: { params: { categorySlug: string, productSlug: string } }) {
+export default function ProductDetail({
+  params,
+}: {
+  params: { categorySlug: string; productSlug: string };
+}) {
   const { t, language } = useLanguage();
   const [, setLocation] = useLocation();
-
-  const product = products.find(p => p.slug === params.productSlug);
-  const category = categories.find(c => c.slug === params.categorySlug);
+  const product = products.find((item) => item.slug === params.productSlug);
+  const category = categories.find((item) => item.slug === params.categorySlug);
 
   if (!product || !category || product.categoryId !== category.id) {
     return <NotFound />;
   }
 
-  const img = getImageForProduct(product.slug);
-  
   const relatedProducts = products
-    .filter(p => p.categoryId === product.categoryId && p.id !== product.id)
+    .filter((item) => item.categoryId === product.categoryId && item.id !== product.id)
     .slice(0, 3);
+  const copy =
+    language === 'ar'
+      ? {
+          breadcrumb: 'المنتجات',
+          catalogEntry: 'منتج مدرج في ملف الشركة',
+          options: 'الخيارات المذكورة في الكتالوج',
+          quote: 'طلب عرض سعر',
+          contact: 'تواصل معنا',
+          related: 'منتجات أخرى في الفئة',
+        }
+      : {
+          breadcrumb: 'Products',
+          catalogEntry: 'Product listed in the company profile',
+          options: 'Catalog options',
+          quote: 'Request a Quote',
+          contact: 'Contact Us',
+          related: 'More products in this category',
+        };
 
   return (
     <PageWrapper>
-      {/* Breadcrumbs */}
-      <div className="bg-muted py-4 border-b">
-        <div className="container mx-auto px-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-primary transition-colors">{t('nav.home')}</Link>
-          <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-          <Link href="/products" className="hover:text-primary transition-colors">{t('nav.products')}</Link>
-          <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-          <Link href={`/products/${category.slug}`} className="hover:text-primary transition-colors">
+      <nav className="border-b bg-muted py-4" aria-label="Breadcrumb">
+        <div className="container mx-auto flex items-center gap-2 px-4 text-sm text-muted-foreground">
+          <Link href="/" className="hover:text-primary">{t('nav.home')}</Link>
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+          <Link href="/products" className="hover:text-primary">{copy.breadcrumb}</Link>
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+          <Link href={`/products/${category.slug}`} className="hover:text-primary">
             {language === 'ar' ? category.nameAr : category.nameEn}
           </Link>
-          <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-          <span className="text-foreground font-medium truncate">
+          <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+          <span className="truncate font-medium text-foreground">
             {language === 'ar' ? product.nameAr : product.nameEn}
           </span>
         </div>
-      </div>
+      </nav>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-24">
-          {/* Images */}
-          <div className="space-y-4">
-            <div className="aspect-[4/3] bg-muted rounded-xl overflow-hidden border">
-              <img src={img} alt={product.nameEn} className="w-full h-full object-cover" />
-            </div>
+      <section className="container mx-auto max-w-4xl px-4 py-14 md:py-20">
+        <article className="rounded-2xl border bg-card p-7 shadow-sm md:p-12">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+            {language === 'ar' ? category.nameAr : category.nameEn}
+          </p>
+          <h1 className="text-3xl font-bold leading-tight text-foreground md:text-5xl">
+            {language === 'ar' ? product.nameAr : product.nameEn}
+          </h1>
+          <p className="mt-5 text-lg text-foreground/70">{copy.catalogEntry}</p>
+
+          {product.types && product.types.length > 0 && (
+            <section className="mt-10 border-t pt-8">
+              <h2 className="mb-4 text-lg font-semibold text-foreground">{copy.options}</h2>
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {product.types.map((type) => (
+                  <li key={type} className="flex items-center gap-2 rounded-lg bg-muted px-4 py-3 text-foreground/80">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                    {type}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <div className="mt-10 flex flex-wrap gap-3 border-t pt-8">
+            <Button size="lg" onClick={() => setLocation('/request-quote')}>
+              {copy.quote}
+            </Button>
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => setLocation('/contact')}>
+              <Mail className="h-4 w-4" aria-hidden="true" />
+              {copy.contact}
+            </Button>
           </div>
+        </article>
 
-          {/* Details */}
-          <div className="flex flex-col">
-            <div className="mb-4">
-              <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
-                {language === 'ar' ? category.nameAr : category.nameEn}
-              </span>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                {language === 'ar' ? product.nameAr : product.nameEn}
-              </h1>
-            </div>
-            
-            <div className="prose prose-neutral dark:prose-invert mb-8">
-              <p className="text-lg text-foreground/80 leading-relaxed">
-                {language === 'ar' ? product.descriptionAr : product.descriptionEn}
-              </p>
-            </div>
-
-            {product.types && product.types.length > 0 && (
-              <div className="mb-8">
-                <h3 className="font-semibold text-foreground mb-4">Available Types:</h3>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {product.types.map((type, i) => (
-                    <li key={i} className="flex items-center gap-2 text-foreground/80">
-                      <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                      <span>{type}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="mt-auto pt-8 border-t flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => setLocation('/request-quote')}>
-                {t('nav.quote')}
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2">
-                <Download className="w-4 h-4" /> Technical Datasheet
-              </Button>
-              <Button size="lg" variant="ghost" className="gap-2" onClick={() => setLocation('/contact')}>
-                <Mail className="w-4 h-4" /> Contact Engineering Team
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="border-t pt-16">
-            <h2 className="text-2xl font-bold text-foreground mb-8">Related Products</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedProducts.map(rp => {
-                const rpImg = getImageForProduct(rp.slug);
-                return (
-                  <Link key={rp.id} href={`/products/${category.slug}/${rp.slug}`}>
-                    <div className="bg-card border rounded-lg overflow-hidden group cursor-pointer hover:border-primary transition-colors h-full flex flex-col">
-                      <div className="aspect-video bg-muted overflow-hidden">
-                        <img src={rpImg} alt={rp.nameEn} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                      </div>
-                      <div className="p-4 flex-1">
-                        <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {language === 'ar' ? rp.nameAr : rp.nameEn}
-                        </h4>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+          <section className="mt-14 border-t pt-12">
+            <h2 className="mb-6 text-2xl font-bold text-foreground">{copy.related}</h2>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              {relatedProducts.map((relatedProduct) => (
+                <Link
+                  key={relatedProduct.id}
+                  href={`/products/${category.slug}/${relatedProduct.slug}`}
+                  className="rounded-xl border bg-card p-5 transition-colors hover:border-primary"
+                >
+                  <p className="font-semibold text-foreground">
+                    {language === 'ar' ? relatedProduct.nameAr : relatedProduct.nameEn}
+                  </p>
+                </Link>
+              ))}
             </div>
-          </div>
+          </section>
         )}
-      </div>
+      </section>
     </PageWrapper>
   );
 }

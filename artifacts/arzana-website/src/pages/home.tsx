@@ -1,10 +1,11 @@
-import React from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '../components/ui/button';
 import { Link, useLocation } from 'wouter';
-import { ArrowRight, ChevronRight, Zap, Shield, FileText, Settings, Hammer, Users } from 'lucide-react';
+import { ChevronRight, Zap, Shield, FileText, Settings, Hammer } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ClientLogoCarousel } from '../components/ClientLogoCarousel';
+import { clients } from '../data/clients';
 
 import heroImg from '@assets/hero_substation.jpg';
 import mvlvImg from '@assets/mv_lv_showcase.jpg';
@@ -16,8 +17,6 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   const isRtl = language === 'ar';
-  const Arrow = isRtl ? ArrowRight : ArrowRight; // We'll just rotate it if needed, or lucide handles it
-
   return (
     <PageWrapper>
       {/* HERO SECTION */}
@@ -107,9 +106,7 @@ export default function Home() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl font-bold text-foreground mb-6">{t('mvlv.title')}</h2>
-              <p className="text-foreground/70 leading-relaxed mb-8 text-lg">
-                We deliver robust medium and low voltage solutions including Ring Main Units, Transformers, Automatic Transfer Switches, and Power Factor Correction systems designed for demanding industrial environments.
-              </p>
+              <p className="text-foreground/70 leading-relaxed mb-8 text-lg">{t('mvlv.subtitle')}</p>
               <Button onClick={() => setLocation('/products/mv-lv-solutions')}>
                 {t('mvlv.view')}
               </Button>
@@ -163,7 +160,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/60 to-transparent" />
               <div className="absolute inset-0 p-8 flex flex-col justify-end">
                 <h3 className="text-2xl font-bold text-white mb-3">{t('testing.title')}</h3>
-                <p className="text-white/80 mb-6 max-w-md">Comprehensive substation testing, equipment verification, and commissioning services by certified engineers.</p>
+                <p className="text-white/80 mb-6 max-w-md">{t('testing.subtitle')}</p>
                 <Button variant="secondary" className="w-fit" onClick={() => setLocation('/testing-commissioning')}>
                   {t('testing.explore')}
                 </Button>
@@ -173,32 +170,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INDUSTRIES */}
-      <section className="py-24 bg-muted">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground mb-4">{t('industries.title')}</h2>
-            <div className="w-24 h-1 bg-primary mx-auto"></div>
+      {clients.length > 0 && (
+        <section className="bg-muted py-20 md:py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto mb-12 max-w-2xl text-center">
+              <h2 className="mb-4 text-3xl font-bold text-foreground">{t('clients.title')}</h2>
+              <p className="text-foreground/70">{t('clients.subtitle')}</p>
+            </div>
+            <div className="mx-auto max-w-3xl">
+              <ClientLogoCarousel clients={clients} />
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/clients" className="text-sm font-semibold text-primary hover:underline">
+                {t('clients.view')}
+              </Link>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[
-              t('industries.utilities'),
-              t('industries.commercial'),
-              t('industries.industrial'),
-              t('industries.infrastructure'),
-              t('industries.telecom'),
-              t('industries.datacenters'),
-              t('industries.construction'),
-              "Oil & Gas"
-            ].map((industry, i) => (
-              <div key={i} className="bg-card border border-border p-6 rounded-lg text-center font-medium text-foreground hover:border-primary transition-colors">
-                {industry}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="py-24 bg-primary text-primary-foreground text-center">

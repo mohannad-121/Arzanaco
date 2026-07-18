@@ -15,7 +15,7 @@ export const en: Translations = {
 
   // Home Hero
   "hero.title": "Integrated Power, Electrical and Safety Solutions",
-  "hero.subtitle": "ARZANA Arabia Company provides comprehensive power distribution, electrical automation, safety systems, specialized products, and testing and commissioning services across Saudi Arabia.",
+  "hero.subtitle": "Explore ARZANA Arabia's catalog of electrical, safety, and testing offerings.",
   "hero.cta.primary": "Explore Our Solutions",
   "hero.cta.secondary": "Request a Quote",
   "hero.cta.tertiary": "Contact Our Team",
@@ -42,31 +42,26 @@ export const en: Translations = {
   "products.categories": "Categories",
   
   // MV/LV
-  "mvlv.title": "MV / LV Turnkey Solutions",
+  "mvlv.title": "MV / LV Solutions",
+  "mvlv.subtitle": "Explore the medium- and low-voltage products listed in the company profile.",
   "mvlv.view": "View MV / LV Solutions",
 
   // Safety
   "safety.title": "Safety & Fall Protection Systems",
-  "safety.subtitle": "Collective fall-protection systems to reduce risks of work at height.",
+  "safety.subtitle": "Safety nets, edge protection, loading platforms, and shaft gates.",
 
   // Testing
   "testing.title": "Testing and Commissioning of Electrical Substations",
+  "testing.subtitle": "The company profile lists testing and commissioning of electrical substations.",
   "testing.explore": "Explore Testing Services",
   
-  // Industries
-  "industries.title": "Industries We Serve",
-  "industries.utilities": "Utilities",
-  "industries.commercial": "Commercial Buildings",
-  "industries.industrial": "Industrial Facilities",
-  "industries.infrastructure": "Infrastructure",
-  "industries.telecom": "Telecommunications",
-  "industries.datacenters": "Data Centres",
-  "industries.construction": "Construction Sites",
-
   // Clients
-  "clients.title": "Trusted by Industry Leaders",
-  "clients.subtitle": "ARZANA has supported organizations across utility, infrastructure, commercial, government, and industrial environments.",
+  "clients.title": "Our Clients",
+  "clients.subtitle": "Browse the organizations represented by the client logos provided to ARZANA Arabia.",
   "clients.view": "View Our Clients",
+  "clients.gridTitle": "Client Logos",
+  "clients.emptyTitle": "Client logos are being updated",
+  "clients.emptyDescription": "Please check back soon for the latest client logo collection.",
 
   // Contact
   "contact.cta.title": "Discuss Your Next Electrical or Safety Project",
@@ -74,7 +69,7 @@ export const en: Translations = {
   "contact.email": "Email Us",
 
   // Footer
-  "footer.description": "A premium Saudi engineering and electrical solutions provider offering integrated power, automation, safety, and testing services.",
+  "footer.description": "Electrical products, safety systems, and testing and commissioning offerings.",
   "footer.address": "ServCorp Building 13, Laysen Valley Complex, Al Urubah Road, Umm Al Hamam Al Gharbi District, Riyadh 12329, Saudi Arabia",
   "footer.copyright": "© 2024 ARZANA Arabia Company. All rights reserved.",
   "footer.privacy": "Privacy Policy"

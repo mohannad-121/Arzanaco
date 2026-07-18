@@ -86,9 +86,6 @@ export const Header = () => {
                           <div className="text-sm font-semibold text-foreground group-hover:text-primary">
                             {language === 'ar' ? cat.nameAr : cat.nameEn}
                           </div>
-                          <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                            {language === 'ar' ? cat.descriptionAr : cat.descriptionEn}
-                          </div>
                         </Link>
                       </NavigationMenuLink>
                     ))}
