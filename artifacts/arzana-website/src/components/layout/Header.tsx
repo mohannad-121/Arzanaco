@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Menu, X } from 'lucide-react';
 import { Button } from '../ui/button';
-import { categories } from '../../data/categories';
+import { useCatalog } from '../../contexts/CatalogContext';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,6 +16,7 @@ import { cn } from '../../lib/utils';
 
 export const Header = () => {
   const { t, language, setLanguage } = useLanguage();
+  const { categories } = useCatalog();
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [productsOpen, setProductsOpen] = React.useState(false);

@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'wouter';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { categories } from '../../data/categories';
+import { useCatalog } from '../../contexts/CatalogContext';
 import { Mail, MapPin, Phone, ArrowUp } from 'lucide-react';
 import { Button } from '../ui/button';
 
 export const Footer = () => {
   const { t, language } = useLanguage();
+  const { categories } = useCatalog();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -3,9 +3,8 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { Checkbox } from '../components/ui/checkbox';
 import { Input } from '../components/ui/input';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCatalog } from '../contexts/CatalogContext';
 
 const WHATSAPP_NUMBER = '966566676600';
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
@@ -39,6 +38,7 @@ const initialFormData: QuoteFormData = {
 
 export default function RequestQuote() {
   const { language } = useLanguage();
+  const { categories, products } = useCatalog();
   const [formData, setFormData] = useState<QuoteFormData>(initialFormData);
   const [errors, setErrors] = useState<QuoteErrors>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -178,6 +178,10 @@ export default function RequestQuote() {
           email: formData.email.trim(),
           phone: formData.phone.trim(),
           productIds: formData.productIds,
+          productNames: formData.productIds.map((productId) => {
+            const product = products.find((item) => item.id === productId);
+            return language === 'ar' ? product?.nameAr : product?.nameEn;
+          }).filter((name): name is string => Boolean(name)),
           language,
           website: formData.website,
         }),

@@ -2,13 +2,13 @@ import { Link, useLocation } from 'wouter';
 import { ArrowRight } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCatalog } from '../contexts/CatalogContext';
 import safetyImage from '@assets/service_safety.jpg';
 
 export default function SafetySystems() {
   const { language } = useLanguage();
+  const { categories, products } = useCatalog();
   const [, setLocation] = useLocation();
   const category = categories.find((item) => item.id === 'cat-3');
   const safetyProducts = products.filter((product) => product.categoryId === 'cat-3');

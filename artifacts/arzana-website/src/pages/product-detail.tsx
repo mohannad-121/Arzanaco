@@ -2,9 +2,8 @@ import { Link, useLocation } from 'wouter';
 import { CheckCircle2, ChevronRight, Mail } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCatalog } from '../contexts/CatalogContext';
 import NotFound from './not-found';
 
 export default function ProductDetail({
@@ -13,6 +12,7 @@ export default function ProductDetail({
   params: { categorySlug: string; productSlug: string };
 }) {
   const { t, language } = useLanguage();
+  const { categories, products } = useCatalog();
   const [, setLocation] = useLocation();
   const product = products.find((item) => item.slug === params.productSlug);
   const category = categories.find((item) => item.slug === params.categorySlug);
@@ -69,7 +69,9 @@ export default function ProductDetail({
           <h1 className="text-3xl font-bold leading-tight text-foreground md:text-5xl">
             {language === 'ar' ? product.nameAr : product.nameEn}
           </h1>
-          <p className="mt-5 text-lg text-foreground/70">{copy.catalogEntry}</p>
+          <p className="mt-5 text-lg leading-relaxed text-foreground/70">
+            {(language === 'ar' ? product.descriptionAr : product.descriptionEn) || copy.catalogEntry}
+          </p>
 
           {product.types && product.types.length > 0 && (
             <section className="mt-10 border-t pt-8">
