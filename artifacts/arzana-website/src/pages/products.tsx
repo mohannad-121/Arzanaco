@@ -4,12 +4,12 @@ import { Search } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useCatalog } from '../contexts/CatalogContext';
 
 export default function Products({ params }: { params?: { categorySlug?: string } }) {
   const { t, language } = useLanguage();
+  const { categories, products } = useCatalog();
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState('');
   const activeCategory = params?.categorySlug;
@@ -27,7 +27,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
         product.nameAr.toLocaleLowerCase().includes(normalizedSearch)
       );
     });
-  }, [activeCategoryData, search]);
+  }, [activeCategoryData, products, search]);
 
   return (
     <PageWrapper>
@@ -115,6 +115,11 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                       <h2 className="text-xl font-semibold leading-snug text-foreground">
                         {language === 'ar' ? product.nameAr : product.nameEn}
                       </h2>
+                      {(language === 'ar' ? product.descriptionAr : product.descriptionEn) && (
+                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                          {language === 'ar' ? product.descriptionAr : product.descriptionEn}
+                        </p>
+                      )}
                       {product.types && product.types.length > 0 && (
                         <p className="mt-3 text-sm text-muted-foreground">{product.types.join(' · ')}</p>
                       )}

@@ -101,8 +101,15 @@ function validateQuoteRequest(body: Record<string, unknown>): QuoteValidation {
     errors.productIds = "Select valid catalog products.";
   }
 
+  const submittedProductNames = Array.isArray(body.productNames)
+    ? body.productNames.map((name) => cleanText(name, MAX_FIELD_LENGTH))
+    : [];
+  const hasValidSubmittedNames =
+    submittedProductNames.length === normalizedProductIds.length &&
+    submittedProductNames.length > 0 &&
+    submittedProductNames.every((name): name is string => Boolean(name));
   const selectedProducts = normalizedProductIds.map((productId) => findCatalogProduct(productId));
-  if (selectedProducts.some((product) => !product)) {
+  if (selectedProducts.some((product) => !product) && !hasValidSubmittedNames) {
     errors.productIds = "One or more selected products are not in the Arzana catalog.";
   }
 
@@ -118,9 +125,9 @@ function validateQuoteRequest(body: Record<string, unknown>): QuoteValidation {
       phone,
       productIds: normalizedProductIds,
       language,
-      productNames: selectedProducts.map((product) =>
-        language === "ar" ? product!.nameAr : product!.nameEn,
-      ),
+      productNames: hasValidSubmittedNames
+        ? submittedProductNames
+        : selectedProducts.map((product) => language === "ar" ? product!.nameAr : product!.nameEn),
     },
   };
 }
