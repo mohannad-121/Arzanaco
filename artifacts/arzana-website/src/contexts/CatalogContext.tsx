@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { catalogProducts } from '@workspace/arzana-catalog';
 import { categories as defaultCategories, type Category } from '../data/categories';
+import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'arzana_catalog_v1';
 
@@ -28,14 +29,20 @@ interface CatalogState {
 }
 
 interface CatalogContextValue extends CatalogState {
-  saveProduct: (product: ManagedProduct) => void;
-  deleteProduct: (id: string) => void;
-  saveCategory: (category: Category) => void;
-  deleteCategory: (id: string) => void;
+  isLoading: boolean;
+  catalogError: string | null;
+  authenticateAdmin: (password: string) => Promise<boolean>;
+  saveProduct: (product: ManagedProduct, password: string) => Promise<void>;
+  deleteProduct: (id: string, password: string) => Promise<void>;
+  saveCategory: (category: Category, password: string) => Promise<void>;
+  deleteCategory: (id: string, password: string) => Promise<void>;
 }
 
 const initialState: CatalogState = {
-  products: catalogProducts.map((product) => ({ ...product, types: product.types ? [...product.types] : undefined })),
+  products: catalogProducts.map((product) => ({
+    ...product,
+    types: 'types' in product && product.types ? [...product.types] : undefined,
+  })),
   categories: defaultCategories.map((category) => ({ ...category })),
 };
 
@@ -44,10 +51,25 @@ const CatalogContext = createContext<CatalogContextValue | null>(null);
 function isCatalogState(value: unknown): value is CatalogState {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<CatalogState>;
-  return Array.isArray(candidate.products) && Array.isArray(candidate.categories);
+  if (!Array.isArray(candidate.products) || !Array.isArray(candidate.categories)) return false;
+
+  return candidate.categories.every((category) =>
+    category &&
+    typeof category.id === 'string' &&
+    typeof category.slug === 'string' &&
+    typeof category.nameEn === 'string' &&
+    typeof category.nameAr === 'string',
+  ) && candidate.products.every((product) =>
+    product &&
+    typeof product.id === 'string' &&
+    typeof product.slug === 'string' &&
+    typeof product.categoryId === 'string' &&
+    typeof product.nameEn === 'string' &&
+    typeof product.nameAr === 'string',
+  );
 }
 
-function readCatalog(): CatalogState {
+function readLocalCatalog(): CatalogState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return initialState;
@@ -59,49 +81,130 @@ function readCatalog(): CatalogState {
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const [catalog, setCatalog] = useState<CatalogState>(readCatalog);
+  const [catalog, setCatalog] = useState<CatalogState>(readLocalCatalog);
+  const [isLoading, setIsLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+
+  const acceptRemoteCatalog = (value: unknown) => {
+    if (!isCatalogState(value)) return;
+    setCatalog(value);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    setCatalogError(null);
+  };
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
-  }, [catalog]);
+    let active = true;
 
-  useEffect(() => {
-    const syncCatalog = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY || !event.newValue) return;
-      try {
-        const next: unknown = JSON.parse(event.newValue);
-        if (isCatalogState(next)) setCatalog(next);
-      } catch {
-        // Ignore malformed catalog updates from another tab.
+    const loadCatalog = async () => {
+      const { data, error } = await supabase
+        .from('catalog_state')
+        .select('data')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (!active) return;
+      if (error) {
+        console.error('[catalog] unable to load shared catalog', { code: error.code });
+        setCatalogError('The shared catalog is temporarily unavailable.');
+      } else if (data?.data) {
+        acceptRemoteCatalog(data.data);
       }
+      setIsLoading(false);
     };
-    window.addEventListener('storage', syncCatalog);
-    return () => window.removeEventListener('storage', syncCatalog);
+
+    void loadCatalog();
+
+    const channel = import.meta.env.VITE_DISABLE_CATALOG_REALTIME === 'true'
+      ? null
+      : supabase
+          .channel('public-catalog')
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'catalog_state', filter: 'id=eq.1' },
+            (payload) => acceptRemoteCatalog((payload.new as { data?: unknown }).data),
+          )
+          .subscribe();
+
+    return () => {
+      active = false;
+      if (channel) void supabase.removeChannel(channel);
+    };
   }, []);
+
+  const persistCatalog = async (next: CatalogState, password: string) => {
+    const { error } = await supabase.rpc('save_catalog', {
+      admin_password: password,
+      new_catalog: next,
+    });
+    if (error) {
+      console.error('[catalog] unable to save shared catalog', { code: error.code });
+      throw new Error('Unable to save the shared catalog.');
+    }
+    acceptRemoteCatalog(next);
+  };
 
   const value = useMemo<CatalogContextValue>(() => ({
     ...catalog,
-    saveProduct: (product) => setCatalog((current) => ({
-      ...current,
-      products: current.products.some((item) => item.id === product.id)
-        ? current.products.map((item) => item.id === product.id ? product : item)
-        : [product, ...current.products],
-    })),
-    deleteProduct: (id) => setCatalog((current) => ({
-      ...current,
-      products: current.products.filter((product) => product.id !== id),
-    })),
-    saveCategory: (category) => setCatalog((current) => ({
-      ...current,
-      categories: current.categories.some((item) => item.id === category.id)
-        ? current.categories.map((item) => item.id === category.id ? category : item)
-        : [...current.categories, category],
-    })),
-    deleteCategory: (id) => setCatalog((current) => ({
-      categories: current.categories.filter((category) => category.id !== id),
-      products: current.products.filter((product) => product.categoryId !== id),
-    })),
-  }), [catalog]);
+    isLoading,
+    catalogError,
+    authenticateAdmin: async (password) => {
+      const { data, error } = await supabase.rpc('verify_catalog_admin', {
+        admin_password: password,
+      });
+      if (error) {
+        console.error('[catalog] admin verification failed', { code: error.code });
+        throw new Error('Unable to connect to the catalog service.');
+      }
+      if (data !== true) return false;
+
+      const { data: remoteState, error: loadError } = await supabase
+        .from('catalog_state')
+        .select('data')
+        .eq('id', 1)
+        .single();
+      if (loadError) throw new Error('Unable to load the shared catalog.');
+
+      if (isCatalogState(remoteState.data)) {
+        acceptRemoteCatalog(remoteState.data);
+      } else {
+        // First login migrates any catalog already saved by the administrator's
+        // browser into Supabase, preserving edits made before shared storage existed.
+        await persistCatalog(catalog, password);
+      }
+
+      return true;
+    },
+    saveProduct: async (product, password) => {
+      const next = {
+        ...catalog,
+        products: catalog.products.some((item) => item.id === product.id)
+          ? catalog.products.map((item) => item.id === product.id ? product : item)
+          : [product, ...catalog.products],
+      };
+      await persistCatalog(next, password);
+    },
+    deleteProduct: async (id, password) => {
+      await persistCatalog({
+        ...catalog,
+        products: catalog.products.filter((product) => product.id !== id),
+      }, password);
+    },
+    saveCategory: async (category, password) => {
+      const next = {
+        ...catalog,
+        categories: catalog.categories.some((item) => item.id === category.id)
+          ? catalog.categories.map((item) => item.id === category.id ? category : item)
+          : [...catalog.categories, category],
+      };
+      await persistCatalog(next, password);
+    },
+    deleteCategory: async (id, password) => {
+      await persistCatalog({
+        categories: catalog.categories.filter((category) => category.id !== id),
+        products: catalog.products.filter((product) => product.categoryId !== id),
+      }, password);
+    },
+  }), [catalog, catalogError, isLoading]);
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }

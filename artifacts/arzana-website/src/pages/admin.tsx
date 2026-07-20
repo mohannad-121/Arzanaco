@@ -8,7 +8,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { createSlug, useCatalog, type ManagedProduct } from '@/contexts/CatalogContext';
 import type { Category } from '@/data/categories';
 
-const AUTH_KEY = 'arzana_admin_authenticated';
 const FIELD_CLASS = 'mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-ring';
 
 type ProductForm = {
@@ -31,8 +30,9 @@ const emptyCategoryForm: CategoryForm = { nameEn: '', nameAr: '', slug: '' };
 export default function AdminPanel() {
   const { language } = useLanguage();
   const [, setLocation] = useLocation();
-  const { products, categories, saveProduct, deleteProduct, saveCategory, deleteCategory } = useCatalog();
-  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem(AUTH_KEY) === 'true');
+  const { products, categories, catalogError, authenticateAdmin, saveProduct, deleteProduct, saveCategory, deleteCategory } = useCatalog();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState<'products' | 'solutions'>('products');
@@ -44,6 +44,7 @@ export default function AdminPanel() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'product' | 'category'; id: string } | null>(null);
   const [formError, setFormError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!productForm.categoryId && categories[0]) {
@@ -53,7 +54,7 @@ export default function AdminPanel() {
 
   const copy = language === 'ar'
     ? {
-        admin: 'إدارة محتوى أرزانة', login: 'تسجيل الدخول', password: 'كلمة مرور المسؤول', invalid: 'كلمة المرور غير صحيحة.',
+        admin: 'إدارة محتوى أرزانة', login: 'تسجيل الدخول', password: 'كلمة مرور المسؤول', invalid: 'كلمة المرور غير صحيحة.', serviceError: 'خدمة الكتالوج المشتركة غير متاحة. شغّل إعداد Supabase ثم حاول مرة أخرى.',
         logout: 'تسجيل الخروج', products: 'المنتجات', solutions: 'الحلول / الفئات', addProduct: 'إضافة منتج', addSolution: 'إضافة حل',
         editProduct: 'تعديل المنتج', editSolution: 'تعديل الحل', englishName: 'الاسم بالإنجليزية', arabicName: 'الاسم بالعربية',
         slug: 'رابط الصفحة', category: 'الحل / الفئة', englishDescription: 'الوصف بالإنجليزية', arabicDescription: 'الوصف بالعربية',
@@ -62,7 +63,7 @@ export default function AdminPanel() {
         deleteProduct: 'هل تريد حذف هذا المنتج؟ سيختفي من الموقع.', deleteSolution: 'هل تريد حذف هذا الحل؟ سيتم أيضاً حذف جميع المنتجات التابعة له.',
       }
     : {
-        admin: 'Arzana Content Manager', login: 'Log in', password: 'Admin password', invalid: 'Incorrect password.',
+        admin: 'Arzana Content Manager', login: 'Log in', password: 'Admin password', invalid: 'Incorrect password.', serviceError: 'The shared catalog service is unavailable. Run the Supabase catalog setup and try again.',
         logout: 'Log out', products: 'Products', solutions: 'Solutions / Categories', addProduct: 'Add product', addSolution: 'Add solution',
         editProduct: 'Edit product', editSolution: 'Edit solution', englishName: 'English name', arabicName: 'Arabic name',
         slug: 'Page URL', category: 'Solution / category', englishDescription: 'English description', arabicDescription: 'Arabic description',
@@ -73,22 +74,27 @@ export default function AdminPanel() {
 
   const categoryById = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
 
-  const handleLogin = (event: FormEvent) => {
+  const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
-    if (password !== 'admin@arzana2024') {
-      setLoginError(copy.invalid);
-      setPassword('');
-      return;
-    }
-    sessionStorage.setItem(AUTH_KEY, 'true');
-    setIsAuthenticated(true);
     setLoginError('');
-    setPassword('');
+    try {
+      const authenticated = await authenticateAdmin(password);
+      if (!authenticated) {
+        setLoginError(copy.invalid);
+        setPassword('');
+        return;
+      }
+      setAdminPassword(password);
+      setIsAuthenticated(true);
+      setPassword('');
+    } catch {
+      setLoginError(copy.serviceError);
+    }
   };
 
   const logout = () => {
-    sessionStorage.removeItem(AUTH_KEY);
     setIsAuthenticated(false);
+    setAdminPassword('');
     setLocation('/');
   };
 
@@ -114,7 +120,7 @@ export default function AdminPanel() {
     setProductModalOpen(true);
   };
 
-  const submitProduct = (event: FormEvent) => {
+  const submitProduct = async (event: FormEvent) => {
     event.preventDefault();
     const slug = createSlug(productForm.slug || productForm.nameEn);
     if (!productForm.nameEn.trim() || !productForm.nameAr.trim() || !slug || !productForm.categoryId) {
@@ -125,17 +131,24 @@ export default function AdminPanel() {
       setFormError(copy.duplicateSlug);
       return;
     }
-    saveProduct({
-      id: editingProductId ?? createId('product'),
-      slug,
-      categoryId: productForm.categoryId,
-      nameEn: productForm.nameEn.trim(),
-      nameAr: productForm.nameAr.trim(),
-      descriptionEn: productForm.descriptionEn.trim() || undefined,
-      descriptionAr: productForm.descriptionAr.trim() || undefined,
-      types: productForm.types.split(',').map((item) => item.trim()).filter(Boolean),
-    });
-    setProductModalOpen(false);
+    setIsSaving(true);
+    try {
+      await saveProduct({
+        id: editingProductId ?? createId('product'),
+        slug,
+        categoryId: productForm.categoryId,
+        nameEn: productForm.nameEn.trim(),
+        nameAr: productForm.nameAr.trim(),
+        descriptionEn: productForm.descriptionEn.trim() || undefined,
+        descriptionAr: productForm.descriptionAr.trim() || undefined,
+        types: productForm.types.split(',').map((item) => item.trim()).filter(Boolean),
+      }, adminPassword);
+      setProductModalOpen(false);
+    } catch {
+      setFormError(copy.serviceError);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const openNewCategory = () => {
@@ -152,7 +165,7 @@ export default function AdminPanel() {
     setCategoryModalOpen(true);
   };
 
-  const submitCategory = (event: FormEvent) => {
+  const submitCategory = async (event: FormEvent) => {
     event.preventDefault();
     const slug = createSlug(categoryForm.slug || categoryForm.nameEn);
     if (!categoryForm.nameEn.trim() || !categoryForm.nameAr.trim() || !slug) {
@@ -163,15 +176,29 @@ export default function AdminPanel() {
       setFormError(copy.duplicateSlug);
       return;
     }
-    saveCategory({ id: editingCategoryId ?? createId('category'), slug, nameEn: categoryForm.nameEn.trim(), nameAr: categoryForm.nameAr.trim() });
-    setCategoryModalOpen(false);
+    setIsSaving(true);
+    try {
+      await saveCategory({ id: editingCategoryId ?? createId('category'), slug, nameEn: categoryForm.nameEn.trim(), nameAr: categoryForm.nameAr.trim() }, adminPassword);
+      setCategoryModalOpen(false);
+    } catch {
+      setFormError(copy.serviceError);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
-    if (deleteTarget.kind === 'product') deleteProduct(deleteTarget.id);
-    else deleteCategory(deleteTarget.id);
-    setDeleteTarget(null);
+    setIsSaving(true);
+    try {
+      if (deleteTarget.kind === 'product') await deleteProduct(deleteTarget.id, adminPassword);
+      else await deleteCategory(deleteTarget.id, adminPassword);
+      setDeleteTarget(null);
+    } catch {
+      setFormError(copy.serviceError);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -185,6 +212,7 @@ export default function AdminPanel() {
                 <label className="sr-only" htmlFor="admin-password">{copy.password}</label>
                 <input id="admin-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={copy.password} className="w-full rounded-md border bg-background px-3 py-2" required />
                 {loginError && <p role="alert" className="text-sm text-destructive">{loginError}</p>}
+                {!loginError && catalogError && <p role="alert" className="text-sm text-destructive">{copy.serviceError}</p>}
                 <Button type="submit" className="w-full">{copy.login}</Button>
               </form>
             </CardContent>
@@ -250,7 +278,7 @@ export default function AdminPanel() {
             <Field label={copy.arabicDescription}><textarea dir="rtl" rows={3} value={productForm.descriptionAr} onChange={(event) => setProductForm({ ...productForm, descriptionAr: event.target.value })} className={FIELD_CLASS} /></Field>
             <Field label={copy.options}><input value={productForm.types} onChange={(event) => setProductForm({ ...productForm, types: event.target.value })} className={FIELD_CLASS} /></Field>
             {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-            <ModalActions cancel={copy.cancel} save={copy.save} onCancel={() => setProductModalOpen(false)} />
+            <ModalActions cancel={copy.cancel} save={copy.save} onCancel={() => setProductModalOpen(false)} disabled={isSaving} />
           </form>
         </Modal>
       )}
@@ -264,14 +292,15 @@ export default function AdminPanel() {
             </TwoColumns>
             <Field label={copy.slug} required><input value={categoryForm.slug} onChange={(event) => setCategoryForm({ ...categoryForm, slug: event.target.value })} className={FIELD_CLASS} /></Field>
             {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-            <ModalActions cancel={copy.cancel} save={copy.save} onCancel={() => setCategoryModalOpen(false)} />
+            <ModalActions cancel={copy.cancel} save={copy.save} onCancel={() => setCategoryModalOpen(false)} disabled={isSaving} />
           </form>
         </Modal>
       )}
 
       {deleteTarget && (
         <Modal title={deleteTarget.kind === 'product' ? copy.deleteProduct : copy.deleteSolution} onClose={() => setDeleteTarget(null)} compact>
-          <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setDeleteTarget(null)}>{copy.cancel}</Button><Button variant="destructive" onClick={confirmDelete}>{copy.remove}</Button></div>
+          {formError && <p role="alert" className="mb-4 text-sm text-destructive">{formError}</p>}
+          <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={isSaving}>{copy.cancel}</Button><Button variant="destructive" onClick={confirmDelete} disabled={isSaving}>{copy.remove}</Button></div>
         </Modal>
       )}
     </PageWrapper>
@@ -306,6 +335,6 @@ function TwoColumns({ children }: { children: ReactNode }) {
   return <div className="grid gap-4 md:grid-cols-2">{children}</div>;
 }
 
-function ModalActions({ cancel, save, onCancel }: { cancel: string; save: string; onCancel: () => void }) {
-  return <div className="flex justify-end gap-3 border-t pt-4"><Button type="button" variant="outline" onClick={onCancel}>{cancel}</Button><Button type="submit">{save}</Button></div>;
+function ModalActions({ cancel, save, onCancel, disabled }: { cancel: string; save: string; onCancel: () => void; disabled?: boolean }) {
+  return <div className="flex justify-end gap-3 border-t pt-4"><Button type="button" variant="outline" onClick={onCancel} disabled={disabled}>{cancel}</Button><Button type="submit" disabled={disabled}>{save}</Button></div>;
 }
