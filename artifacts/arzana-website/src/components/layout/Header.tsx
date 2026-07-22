@@ -13,7 +13,7 @@ import {
   NavigationMenuTrigger,
 } from "../ui/navigation-menu";
 import { cn } from '../../lib/utils';
-import { officialLogo } from '../../data/assets';
+import headerLogo from '@photos/arzana-arabia-logo.png';
 
 export const Header = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -52,8 +52,8 @@ export const Header = () => {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
 
         {/* Logo */}
-        <Link href="/" className="flex h-14 w-16 shrink-0 items-center sm:w-[4.5rem]" aria-label="Arzana Arabia home">
-          <img src={officialLogo} alt="Arzana Arabia" className="h-full w-full object-contain object-left" />
+        <Link href="/" className="flex h-14 w-32 shrink-0 items-center sm:w-36" aria-label="Arzana Arabia home">
+          <img src={headerLogo} alt="Arzana Arabia" className="h-full w-full object-contain" />
         </Link>
 
         {/* Desktop Nav */}
