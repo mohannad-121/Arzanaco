@@ -52,7 +52,7 @@ export const Header = () => {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
 
         {/* Logo */}
-        <Link href="/" className="flex h-14 w-44 shrink-0 items-center" aria-label="Arzana Arabia home">
+        <Link href="/" className="flex h-14 w-16 shrink-0 items-center sm:w-[4.5rem]" aria-label="Arzana Arabia home">
           <img src={officialLogo} alt="Arzana Arabia" className="h-full w-full object-contain object-left" />
         </Link>
 

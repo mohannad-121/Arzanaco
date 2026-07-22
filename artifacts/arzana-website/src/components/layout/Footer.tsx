@@ -21,7 +21,7 @@ export const Footer = () => {
           
           {/* Brand */}
           <div className="space-y-6">
-            <Link href="/" className="flex h-20 w-52 items-center rounded bg-white p-1" aria-label="Arzana Arabia home">
+            <Link href="/" className="flex h-20 w-16 items-center rounded bg-white p-1" aria-label="Arzana Arabia home">
               <img src={officialLogo} alt="Arzana Arabia" className="h-full w-full object-contain" />
             </Link>
             <p className="text-white/70 leading-relaxed max-w-sm">

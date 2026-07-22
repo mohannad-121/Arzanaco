@@ -1,4 +1,4 @@
-import logo from '@photos/arzana-arabia-logo.png';
+import logo from '@logos/arz-logo.png';
 import rmu from '@photos/RMU.jpg';
 import smartRmu from '@photos/Smar RMU.jpg';
 import dryTransformer from '@photos/MV-LV Dry Transformer.jpg';

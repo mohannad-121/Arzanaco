@@ -50,6 +50,7 @@ function nameFromFileName(fileName: string) {
 }
 
 export const clients: Client[] = Object.entries(logoModules)
+  .filter(([path]) => keyFromFileName(fileNameFromPath(path)) !== 'arz logo')
   .map(([path, logoPath]) => {
     const fileName = fileNameFromPath(path);
     const name = nameFromFileName(fileName);
