@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 import NotFound from './not-found';
+import { productImageBySlug } from '../data/assets';
 
 export default function ProductDetail({
   params,
@@ -24,12 +25,14 @@ export default function ProductDetail({
   const relatedProducts = products
     .filter((item) => item.categoryId === product.categoryId && item.id !== product.id)
     .slice(0, 3);
+  const image = productImageBySlug[product.slug];
   const copy =
     language === 'ar'
       ? {
           breadcrumb: 'المنتجات',
           catalogEntry: 'منتج مدرج في ملف الشركة',
           options: 'الخيارات المذكورة في الكتالوج',
+          applications: 'التطبيقات المذكورة في ملف الشركة',
           quote: 'طلب عرض سعر',
           contact: 'تواصل معنا',
           related: 'منتجات أخرى في الفئة',
@@ -38,6 +41,7 @@ export default function ProductDetail({
           breadcrumb: 'Products',
           catalogEntry: 'Product listed in the company profile',
           options: 'Catalog options',
+          applications: 'Applications in the company profile',
           quote: 'Request a Quote',
           contact: 'Contact Us',
           related: 'More products in this category',
@@ -69,9 +73,30 @@ export default function ProductDetail({
           <h1 className="text-3xl font-bold leading-tight text-foreground md:text-5xl">
             {language === 'ar' ? product.nameAr : product.nameEn}
           </h1>
+          {image && (
+            <img
+              src={image}
+              alt={language === 'ar' ? product.nameAr : product.nameEn}
+              className="mt-8 h-72 w-full rounded-xl border bg-white object-contain p-4 md:h-96"
+            />
+          )}
           <p className="mt-5 text-lg leading-relaxed text-foreground/70">
             {(language === 'ar' ? product.descriptionAr : product.descriptionEn) || copy.catalogEntry}
           </p>
+
+          {((language === 'ar' ? product.applicationsAr : product.applicationsEn) ?? []).length > 0 && (
+            <section className="mt-10 border-t pt-8">
+              <h2 className="mb-4 text-lg font-semibold text-foreground">{copy.applications}</h2>
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {(language === 'ar' ? product.applicationsAr : product.applicationsEn)?.map((application) => (
+                  <li key={application} className="flex items-center gap-2 rounded-lg bg-muted px-4 py-3 text-foreground/80">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                    {application}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {product.types && product.types.length > 0 && (
             <section className="mt-10 border-t pt-8">

@@ -14,8 +14,8 @@ export const en: Translations = {
   "nav.search": "Search...",
 
   // Home Hero
-  "hero.title": "Integrated Power, Electrical and Safety Solutions",
-  "hero.subtitle": "Explore ARZANA Arabia's catalog of electrical, safety, and testing offerings.",
+  "hero.title": "Engineering Solutions for Power and Critical Infrastructure",
+  "hero.subtitle": "Arzana Arabia Company Ltd. specializes in power distribution, critical power, modular infrastructure, industrial electrical solutions, testing, commissioning, and project support.",
   "hero.cta.primary": "Explore Our Solutions",
   "hero.cta.secondary": "Request a Quote",
   "hero.cta.tertiary": "Contact Our Team",
@@ -23,8 +23,8 @@ export const en: Translations = {
   // Business Areas
   "areas.title": "Our Business Areas",
   "areas.power": "Power Distribution",
-  "areas.electrical": "Electrical Products",
-  "areas.automation": "Electrical & Automation",
+  "areas.electrical": "Electrical Measurement & Protection",
+  "areas.automation": "Power Quality Solutions",
   "areas.safety": "Safety & Fall Protection",
   "areas.testing": "Testing & Commissioning",
 
@@ -42,9 +42,9 @@ export const en: Translations = {
   "products.categories": "Categories",
   
   // MV/LV
-  "mvlv.title": "MV / LV Solutions",
-  "mvlv.subtitle": "Explore the medium- and low-voltage products listed in the company profile.",
-  "mvlv.view": "View MV / LV Solutions",
+  "mvlv.title": "Power Distribution",
+  "mvlv.subtitle": "Explore the approved power-distribution products in the Arzana Arabia company profile.",
+  "mvlv.view": "View Power Distribution",
 
   // Safety
   "safety.title": "Safety & Fall Protection Systems",
@@ -69,8 +69,7 @@ export const en: Translations = {
   "contact.email": "Email Us",
 
   // Footer
-  "footer.description": "Electrical products, safety systems, and testing and commissioning offerings.",
-  "footer.address": "ServCorp Building 13, Laysen Valley Complex, Al Urubah Road, Umm Al Hamam Al Gharbi District, Riyadh 12329, Saudi Arabia",
-  "footer.copyright": "© 2024 ARZANA Arabia Company. All rights reserved.",
+  "footer.description": "Power distribution, critical power, modular infrastructure, industrial electrical solutions, and testing and commissioning services.",
+  "footer.copyright": "© Arzana Arabia Company Ltd. All rights reserved.",
   "footer.privacy": "Privacy Policy"
 };

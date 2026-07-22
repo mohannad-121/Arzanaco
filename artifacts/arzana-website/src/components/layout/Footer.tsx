@@ -2,8 +2,9 @@ import React from 'react';
 import { Link } from 'wouter';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCatalog } from '../../contexts/CatalogContext';
-import { Mail, MapPin, Phone, ArrowUp } from 'lucide-react';
+import { Mail, Phone, ArrowUp } from 'lucide-react';
 import { Button } from '../ui/button';
+import { officialLogo } from '../../data/assets';
 
 export const Footer = () => {
   const { t, language } = useLanguage();
@@ -20,9 +21,8 @@ export const Footer = () => {
           
           {/* Brand */}
           <div className="space-y-6">
-            <Link href="/" className="flex flex-col select-none">
-              <span className="text-3xl font-bold tracking-tight text-white uppercase leading-none">ARZANA</span>
-              <span className="text-sm tracking-[0.2em] text-white/70 mt-1 ml-[1px]">ARABIA</span>
+            <Link href="/" className="flex h-20 w-52 items-center rounded bg-white p-1" aria-label="Arzana Arabia home">
+              <img src={officialLogo} alt="Arzana Arabia" className="h-full w-full object-contain" />
             </Link>
             <p className="text-white/70 leading-relaxed max-w-sm">
               {t('footer.description')}
@@ -60,22 +60,16 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-lg font-semibold text-white">Contact Us</h4>
             <ul className="space-y-4">
-              <li className="flex items-start gap-3 text-white/70">
-                <MapPin className="w-5 h-5 shrink-0 mt-0.5 text-primary" />
-                <span>{t('footer.address')}</span>
-              </li>
               <li className="flex items-center gap-3 text-white/70">
                 <Phone className="w-5 h-5 shrink-0 text-primary" />
                 <div className="flex flex-col gap-1">
-                  <a href="tel:+966112041144" className="hover:text-white transition-colors" dir="ltr">+966 11 2041144</a>
-                  <a href="tel:+966566676600" className="hover:text-white transition-colors" dir="ltr">+966 56 667 6600</a>
+                  <a href="tel:+96659708048" className="hover:text-white transition-colors" dir="ltr">+966 59 708 048</a>
                 </div>
               </li>
               <li className="flex items-center gap-3 text-white/70">
                 <Mail className="w-5 h-5 shrink-0 text-primary" />
                 <div className="flex flex-col gap-1">
-                  <a href="mailto:m.saadi@arzanaco.com" className="hover:text-white transition-colors">m.saadi@arzanaco.com</a>
-                  <a href="mailto:moaath@arzanaco.com" className="hover:text-white transition-colors">moaath@arzanaco.com</a>
+                  <a href="mailto:projects@arzanaco.com" className="hover:text-white transition-colors" dir="ltr">projects@arzanaco.com</a>
                 </div>
               </li>
             </ul>

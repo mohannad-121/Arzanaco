@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
-import testingImage from '@assets/service_testing.jpg';
+import { approvedImages } from '../data/assets';
 
 const systemsCovered = [
   'Low voltage switchgear',
@@ -41,7 +41,7 @@ export default function TestingCommissioning() {
     <PageWrapper>
       <section className="relative overflow-hidden bg-foreground py-20 text-background">
         <div className="absolute inset-0">
-          <img src={testingImage} alt="" className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
+          <img src={approvedImages.testing} alt="Electrical panel testing and commissioning" className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground to-transparent" />
         </div>
         <div className="container relative z-10 mx-auto max-w-4xl px-4">

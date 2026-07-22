@@ -10,7 +10,7 @@ import { catalogProducts } from '@workspace/arzana-catalog';
 import { categories as defaultCategories, type Category } from '../data/categories';
 import { supabase } from '../lib/supabase';
 
-const STORAGE_KEY = 'arzana_catalog_v1';
+const STORAGE_KEY = 'arzana_catalog_v2';
 
 export interface ManagedProduct {
   id: string;
@@ -20,6 +20,8 @@ export interface ManagedProduct {
   nameAr: string;
   descriptionEn?: string;
   descriptionAr?: string;
+  applicationsEn?: readonly string[];
+  applicationsAr?: readonly string[];
   types?: string[];
 }
 
@@ -69,12 +71,42 @@ function isCatalogState(value: unknown): value is CatalogState {
   );
 }
 
+function isApprovedCatalogState(value: unknown): value is CatalogState {
+  if (!isCatalogState(value)) return false;
+
+  return (
+    value.categories.length === initialState.categories.length &&
+    value.products.length === initialState.products.length &&
+    initialState.categories.every((category) =>
+      value.categories.some(
+        (candidate) =>
+          candidate.id === category.id &&
+          candidate.slug === category.slug &&
+          candidate.nameEn === category.nameEn &&
+          candidate.nameAr === category.nameAr,
+      ),
+    ) &&
+    initialState.products.every((product) =>
+      value.products.some(
+        (candidate) =>
+          candidate.id === product.id &&
+          candidate.slug === product.slug &&
+          candidate.categoryId === product.categoryId &&
+          candidate.nameEn === product.nameEn &&
+          candidate.nameAr === product.nameAr &&
+          candidate.descriptionEn === product.descriptionEn &&
+          candidate.descriptionAr === product.descriptionAr,
+      ),
+    )
+  );
+}
+
 function readLocalCatalog(): CatalogState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return initialState;
     const parsed: unknown = JSON.parse(saved);
-    return isCatalogState(parsed) ? parsed : initialState;
+    return isApprovedCatalogState(parsed) ? parsed : initialState;
   } catch {
     return initialState;
   }
@@ -86,9 +118,9 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
   const acceptRemoteCatalog = (value: unknown) => {
-    if (!isCatalogState(value)) return;
-    setCatalog(value);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    if (!isApprovedCatalogState(value)) return;
+    setCatalog(initialState);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialState));
     setCatalogError(null);
   };
 

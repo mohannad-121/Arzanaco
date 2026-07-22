@@ -13,6 +13,7 @@ import {
   NavigationMenuTrigger,
 } from "../ui/navigation-menu";
 import { cn } from '../../lib/utils';
+import { officialLogo } from '../../data/assets';
 
 export const Header = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -33,6 +34,12 @@ export const Header = () => {
     { href: '/clients', label: 'nav.clients' },
     { href: '/contact', label: 'nav.contact' },
   ];
+  const mobileLinksBeforeProducts = language === 'ar'
+    ? navLinks.slice(2).reverse()
+    : navLinks.slice(0, 2);
+  const mobileLinksAfterProducts = language === 'ar'
+    ? navLinks.slice(0, 2).reverse()
+    : navLinks.slice(2);
 
   const navLinkClass = (href: string) =>
     cn(
@@ -45,15 +52,14 @@ export const Header = () => {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
 
         {/* Logo */}
-        <Link href="/" className="flex flex-col select-none">
-          <span className="text-2xl font-bold tracking-tight text-primary uppercase leading-none">ARZANA</span>
-          <span className="text-xs tracking-[0.2em] text-foreground/80 mt-1 ml-[1px]">ARABIA</span>
+        <Link href="/" className="flex h-14 w-44 shrink-0 items-center" aria-label="Arzana Arabia home">
+          <img src={officialLogo} alt="Arzana Arabia" className="h-full w-full object-contain object-left" />
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-1 xl:gap-2">
           <NavigationMenu>
-            <NavigationMenuList className="gap-0">
+            <NavigationMenuList className={cn('gap-0', language === 'ar' && 'flex-row-reverse')}>
               {/* Simple nav links using NavigationMenuLink asChild */}
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
@@ -156,7 +162,7 @@ export const Header = () => {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="lg:hidden border-t bg-background px-4 py-6 flex flex-col gap-1 absolute w-full max-h-[calc(100vh-80px)] overflow-y-auto shadow-lg">
-          {navLinks.map((link) => (
+          {mobileLinksBeforeProducts.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -189,7 +195,7 @@ export const Header = () => {
                   className="text-sm font-medium text-primary p-2"
                   onClick={() => setMobileOpen(false)}
                 >
-                  All Products
+                  {t('common.all')}
                 </Link>
                 {categories.map((cat) => (
                   <Link
@@ -204,6 +210,20 @@ export const Header = () => {
               </div>
             )}
           </div>
+
+          {mobileLinksAfterProducts.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'text-base font-medium p-3 rounded-md transition-colors',
+                location === link.href ? 'text-primary bg-primary/10' : 'text-foreground hover:bg-muted'
+              )}
+              onClick={() => setMobileOpen(false)}
+            >
+              {t(link.label)}
+            </Link>
+          ))}
 
           <Button className="w-full mt-4" onClick={() => {
             setLocation('/request-quote');
