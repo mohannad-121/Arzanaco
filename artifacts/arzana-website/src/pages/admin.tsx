@@ -44,6 +44,7 @@ export default function AdminPanel() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'product' | 'category'; id: string } | null>(null);
   const [formError, setFormError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -131,6 +132,8 @@ export default function AdminPanel() {
       setFormError(copy.duplicateSlug);
       return;
     }
+    setFormError('');
+    setSuccessMessage('');
     setIsSaving(true);
     try {
       await saveProduct({
@@ -144,8 +147,9 @@ export default function AdminPanel() {
         types: productForm.types.split(',').map((item) => item.trim()).filter(Boolean),
       }, adminPassword);
       setProductModalOpen(false);
-    } catch {
-      setFormError(copy.serviceError);
+      setSuccessMessage(language === 'ar' ? 'تم حفظ المنتج.' : 'Product saved.');
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : copy.serviceError);
     } finally {
       setIsSaving(false);
     }
@@ -176,12 +180,15 @@ export default function AdminPanel() {
       setFormError(copy.duplicateSlug);
       return;
     }
+    setFormError('');
+    setSuccessMessage('');
     setIsSaving(true);
     try {
       await saveCategory({ id: editingCategoryId ?? createId('category'), slug, nameEn: categoryForm.nameEn.trim(), nameAr: categoryForm.nameAr.trim() }, adminPassword);
       setCategoryModalOpen(false);
-    } catch {
-      setFormError(copy.serviceError);
+      setSuccessMessage(language === 'ar' ? 'تم حفظ الحل.' : 'Category saved.');
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : copy.serviceError);
     } finally {
       setIsSaving(false);
     }
@@ -229,6 +236,7 @@ export default function AdminPanel() {
           <div><h1 className="text-3xl font-bold md:text-4xl">{copy.admin}</h1><p className="mt-2 text-muted-foreground">{products.length} {copy.products.toLocaleLowerCase()} · {categories.length} {copy.solutions.toLocaleLowerCase()}</p></div>
           <Button variant="outline" onClick={logout}><LogOut className="me-2 h-4 w-4" />{copy.logout}</Button>
         </div>
+        {successMessage && <p role="status" className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{successMessage}</p>}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Card><CardContent className="flex items-center gap-4 p-6"><Package className="h-9 w-9 text-primary" /><div><p className="text-3xl font-bold">{products.length}</p><p className="text-sm text-muted-foreground">{copy.products}</p></div></CardContent></Card>
@@ -278,7 +286,7 @@ export default function AdminPanel() {
             <Field label={copy.arabicDescription}><textarea dir="rtl" rows={3} value={productForm.descriptionAr} onChange={(event) => setProductForm({ ...productForm, descriptionAr: event.target.value })} className={FIELD_CLASS} /></Field>
             <Field label={copy.options}><input value={productForm.types} onChange={(event) => setProductForm({ ...productForm, types: event.target.value })} className={FIELD_CLASS} /></Field>
             {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-            <ModalActions cancel={copy.cancel} save={copy.save} onCancel={() => setProductModalOpen(false)} disabled={isSaving} />
+            <ModalActions cancel={copy.cancel} save={isSaving ? (language === 'ar' ? 'جارٍ الحفظ…' : 'Saving…') : copy.save} onCancel={() => setProductModalOpen(false)} disabled={isSaving} />
           </form>
         </Modal>
       )}
@@ -292,7 +300,7 @@ export default function AdminPanel() {
             </TwoColumns>
             <Field label={copy.slug} required><input value={categoryForm.slug} onChange={(event) => setCategoryForm({ ...categoryForm, slug: event.target.value })} className={FIELD_CLASS} /></Field>
             {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-            <ModalActions cancel={copy.cancel} save={copy.save} onCancel={() => setCategoryModalOpen(false)} disabled={isSaving} />
+            <ModalActions cancel={copy.cancel} save={isSaving ? (language === 'ar' ? 'جارٍ الحفظ…' : 'Saving…') : copy.save} onCancel={() => setCategoryModalOpen(false)} disabled={isSaving} />
           </form>
         </Modal>
       )}

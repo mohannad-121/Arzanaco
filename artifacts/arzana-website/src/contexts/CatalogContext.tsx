@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -8,9 +9,7 @@ import {
 } from 'react';
 import { catalogProducts } from '@workspace/arzana-catalog';
 import { categories as defaultCategories, type Category } from '../data/categories';
-import { supabase } from '../lib/supabase';
-
-const STORAGE_KEY = 'arzana_catalog_v2';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 export interface ManagedProduct {
   id: string;
@@ -25,9 +24,14 @@ export interface ManagedProduct {
   types?: string[];
 }
 
-interface CatalogState {
+export interface CatalogState {
   products: ManagedProduct[];
   categories: Category[];
+}
+
+interface CatalogSnapshot {
+  catalog: CatalogState;
+  updatedAt: string | null;
 }
 
 interface CatalogContextValue extends CatalogState {
@@ -40,111 +44,149 @@ interface CatalogContextValue extends CatalogState {
   deleteCategory: (id: string, password: string) => Promise<void>;
 }
 
-const initialState: CatalogState = {
-  products: catalogProducts.map((product) => ({
-    ...product,
-    types: 'types' in product && product.types ? [...product.types] : undefined,
-  })),
-  categories: defaultCategories.map((category) => ({ ...category })),
-};
+function createInitialCatalog(): CatalogState {
+  return {
+    products: catalogProducts.map((product) => ({
+      ...product,
+      applicationsEn: product.applicationsEn ? [...product.applicationsEn] : undefined,
+      applicationsAr: product.applicationsAr ? [...product.applicationsAr] : undefined,
+      types: 'types' in product && product.types ? [...product.types] : undefined,
+    })),
+    categories: defaultCategories.map((category) => ({ ...category })),
+  };
+}
 
 const CatalogContext = createContext<CatalogContextValue | null>(null);
 
-function isCatalogState(value: unknown): value is CatalogState {
-  if (!value || typeof value !== 'object') return false;
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+/**
+ * Validates the shared document without comparing it to the bundled catalog.
+ * Product names, descriptions, categories, and options are intentionally
+ * editable, so equality with the build-time fallback is never a valid check.
+ */
+export function normalizeCatalog(value: unknown): CatalogState | null {
+  if (!value || typeof value !== 'object') return null;
   const candidate = value as Partial<CatalogState>;
-  if (!Array.isArray(candidate.products) || !Array.isArray(candidate.categories)) return false;
+  if (!Array.isArray(candidate.products) || !Array.isArray(candidate.categories)) return null;
 
-  return candidate.categories.every((category) =>
-    category &&
-    typeof category.id === 'string' &&
-    typeof category.slug === 'string' &&
-    typeof category.nameEn === 'string' &&
-    typeof category.nameAr === 'string',
-  ) && candidate.products.every((product) =>
-    product &&
-    typeof product.id === 'string' &&
-    typeof product.slug === 'string' &&
-    typeof product.categoryId === 'string' &&
-    typeof product.nameEn === 'string' &&
-    typeof product.nameAr === 'string',
-  );
-}
+  const categories = candidate.categories.map((category) => {
+    if (
+      !category ||
+      typeof category.id !== 'string' ||
+      typeof category.slug !== 'string' ||
+      typeof category.nameEn !== 'string' ||
+      typeof category.nameAr !== 'string'
+    ) return null;
 
-function isApprovedCatalogState(value: unknown): value is CatalogState {
-  if (!isCatalogState(value)) return false;
+    return { ...category };
+  });
 
-  return (
-    value.categories.length === initialState.categories.length &&
-    value.products.length === initialState.products.length &&
-    initialState.categories.every((category) =>
-      value.categories.some(
-        (candidate) =>
-          candidate.id === category.id &&
-          candidate.slug === category.slug &&
-          candidate.nameEn === category.nameEn &&
-          candidate.nameAr === category.nameAr,
-      ),
-    ) &&
-    initialState.products.every((product) =>
-      value.products.some(
-        (candidate) =>
-          candidate.id === product.id &&
-          candidate.slug === product.slug &&
-          candidate.categoryId === product.categoryId &&
-          candidate.nameEn === product.nameEn &&
-          candidate.nameAr === product.nameAr &&
-          candidate.descriptionEn === product.descriptionEn &&
-          candidate.descriptionAr === product.descriptionAr,
-      ),
-    )
-  );
-}
+  const products = candidate.products.map((product) => {
+    if (
+      !product ||
+      typeof product.id !== 'string' ||
+      typeof product.slug !== 'string' ||
+      typeof product.categoryId !== 'string' ||
+      typeof product.nameEn !== 'string' ||
+      typeof product.nameAr !== 'string'
+    ) return null;
 
-function readLocalCatalog(): CatalogState {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return initialState;
-    const parsed: unknown = JSON.parse(saved);
-    return isApprovedCatalogState(parsed) ? parsed : initialState;
-  } catch {
-    return initialState;
+    if (
+      (product.descriptionEn !== undefined && typeof product.descriptionEn !== 'string') ||
+      (product.descriptionAr !== undefined && typeof product.descriptionAr !== 'string') ||
+      (product.applicationsEn !== undefined && !isStringArray(product.applicationsEn)) ||
+      (product.applicationsAr !== undefined && !isStringArray(product.applicationsAr)) ||
+      (product.types !== undefined && !isStringArray(product.types))
+    ) return null;
+
+    return {
+      ...product,
+      applicationsEn: product.applicationsEn ? [...product.applicationsEn] : undefined,
+      applicationsAr: product.applicationsAr ? [...product.applicationsAr] : undefined,
+      types: product.types ? [...product.types] : undefined,
+    };
+  });
+
+  if (categories.some((category) => category === null) || products.some((product) => product === null)) {
+    return null;
   }
+
+  return { categories: categories as Category[], products: products as ManagedProduct[] };
+}
+
+function getCatalogServiceError() {
+  return 'The shared catalog service is unavailable. Check the Supabase configuration and try again.';
+}
+
+function toSaveError(code?: string) {
+  if (code === 'P0001') return new Error('Another catalog update was saved first. Reload the latest catalog and try again.');
+  if (code === '42501') return new Error('You do not have permission to save the catalog.');
+  return new Error('The catalog could not be saved. Your changes are still open—please try again.');
+}
+
+async function fetchRemoteCatalog(): Promise<CatalogSnapshot | null> {
+  if (!supabase) throw new Error(getCatalogServiceError());
+
+  const { data, error } = await supabase
+    .from('catalog_state')
+    .select('data, updated_at')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[catalog] unable to load shared catalog', { code: error.code });
+    throw new Error(getCatalogServiceError());
+  }
+
+  const catalog = normalizeCatalog(data?.data);
+  return catalog ? { catalog, updatedAt: typeof data?.updated_at === 'string' ? data.updated_at : null } : null;
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const [catalog, setCatalog] = useState<CatalogState>(readLocalCatalog);
+  const [catalog, setCatalog] = useState<CatalogState>(createInitialCatalog);
+  const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
-  const acceptRemoteCatalog = (value: unknown) => {
-    if (!isApprovedCatalogState(value)) return;
-    setCatalog(initialState);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialState));
+  const acceptRemoteCatalog = useCallback((snapshot: CatalogSnapshot) => {
+    setCatalog(snapshot.catalog);
+    setCatalogUpdatedAt(snapshot.updatedAt);
     setCatalogError(null);
-  };
+  }, []);
+
+  const refreshCatalog = useCallback(async () => {
+    const snapshot = await fetchRemoteCatalog();
+    if (snapshot) acceptRemoteCatalog(snapshot);
+    return snapshot;
+  }, [acceptRemoteCatalog]);
 
   useEffect(() => {
     let active = true;
 
-    const loadCatalog = async () => {
-      const { data, error } = await supabase
-        .from('catalog_state')
-        .select('data')
-        .eq('id', 1)
-        .maybeSingle();
-
-      if (!active) return;
-      if (error) {
-        console.error('[catalog] unable to load shared catalog', { code: error.code });
-        setCatalogError('The shared catalog is temporarily unavailable.');
-      } else if (data?.data) {
-        acceptRemoteCatalog(data.data);
-      }
+    if (!isSupabaseConfigured || !supabase) {
+      setCatalogError(getCatalogServiceError());
       setIsLoading(false);
+      return undefined;
+    }
+
+    const loadCatalog = async () => {
+      try {
+        await refreshCatalog();
+      } catch {
+        if (active) setCatalogError(getCatalogServiceError());
+      } finally {
+        if (active) setIsLoading(false);
+      }
     };
 
     void loadCatalog();
+
+    const refreshOnFocus = () => { void loadCatalog(); };
+    window.addEventListener('focus', refreshOnFocus);
+    const refreshTimer = window.setInterval(refreshOnFocus, 30_000);
 
     const channel = import.meta.env.VITE_DISABLE_CATALOG_REALTIME === 'true'
       ? null
@@ -153,90 +195,125 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
           .on(
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'catalog_state', filter: 'id=eq.1' },
-            (payload) => acceptRemoteCatalog((payload.new as { data?: unknown }).data),
+            (payload) => {
+              const row = payload.new as { data?: unknown; updated_at?: unknown };
+              const remoteCatalog = normalizeCatalog(row.data);
+              if (remoteCatalog) {
+                acceptRemoteCatalog({
+                  catalog: remoteCatalog,
+                  updatedAt: typeof row.updated_at === 'string' ? row.updated_at : null,
+                });
+              } else {
+                void loadCatalog();
+              }
+            },
           )
           .subscribe();
 
     return () => {
       active = false;
-      if (channel) void supabase.removeChannel(channel);
+      window.removeEventListener('focus', refreshOnFocus);
+      window.clearInterval(refreshTimer);
+      if (channel) void supabase!.removeChannel(channel);
     };
-  }, []);
+  }, [acceptRemoteCatalog, refreshCatalog]);
 
-  const persistCatalog = async (next: CatalogState, password: string) => {
-    const { error } = await supabase.rpc('save_catalog', {
+  const persistCatalog = useCallback(async (next: CatalogState, password: string, expectedUpdatedAt: string | null) => {
+    if (!supabase) throw new Error(getCatalogServiceError());
+
+    const { data, error } = await supabase.rpc('save_catalog', {
       admin_password: password,
       new_catalog: next,
+      expected_updated_at: expectedUpdatedAt,
     });
+
     if (error) {
       console.error('[catalog] unable to save shared catalog', { code: error.code });
-      throw new Error('Unable to save the shared catalog.');
+      throw toSaveError(error.code);
     }
-    acceptRemoteCatalog(next);
-  };
+
+    const row = Array.isArray(data) ? data[0] : data;
+    const savedCatalog = normalizeCatalog((row as { data?: unknown } | null)?.data);
+    if (savedCatalog) {
+      acceptRemoteCatalog({
+        catalog: savedCatalog,
+        updatedAt: typeof (row as { updated_at?: unknown }).updated_at === 'string'
+          ? (row as { updated_at: string }).updated_at
+          : null,
+      });
+      return;
+    }
+
+    // Older deployments returned only a timestamp. Always read the database
+    // again instead of treating the caller's state as the source of truth.
+    const refreshed = await refreshCatalog();
+    if (!refreshed) throw new Error('The catalog row was not found after saving.');
+  }, [acceptRemoteCatalog, refreshCatalog]);
+
+  const updateCatalog = useCallback(async (
+    password: string,
+    transform: (current: CatalogState) => CatalogState,
+  ) => {
+    const latest = await fetchRemoteCatalog();
+    if (!latest) throw new Error('The shared catalog has not been initialized yet.');
+    await persistCatalog(transform(latest.catalog), password, latest.updatedAt);
+  }, [persistCatalog]);
 
   const value = useMemo<CatalogContextValue>(() => ({
     ...catalog,
     isLoading,
     catalogError,
     authenticateAdmin: async (password) => {
+      if (!supabase) throw new Error(getCatalogServiceError());
+
       const { data, error } = await supabase.rpc('verify_catalog_admin', {
         admin_password: password,
       });
       if (error) {
         console.error('[catalog] admin verification failed', { code: error.code });
-        throw new Error('Unable to connect to the catalog service.');
+        throw new Error(getCatalogServiceError());
       }
       if (data !== true) return false;
 
-      const { data: remoteState, error: loadError } = await supabase
-        .from('catalog_state')
-        .select('data')
-        .eq('id', 1)
-        .single();
-      if (loadError) throw new Error('Unable to load the shared catalog.');
-
-      if (isCatalogState(remoteState.data)) {
-        acceptRemoteCatalog(remoteState.data);
+      const remote = await fetchRemoteCatalog();
+      if (remote) {
+        acceptRemoteCatalog(remote);
       } else {
-        // First login migrates any catalog already saved by the administrator's
-        // browser into Supabase, preserving edits made before shared storage existed.
-        await persistCatalog(catalog, password);
+        // The bundled catalog is an emergency seed only for an empty database.
+        await persistCatalog(createInitialCatalog(), password, null);
       }
 
       return true;
     },
     saveProduct: async (product, password) => {
-      const next = {
-        ...catalog,
-        products: catalog.products.some((item) => item.id === product.id)
-          ? catalog.products.map((item) => item.id === product.id ? product : item)
-          : [product, ...catalog.products],
-      };
-      await persistCatalog(next, password);
+      await updateCatalog(password, (current) => ({
+        ...current,
+        products: current.products.some((item) => item.id === product.id)
+          ? current.products.map((item) => item.id === product.id ? product : item)
+          : [product, ...current.products],
+      }));
     },
     deleteProduct: async (id, password) => {
-      await persistCatalog({
-        ...catalog,
-        products: catalog.products.filter((product) => product.id !== id),
-      }, password);
+      await updateCatalog(password, (current) => ({
+        ...current,
+        products: current.products.filter((product) => product.id !== id),
+      }));
     },
     saveCategory: async (category, password) => {
-      const next = {
-        ...catalog,
-        categories: catalog.categories.some((item) => item.id === category.id)
-          ? catalog.categories.map((item) => item.id === category.id ? category : item)
-          : [...catalog.categories, category],
-      };
-      await persistCatalog(next, password);
+      await updateCatalog(password, (current) => ({
+        ...current,
+        categories: current.categories.some((item) => item.id === category.id)
+          ? current.categories.map((item) => item.id === category.id ? category : item)
+          : [...current.categories, category],
+      }));
     },
     deleteCategory: async (id, password) => {
-      await persistCatalog({
-        categories: catalog.categories.filter((category) => category.id !== id),
-        products: catalog.products.filter((product) => product.categoryId !== id),
-      }, password);
+      await updateCatalog(password, (current) => ({
+        categories: current.categories.filter((category) => category.id !== id),
+        products: current.products.filter((product) => product.categoryId !== id),
+      }));
     },
-  }), [catalog, catalogError, isLoading]);
+  }), [acceptRemoteCatalog, catalog, catalogError, isLoading, persistCatalog, updateCatalog]);
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }

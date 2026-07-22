@@ -60,14 +60,23 @@ $$;
 revoke all on function public.verify_catalog_admin(text) from public;
 grant execute on function public.verify_catalog_admin(text) to anon, authenticated;
 
-create or replace function public.save_catalog(admin_password text, new_catalog jsonb)
-returns timestamptz
+-- The signature includes the last observed updated_at value so a stale admin
+-- browser cannot overwrite a newer catalog document. Drop the legacy two-
+-- argument function before creating this replacement.
+drop function if exists public.save_catalog(text, jsonb);
+
+create function public.save_catalog(
+  admin_password text,
+  new_catalog jsonb,
+  expected_updated_at timestamptz default null
+)
+returns table (data jsonb, updated_at timestamptz)
 language plpgsql
 security definer
 set search_path = ''
 as $$
 declare
-  saved_at timestamptz := now();
+  saved_at timestamptz := clock_timestamp();
 begin
   if not public.verify_catalog_admin(admin_password) then
     raise insufficient_privilege using message = 'Invalid admin password';
@@ -82,17 +91,24 @@ begin
     raise invalid_parameter_value using message = 'Invalid catalog payload';
   end if;
 
+  return query
   update public.catalog_state
   set data = new_catalog,
       updated_at = saved_at
-  where id = 1;
+  where id = 1
+    and (expected_updated_at is null or catalog_state.updated_at = expected_updated_at)
+  returning catalog_state.data, catalog_state.updated_at;
 
-  return saved_at;
+  if not found then
+    raise exception using
+      errcode = 'P0001',
+      message = 'Catalog was changed by another administrator. Reload and try again.';
+  end if;
 end;
 $$;
 
-revoke all on function public.save_catalog(text, jsonb) from public;
-grant execute on function public.save_catalog(text, jsonb) to anon, authenticated;
+revoke all on function public.save_catalog(text, jsonb, timestamptz) from public;
+grant execute on function public.save_catalog(text, jsonb, timestamptz) to anon, authenticated;
 
 do $$
 begin

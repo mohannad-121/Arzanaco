@@ -65,6 +65,7 @@ type SafeLogger = {
 };
 
 type CatalogProduct = {
+  id: string;
   nameEn: string;
   nameAr: string;
 };
@@ -91,6 +92,19 @@ type QuoteStorageClient = {
   };
 };
 
+type CatalogStorageClient = {
+  from: (table: "catalog_state") => {
+    select: (columns: "data") => {
+      eq: (column: "id", value: number) => {
+        maybeSingle: () => Promise<{
+          data: { data?: unknown } | null;
+          error: { code?: string } | null;
+        }>;
+      };
+    };
+  };
+};
+
 type EmailDeliveryResult = {
   emailStatus: Exclude<EmailStatus, "pending">;
   errorCode: string | null;
@@ -112,6 +126,46 @@ async function getCatalogProductFinder(): Promise<NonNullable<CatalogModule["fin
   }
 
   return findCatalogProduct;
+}
+
+function isLiveCatalog(value: unknown): value is { products: CatalogProduct[] } {
+  if (!value || typeof value !== "object") return false;
+  const products = (value as { products?: unknown }).products;
+  return Array.isArray(products) && products.every((product) =>
+    product &&
+    typeof product === "object" &&
+    typeof (product as CatalogProduct).id === "string" &&
+    typeof (product as CatalogProduct).nameEn === "string" &&
+    typeof (product as CatalogProduct).nameAr === "string",
+  );
+}
+
+/**
+ * Quotes use the same current catalog document as the public website. The
+ * bundled product list remains an emergency fallback only when Supabase is
+ * unavailable or the catalog has not been seeded yet.
+ */
+async function getCurrentCatalogProductFinder(
+  supabase: CatalogStorageClient | null,
+): Promise<NonNullable<CatalogModule["findCatalogProduct"]>> {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("catalog_state")
+        .select("data")
+        .eq("id", 1)
+        .maybeSingle();
+      if (!error && isLiveCatalog(data?.data)) {
+        const productById = new Map(data.data.products.map((product) => [product.id, product]));
+        return (productId) => productById.get(productId);
+      }
+      if (error) logQuote("warn", "[quote] live catalog unavailable", { reason: error.code ?? "unknown" });
+    } catch {
+      logQuote("warn", "[quote] live catalog unavailable", { reason: "request_failed" });
+    }
+  }
+
+  return getCatalogProductFinder();
 }
 
 /**
@@ -153,9 +207,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const supabase = createQuoteStorageClient();
+
   let validation: QuoteValidation;
   try {
-    validation = await validateQuoteRequest(body);
+    validation = await validateQuoteRequest(body, supabase as unknown as CatalogStorageClient | null);
   } catch {
     logQuote("error", "[quote] catalog unavailable", { reason: "module_import_failed" });
     sendJson(res, 503, {
@@ -181,7 +237,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const supabase = createQuoteStorageClient();
   if (!supabase) {
     logQuote("error", "[quote] database unavailable", { reason: "configuration_missing" });
     sendJson(res, 503, {
@@ -233,7 +288,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 }
 
-async function validateQuoteRequest(body: Record<string, unknown>): Promise<QuoteValidation> {
+async function validateQuoteRequest(
+  body: Record<string, unknown>,
+  supabase: CatalogStorageClient | null,
+): Promise<QuoteValidation> {
   const errors: Record<string, string> = {};
   const fullName = cleanText(body.fullName, MAX_FIELD_LENGTH);
   const companyName = cleanText(body.companyName, MAX_FIELD_LENGTH);
@@ -263,7 +321,7 @@ async function validateQuoteRequest(body: Record<string, unknown>): Promise<Quot
     errors.productIds = "Select valid catalog products.";
   }
 
-  const findCatalogProduct = await getCatalogProductFinder();
+  const findCatalogProduct = await getCurrentCatalogProductFinder(supabase);
   const selectedProducts = normalizedProductIds.map((productId) => findCatalogProduct(productId));
   if (selectedProducts.some((product) => !product)) {
     errors.productIds = "One or more selected products are not in the Arzana catalog.";
@@ -625,5 +683,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function sendJson(res: VercelResponse, statusCode: number, body: unknown) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(body));
 }
