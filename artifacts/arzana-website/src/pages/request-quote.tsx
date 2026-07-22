@@ -6,7 +6,6 @@ import { Input } from '../components/ui/input';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 
-const WHATSAPP_NUMBER = '966566676600';
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 const PHONE_ALLOWED_PATTERN = /^[0-9+().\-\s]+$/;
 
@@ -23,8 +22,10 @@ type QuoteField = Exclude<keyof QuoteFormData, 'website'>;
 type QuoteErrors = Partial<Record<QuoteField, string>>;
 
 type QuoteSuccess = {
+  quoteId: string;
   productNames: string[];
   whatsappUrl: string;
+  emailStatus: 'sent' | 'failed' | 'configuration_error';
 };
 
 const initialFormData: QuoteFormData = {
@@ -178,10 +179,6 @@ export default function RequestQuote() {
           email: formData.email.trim(),
           phone: formData.phone.trim(),
           productIds: formData.productIds,
-          productNames: formData.productIds.map((productId) => {
-            const product = products.find((item) => item.id === productId);
-            return language === 'ar' ? product?.nameAr : product?.nameEn;
-          }).filter((name): name is string => Boolean(name)),
           language,
           website: formData.website,
         }),
@@ -205,18 +202,14 @@ export default function RequestQuote() {
         return;
       }
 
-      const whatsappUrl = buildWhatsAppUrl({
-        fullName: formData.fullName,
-        companyName: formData.companyName,
-        email: formData.email,
-        phone: formData.phone,
+      setSuccess({
+        quoteId: result.quoteId,
         productNames: result.productNames,
-        language,
+        whatsappUrl: result.whatsappUrl,
+        emailStatus: result.emailStatus,
       });
-
-      setSuccess({ productNames: result.productNames, whatsappUrl });
       if (popup && !popup.closed) {
-        popup.location.replace(whatsappUrl);
+        popup.location.replace(result.whatsappUrl);
         popup.focus();
       }
       popupRef.current = null;
@@ -438,8 +431,23 @@ export default function RequestQuote() {
 
           {success && (
             <div role="status" className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm">
-              <h2 className="font-semibold text-foreground">{copy.successTitle}</h2>
-              <p className="mt-2 leading-relaxed text-foreground/75">{copy.successDescription}</p>
+              <h2 className="font-semibold text-foreground">
+                {success.emailStatus === 'sent'
+                  ? copy.successTitle
+                  : language === 'ar'
+                    ? 'تم حفظ طلب عرض السعر'
+                    : 'Your quote request was saved'}
+              </h2>
+              <p className="mt-2 leading-relaxed text-foreground/75">
+                {success.emailStatus === 'sent'
+                  ? copy.successDescription
+                  : language === 'ar'
+                    ? 'تم حفظ طلب عرض السعر وتجهيز رسالة واتساب. تعذر تأكيد تسليم البريد الإلكتروني، لذا يرجى إكمال الإرسال عبر واتساب.'
+                    : 'Your quote request was saved and a WhatsApp message is ready. We could not confirm email delivery, so please complete the request through WhatsApp.'}
+              </p>
+              <p className="mt-3 text-xs font-medium text-foreground/65" dir="ltr">
+                {language === 'ar' ? 'الرقم المرجعي: ' : 'Reference: '}{success.quoteId}
+              </p>
               <Button
                 type="button"
                 variant="outline"
@@ -497,59 +505,29 @@ function isValidPhone(value: string): boolean {
   return digitCount >= 7 && digitCount <= 15;
 }
 
-function buildWhatsAppUrl({
-  fullName,
-  companyName,
-  email,
-  phone,
-  productNames,
-  language,
-}: {
-  fullName: string;
-  companyName: string;
-  email: string;
-  phone: string;
+function isSuccessfulQuote(value: unknown): value is {
+  success: true;
+  quoteId: string;
   productNames: string[];
-  language: 'en' | 'ar';
-}): string {
-  const clean = (value: string) =>
-    value.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim();
-  const message =
-    language === 'ar'
-      ? [
-          'طلب عرض سعر جديد – شركة أرزانا',
-          '',
-          `الاسم الكامل:\n${clean(fullName)}`,
-          `اسم الشركة أو النشاط التجاري:\n${clean(companyName)}`,
-          `البريد الإلكتروني:\n${clean(email)}`,
-          `رقم الهاتف:\n${clean(phone)}`,
-          'المنتجات المطلوبة:',
-          ...productNames.map((productName) => `- ${clean(productName)}`),
-          '',
-          'المصدر:',
-          'موقع أرزانا',
-        ].join('\n')
-      : [
-          'New Quote Request – Arzana Co',
-          '',
-          `Full Name:\n${clean(fullName)}`,
-          `Company / Business:\n${clean(companyName)}`,
-          `Email:\n${clean(email)}`,
-          `Phone:\n${clean(phone)}`,
-          'Interested Products:',
-          ...productNames.map((productName) => `- ${clean(productName)}`),
-          '',
-          'Source:',
-          'Arzana Website',
-        ].join('\n');
-
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-}
-
-function isSuccessfulQuote(value: unknown): value is { success: true; productNames: string[] } {
+  whatsappUrl: string;
+  emailStatus: 'sent' | 'failed' | 'configuration_error';
+} {
   if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as { success?: unknown; productNames?: unknown };
-  return candidate.success === true && Array.isArray(candidate.productNames) && candidate.productNames.every((name) => typeof name === 'string');
+  const candidate = value as {
+    success?: unknown;
+    quoteId?: unknown;
+    productNames?: unknown;
+    whatsappUrl?: unknown;
+    emailStatus?: unknown;
+  };
+  return (
+    candidate.success === true &&
+    typeof candidate.quoteId === 'string' &&
+    Array.isArray(candidate.productNames) &&
+    candidate.productNames.every((name) => typeof name === 'string') &&
+    typeof candidate.whatsappUrl === 'string' &&
+    (candidate.emailStatus === 'sent' || candidate.emailStatus === 'failed' || candidate.emailStatus === 'configuration_error')
+  );
 }
 
 async function readQuoteResponse(response: Response): Promise<unknown> {
@@ -575,6 +553,8 @@ function getSubmissionError(
   },
 ): string {
   switch (getApiErrorCode(value)) {
+    case 'DATABASE_SAVE_FAILED':
+      return copy.generic;
     case 'QUOTE_SERVICE_UNAVAILABLE':
       return copy.serviceUnavailable;
     case 'EMAIL_DELIVERY_FAILED':

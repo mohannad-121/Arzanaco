@@ -1,21 +1,29 @@
+import { createClient } from "@supabase/supabase-js";
+
 const QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
 const QUOTE_SENDER_ADDRESS = "quotes@mail.arzanaco.com";
+const WHATSAPP_NUMBER = "966566676600";
 const MAX_REQUESTS_PER_WINDOW = 5;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FIELD_LENGTH = 160;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PHONE_LENGTH = 32;
+const MAX_PROVIDER_ID_LENGTH = 160;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const PHONE_ALLOWED_PATTERN = /^[0-9+().\-\s]+$/u;
+const PROVIDER_ID_PATTERN = /^[A-Za-z0-9_-]+$/u;
 const requestTimesByIp = new Map<string, number[]>();
 
 type QuoteLanguage = "en" | "ar";
+type EmailStatus = "pending" | "sent" | "failed" | "configuration_error";
+type SubmissionStatus = "received" | "completed" | "partially_completed" | "failed";
 
 type QuoteRequest = {
   fullName: string;
   companyName: string;
   email: string;
   phone: string;
+  productIds: string[];
   language: QuoteLanguage;
   productNames: string[];
 };
@@ -38,6 +46,7 @@ type VercelResponse = {
 type FetchResponse = {
   ok: boolean;
   status: number;
+  json?: () => Promise<unknown>;
 };
 
 type FetchFunction = (
@@ -64,6 +73,30 @@ type CatalogModule = {
   findCatalogProduct?: (productId: string) => CatalogProduct | undefined;
 };
 
+type QuoteStorageClient = {
+  from: (table: string) => {
+    insert: (values: Record<string, unknown>) => {
+      select: (columns: string) => {
+        single: () => Promise<{
+          data: { id?: unknown } | null;
+          error: { code?: string } | null;
+        }>;
+      };
+    };
+    update: (values: Record<string, unknown>) => {
+      eq: (column: string, value: string) => Promise<{
+        error: { code?: string } | null;
+      }>;
+    };
+  };
+};
+
+type EmailDeliveryResult = {
+  emailStatus: Exclude<EmailStatus, "pending">;
+  errorCode: string | null;
+  providerId: string | null;
+};
+
 let catalogModulePromise: Promise<CatalogModule> | undefined;
 
 /**
@@ -82,8 +115,8 @@ async function getCatalogProductFinder(): Promise<NonNullable<CatalogModule["fin
 }
 
 /**
- * Handles POST /api/quote on Vercel. Credentials remain server-side and are
- * read from RESEND_API_KEY and QUOTE_FROM_EMAIL at request time.
+ * Handles POST /api/quote on Vercel. Quote data is persisted with the
+ * server-only Supabase service-role key before any external delivery is tried.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   logQuote("info", "[quote] request received", { method: req.method ?? "unknown" });
@@ -148,31 +181,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const deliveryResult = await sendQuoteEmail(validation.quote);
-  if (deliveryResult === "not-configured") {
+  const supabase = createQuoteStorageClient();
+  if (!supabase) {
+    logQuote("error", "[quote] database unavailable", { reason: "configuration_missing" });
     sendJson(res, 503, {
       success: false,
-      code: "QUOTE_SERVICE_UNAVAILABLE",
-      message:
-        "Quote email delivery is not configured yet. Please try again later or contact Arzana directly.",
+      code: "DATABASE_SAVE_FAILED",
+      message: "We could not save your quote request.",
     });
     return;
   }
 
-  if (deliveryResult === "failed") {
-    sendJson(res, 502, {
+  const quoteId = await insertQuoteRequest(supabase, validation.quote);
+  if (!quoteId) {
+    sendJson(res, 503, {
       success: false,
-      code: "EMAIL_DELIVERY_FAILED",
-      message:
-        "We could not deliver your quote email. Your details are still available in this form—please try again.",
+      code: "DATABASE_SAVE_FAILED",
+      message: "We could not save your quote request.",
     });
     return;
   }
 
+  const emailDelivery = await sendQuoteEmail(validation.quote);
+  const whatsappUrl = buildWhatsAppUrl(validation.quote);
+  const submissionStatus: SubmissionStatus =
+    emailDelivery.emailStatus === "sent" ? "completed" : "partially_completed";
+
+  const statusSaved = await updateQuoteRequest(supabase, quoteId, {
+    emailStatus: emailDelivery.emailStatus,
+    whatsappStatus: "prepared",
+    submissionStatus,
+    emailProviderId: emailDelivery.providerId,
+    errorCode: emailDelivery.errorCode,
+  });
+
+  if (!statusSaved) {
+    logQuote("error", "[quote] database status update failed", { quoteId });
+  }
+
+  const emailDelivered = emailDelivery.emailStatus === "sent";
   sendJson(res, 200, {
     success: true,
-    message: "Quote request delivered successfully.",
+    quoteId,
+    message: emailDelivered
+      ? "Quote request delivered successfully."
+      : "Quote request saved. Email delivery could not be confirmed; WhatsApp is ready.",
     productNames: validation.quote.productNames,
+    whatsappUrl,
+    emailStatus: emailDelivery.emailStatus,
+    submissionStatus,
   });
 }
 
@@ -229,10 +286,103 @@ async function validateQuoteRequest(body: Record<string, unknown>): Promise<Quot
       companyName,
       email,
       phone,
+      productIds: normalizedProductIds,
       language,
-      productNames: selectedProducts.map((product) => language === "ar" ? product!.nameAr : product!.nameEn),
+      productNames: selectedProducts.map((product) =>
+        language === "ar" ? product!.nameAr : product!.nameEn,
+      ),
     },
   };
+}
+
+function createQuoteStorageClient(): QuoteStorageClient | null {
+  const environment = getEnvironment();
+  const supabaseUrl = environment?.SUPABASE_URL?.trim();
+  const serviceRoleKey = environment?.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (!supabaseUrl || !serviceRoleKey) return null;
+
+  try {
+    return createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+    }) as unknown as QuoteStorageClient;
+  } catch {
+    return null;
+  }
+}
+
+async function insertQuoteRequest(supabase: QuoteStorageClient, quote: QuoteRequest): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("quote_requests")
+      .insert({
+        full_name: quote.fullName,
+        company_name: quote.companyName,
+        email: quote.email,
+        phone: quote.phone,
+        product_ids: quote.productIds,
+        product_names: quote.productNames,
+        language: quote.language,
+        email_status: "pending",
+        whatsapp_status: "not_prepared",
+        submission_status: "received",
+      })
+      .select("id")
+      .single();
+
+    const quoteId = typeof data?.id === "string" ? data.id : null;
+    if (error || !quoteId) {
+      logQuote("error", "[quote] database initial insert failed", {
+        reason: error?.code ?? "missing_quote_id",
+      });
+      return null;
+    }
+
+    return quoteId;
+  } catch {
+    logQuote("error", "[quote] database initial insert failed", { reason: "request_failed" });
+    return null;
+  }
+}
+
+async function updateQuoteRequest(
+  supabase: QuoteStorageClient,
+  quoteId: string,
+  values: {
+    emailStatus: Exclude<EmailStatus, "pending">;
+    whatsappStatus: "prepared" | "not_prepared";
+    submissionStatus: SubmissionStatus;
+    emailProviderId: string | null;
+    errorCode: string | null;
+  },
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("quote_requests")
+      .update({
+        email_status: values.emailStatus,
+        whatsapp_status: values.whatsappStatus,
+        submission_status: values.submissionStatus,
+        email_provider_id: values.emailProviderId,
+        error_code: values.errorCode,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", quoteId);
+
+    if (error) {
+      logQuote("error", "[quote] database status update failed", { reason: error.code ?? "unknown" });
+      return false;
+    }
+
+    return true;
+  } catch {
+    logQuote("error", "[quote] database status update failed", { reason: "request_failed" });
+    return false;
+  }
 }
 
 function readJsonBody(value: unknown): Record<string, unknown> {
@@ -291,8 +441,8 @@ function isWithinRateLimit(ip: string): boolean {
   return true;
 }
 
-async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-configured" | "failed"> {
-  const environment = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult> {
+  const environment = getEnvironment();
   const resendApiKey = environment?.RESEND_API_KEY?.trim();
   const senderEmail = environment?.QUOTE_FROM_EMAIL?.trim();
 
@@ -302,7 +452,11 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
       hasSender: Boolean(senderEmail),
       senderMatchesVerifiedAddress: senderEmail ? isExpectedSender(senderEmail) : false,
     });
-    return "not-configured";
+    return {
+      emailStatus: "configuration_error",
+      errorCode: "EMAIL_CONFIGURATION_ERROR",
+      providerId: null,
+    };
   }
 
   logQuote("info", "[quote] email delivery attempted", {
@@ -313,53 +467,53 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
   const fetchFunction = (globalThis as { fetch?: FetchFunction }).fetch;
   if (!fetchFunction) {
     logQuote("error", "[quote] email delivery failed", { reason: "fetch_unavailable" });
-    return "failed";
+    return { emailStatus: "failed", errorCode: "EMAIL_DELIVERY_FAILED", providerId: null };
   }
 
   const submittedAt = new Date().toISOString();
   const languageLabel = quote.language === "ar" ? "Arabic" : "English";
   const text = [
-    "New Quote Request – Arzana Co",
+    "New Quote Request - Arzana Co",
     "",
-    `Full Name: ${quote.fullName}`,
-    `Company / Business: ${quote.companyName}`,
-    `Email: ${quote.email}`,
-    `Phone: ${quote.phone}`,
+    "Full Name: " + quote.fullName,
+    "Company / Business: " + quote.companyName,
+    "Email: " + quote.email,
+    "Phone: " + quote.phone,
     "",
     "Interested Products:",
-    ...quote.productNames.map((productName) => `- ${productName}`),
+    ...quote.productNames.map((productName) => "- " + productName),
     "",
     "Submitted From: Arzana Website",
-    `Submission Language: ${languageLabel}`,
-    `Submission Date: ${submittedAt}`,
+    "Submission Language: " + languageLabel,
+    "Submission Date: " + submittedAt,
   ].join("\n");
 
   const html = [
-    "<h1>New Quote Request – Arzana Co</h1>",
-    `<p><strong>Full Name:</strong> ${escapeHtml(quote.fullName)}</p>`,
-    `<p><strong>Company / Business:</strong> ${escapeHtml(quote.companyName)}</p>`,
-    `<p><strong>Email:</strong> ${escapeHtml(quote.email)}</p>`,
-    `<p><strong>Phone:</strong> ${escapeHtml(quote.phone)}</p>`,
+    "<h1>New Quote Request - Arzana Co</h1>",
+    "<p><strong>Full Name:</strong> " + escapeHtml(quote.fullName) + "</p>",
+    "<p><strong>Company / Business:</strong> " + escapeHtml(quote.companyName) + "</p>",
+    "<p><strong>Email:</strong> " + escapeHtml(quote.email) + "</p>",
+    "<p><strong>Phone:</strong> " + escapeHtml(quote.phone) + "</p>",
     "<p><strong>Interested Products:</strong></p>",
-    `<ul>${quote.productNames.map((productName) => `<li>${escapeHtml(productName)}</li>`).join("")}</ul>`,
+    "<ul>" + quote.productNames.map((productName) => "<li>" + escapeHtml(productName) + "</li>").join("") + "</ul>",
     "<hr>",
     "<p><strong>Submitted From:</strong> Arzana Website</p>",
-    `<p><strong>Submission Language:</strong> ${languageLabel}</p>`,
-    `<p><strong>Submission Date:</strong> ${submittedAt}</p>`,
+    "<p><strong>Submission Language:</strong> " + languageLabel + "</p>",
+    "<p><strong>Submission Date:</strong> " + submittedAt + "</p>",
   ].join("");
 
   try {
     const response = await fetchFunction("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${resendApiKey}`,
+        Authorization: "Bearer " + resendApiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         from: senderEmail,
         to: [QUOTE_RECIPIENT_EMAIL],
         reply_to: quote.email,
-        subject: `New Quote Request – ${quote.fullName} – ${quote.companyName}`,
+        subject: "New Quote Request - " + quote.fullName + " - " + quote.companyName,
         html,
         text,
       }),
@@ -367,15 +521,78 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<"sent" | "not-config
 
     if (!response.ok) {
       logQuote("error", "[quote] email delivery failed", { resendStatus: response.status });
-      return "failed";
+      return { emailStatus: "failed", errorCode: "EMAIL_DELIVERY_FAILED", providerId: null };
     }
 
     logQuote("info", "[quote] email delivered");
-    return "sent";
+    return {
+      emailStatus: "sent",
+      errorCode: null,
+      providerId: await readProviderId(response),
+    };
   } catch {
     logQuote("error", "[quote] email delivery failed", { reason: "network_error" });
-    return "failed";
+    return { emailStatus: "failed", errorCode: "EMAIL_DELIVERY_FAILED", providerId: null };
   }
+}
+
+function buildWhatsAppUrl(quote: QuoteRequest): string {
+  const message =
+    quote.language === "ar"
+      ? [
+          "طلب عرض سعر جديد - شركة أرزانا",
+          "",
+          "الاسم الكامل:",
+          quote.fullName,
+          "اسم الشركة أو النشاط التجاري:",
+          quote.companyName,
+          "البريد الإلكتروني:",
+          quote.email,
+          "رقم الهاتف:",
+          quote.phone,
+          "المنتجات المطلوبة:",
+          ...quote.productNames.map((productName) => "- " + productName),
+          "",
+          "المصدر:",
+          "موقع أرزانا",
+        ].join("\n")
+      : [
+          "New Quote Request - Arzana Co",
+          "",
+          "Full Name:",
+          quote.fullName,
+          "Company / Business:",
+          quote.companyName,
+          "Email:",
+          quote.email,
+          "Phone:",
+          quote.phone,
+          "Interested Products:",
+          ...quote.productNames.map((productName) => "- " + productName),
+          "",
+          "Source:",
+          "Arzana Website",
+        ].join("\n");
+
+  return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message);
+}
+
+async function readProviderId(response: FetchResponse): Promise<string | null> {
+  if (!response.json) return null;
+
+  try {
+    const payload = await response.json();
+    const providerId = isRecord(payload) && typeof payload.id === "string" ? payload.id.trim() : "";
+    return providerId.length <= MAX_PROVIDER_ID_LENGTH && PROVIDER_ID_PATTERN.test(providerId)
+      ? providerId
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function getEnvironment(): Record<string, string | undefined> | undefined {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
 }
 
 function isExpectedSender(value: string): boolean {
