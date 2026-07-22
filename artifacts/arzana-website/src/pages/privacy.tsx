@@ -40,8 +40,8 @@ export default function Privacy() {
           <h2>5. Contact Us</h2>
           <p>
             If you have any questions about this privacy policy or our privacy practices, please contact us at:<br/>
-            Email: m.saadi@arzanaco.com<br/>
-            Address: ServCorp Building 13, Laysen Valley Complex, Al Urubah Road, Umm Al Hamam Al Gharbi District, Riyadh 12329, Saudi Arabia
+            Email: projects@arzanaco.com<br/>
+            Telephone: +966 59 708 048
           </p>
         </div>
       </div>

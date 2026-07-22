@@ -6,11 +6,7 @@ import { ChevronRight, Zap, Shield, FileText, Settings, Hammer } from 'lucide-re
 import { motion } from 'framer-motion';
 import { ClientLogoCarousel } from '../components/ClientLogoCarousel';
 import { clients } from '../data/clients';
-
-import heroImg from '@assets/hero_substation.jpg';
-import mvlvImg from '@assets/mv_lv_showcase.jpg';
-import safetyImg from '@assets/safety_systems_home.jpg';
-import testingImg from '@assets/testing_commissioning_home.jpg';
+import { approvedImages } from '../data/assets';
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -23,8 +19,8 @@ export default function Home() {
       <section className="relative h-[90vh] min-h-[600px] flex items-center overflow-hidden bg-foreground">
         <div className="absolute inset-0 z-0">
           <img 
-            src={heroImg} 
-            alt="Substation" 
+            src={approvedImages.engineering}
+            alt="Transformer testing in an electrical substation"
             className="w-full h-full object-cover opacity-40 mix-blend-overlay"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/90 via-foreground/60 to-transparent" />
@@ -119,7 +115,7 @@ export default function Home() {
             >
               <div className="relative rounded-lg overflow-hidden shadow-2xl">
                 <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
-                <img src={mvlvImg} alt="MV LV Showcase" className="w-full h-auto object-cover" />
+                <img src={approvedImages.powerDistribution} alt="Ring Main Unit for power distribution" className="h-auto w-full bg-white object-contain p-4" />
               </div>
             </motion.div>
           </div>
@@ -137,7 +133,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <img src={safetyImg} alt="Safety Systems" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <img src={approvedImages.safety} alt="Construction loading platform safety system" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/60 to-transparent" />
               <div className="absolute inset-0 p-8 flex flex-col justify-end">
                 <h3 className="text-2xl font-bold text-white mb-3">{t('safety.title')}</h3>
@@ -156,7 +152,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <img src={testingImg} alt="Testing & Commissioning" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <img src={approvedImages.testing} alt="Electrical panel testing and commissioning" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/60 to-transparent" />
               <div className="absolute inset-0 p-8 flex flex-col justify-end">
                 <h3 className="text-2xl font-bold text-white mb-3">{t('testing.title')}</h3>

@@ -4,7 +4,7 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
-import safetyImage from '@assets/service_safety.jpg';
+import { approvedImages } from '../data/assets';
 
 export default function SafetySystems() {
   const { language } = useLanguage();
@@ -33,7 +33,7 @@ export default function SafetySystems() {
     <PageWrapper>
       <section className="relative overflow-hidden bg-foreground py-20 text-background">
         <div className="absolute inset-0">
-          <img src={safetyImage} alt="" className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
+          <img src={approvedImages.safety} alt="Construction loading platform safety system" className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground via-foreground/90 to-transparent" />
         </div>
         <div className="container relative z-10 mx-auto max-w-4xl px-4">

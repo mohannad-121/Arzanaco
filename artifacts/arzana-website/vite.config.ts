@@ -37,6 +37,7 @@ export default defineConfig({
         '..',
         'attached_assets',
       ),
+      '@photos': path.resolve(import.meta.dirname, '..', '..', 'photos'),
     },
     dedupe: ['react', 'react-dom'],
   },

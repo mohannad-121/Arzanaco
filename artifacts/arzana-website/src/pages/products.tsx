@@ -1,16 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { Search } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
-import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
+import { productImageBySlug } from '../data/assets';
 
 export default function Products({ params }: { params?: { categorySlug?: string } }) {
   const { t, language } = useLanguage();
   const { categories, products } = useCatalog();
-  const [, setLocation] = useLocation();
   const [search, setSearch] = useState('');
   const activeCategory = params?.categorySlug;
   const activeCategoryData = categories.find((category) => category.slug === activeCategory);
@@ -95,20 +94,29 @@ export default function Products({ params }: { params?: { categorySlug?: string 
             {filteredProducts.length === 0 ? (
               <div className="rounded-lg border bg-card py-24 text-center">
                 <p className="text-muted-foreground">{t('products.empty')}</p>
-                <Button variant="outline" className="mt-4" onClick={() => { setSearch(''); setLocation('/products'); }}>
+                <button type="button" className="mt-4 text-sm font-semibold text-primary hover:underline" onClick={() => { setSearch(''); }}>
                   {language === 'ar' ? 'مسح البحث' : 'Clear search'}
-                </Button>
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {filteredProducts.map((product) => {
                   const category = categories.find((item) => item.id === product.categoryId);
+                  const image = productImageBySlug[product.slug];
 
                   return (
                     <article
                       key={product.id}
                       className="flex min-h-52 flex-col rounded-xl border bg-card p-6 transition-shadow hover:shadow-md"
                     >
+                      {image && (
+                        <img
+                          src={image}
+                          alt={language === 'ar' ? product.nameAr : product.nameEn}
+                          className="mb-5 h-40 w-full rounded-lg border bg-white object-contain p-2"
+                          loading="lazy"
+                        />
+                      )}
                       <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
                         {category && (language === 'ar' ? category.nameAr : category.nameEn)}
                       </p>
@@ -123,16 +131,13 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                       {product.types && product.types.length > 0 && (
                         <p className="mt-3 text-sm text-muted-foreground">{product.types.join(' · ')}</p>
                       )}
-                      <div className="mt-auto flex items-center justify-between border-t pt-5">
+                      <div className="mt-auto border-t pt-5">
                         <Link
                           href={`/products/${category?.slug}/${product.slug}`}
                           className="text-sm font-medium text-primary hover:underline"
                         >
                           {t('common.viewDetails')}
                         </Link>
-                        <Button size="sm" variant="outline" onClick={() => setLocation('/request-quote')}>
-                          {language === 'ar' ? 'طلب عرض سعر' : 'Quote'}
-                        </Button>
                       </div>
                     </article>
                   );
