@@ -30,11 +30,6 @@ export default function Clients() {
               </div>
 
               <div>
-                <div className="mb-8 text-center">
-                  <h2 className="text-2xl font-bold text-foreground md:text-3xl">
-                    {t('clients.gridTitle')}
-                  </h2>
-                </div>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
                   {clients.map((client) => (
                     <div
