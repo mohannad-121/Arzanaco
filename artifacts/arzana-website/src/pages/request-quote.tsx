@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
-import { Checkbox } from '../components/ui/checkbox';
+import { ArzanaCheckbox } from '../components/ArzanaCheckbox';
 import { Input } from '../components/ui/input';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
@@ -388,22 +388,16 @@ export default function RequestQuote() {
                           const inputId = `quote-product-${product.id}`;
 
                           return (
-                            <div
+                            <ArzanaCheckbox
                               key={product.id}
-                              className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                                isSelected ? 'border-primary bg-primary/5' : 'hover:border-primary/50 hover:bg-muted/50'
-                              }`}
+                              id={inputId}
+                              name="productIds"
+                              value={product.id}
+                              checked={isSelected}
+                              onChange={() => toggleProduct(product.id)}
                             >
-                              <Checkbox
-                                id={inputId}
-                                checked={isSelected}
-                                onCheckedChange={() => toggleProduct(product.id)}
-                                className="mt-0.5"
-                              />
-                              <label htmlFor={inputId} className="cursor-pointer text-sm font-medium leading-snug text-foreground">
-                                {language === 'ar' ? product.nameAr : product.nameEn}
-                              </label>
-                            </div>
+                              {language === 'ar' ? product.nameAr : product.nameEn}
+                            </ArzanaCheckbox>
                           );
                         })}
                       </div>

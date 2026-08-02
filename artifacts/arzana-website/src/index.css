@@ -196,6 +196,46 @@
   .coverflow__arrow:hover { background: #ae263c; transform: translateY(-1px); }
   .coverflow__arrow:focus-visible { outline: 3px solid #e4aab6; outline-offset: 2px; }
   .coverflow__caption { min-width: 0; text-align: center; font-size: .9rem; font-weight: 600; line-height: 1.4; color: rgba(255,255,255,.78); }
+  .arzana-checkbox-option {
+    --checkbox-primary: #a8163f;
+    --checkbox-primary-dark: #78112f;
+    --checkbox-primary-light: #f3d6df;
+    --checkbox-surface: #fffdfb;
+    --checkbox-text: #202124;
+    position: relative;
+    display: flex;
+    min-height: 4rem;
+    align-items: center;
+    gap: .85rem;
+    overflow: hidden;
+    border: 1px solid rgba(120, 17, 47, .18);
+    border-radius: .65rem;
+    background: var(--checkbox-surface);
+    padding: .8rem .9rem;
+    color: var(--checkbox-text);
+    cursor: pointer;
+    transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .arzana-checkbox-option:hover { border-color: rgba(168, 22, 63, .62); background: #fdf5f7; box-shadow: 0 8px 18px rgba(120, 17, 47, .07); }
+  .arzana-checkbox-option[data-checked="true"] { border-color: var(--checkbox-primary); background: #fbecef; box-shadow: inset 0 0 0 1px rgba(168, 22, 63, .08); }
+  .arzana-checkbox-option[data-disabled="true"] { cursor: not-allowed; opacity: .52; }
+  .arzana-checkbox-option[data-disabled="true"]:hover { border-color: rgba(120, 17, 47, .18); background: var(--checkbox-surface); box-shadow: none; }
+  .arzana-checkbox-control { position: relative; display: grid; width: 1.625rem; height: 1.625rem; flex: 0 0 1.625rem; place-items: center; }
+  .arzana-checkbox-input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  .arzana-checkbox-frame { position: relative; display: grid; width: 100%; height: 100%; place-items: center; }
+  .arzana-checkbox-frame::after { position: absolute; inset: -.25rem; border: 1px solid var(--checkbox-primary); border-radius: .55rem; content: ''; opacity: 0; pointer-events: none; transform: scale(.7); }
+  .arzana-checkbox-box { position: relative; display: grid; width: 100%; height: 100%; place-items: center; overflow: hidden; border: 2px solid var(--checkbox-primary); border-radius: .42rem; background: var(--checkbox-surface); box-shadow: inset 0 1px 1px rgba(32, 33, 36, .08); transition: transform .2s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease; }
+  .arzana-checkbox-check { width: 1.25rem; height: 1.25rem; fill: none; stroke: white; stroke-width: 3.1; stroke-linecap: round; stroke-linejoin: round; }
+  .arzana-checkbox-check path { stroke-dasharray: 28; stroke-dashoffset: 28; transition: stroke-dashoffset .26s cubic-bezier(.16, 1, .3, 1); }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-box { border-color: var(--checkbox-primary-dark); background: var(--checkbox-primary); box-shadow: 0 0 0 3px rgba(168, 22, 63, .10), inset 0 1px 1px rgba(255, 255, 255, .2); }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-check path { stroke-dashoffset: 0; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame::after { animation: arzana-checkbox-ring .45s ease-out; }
+  .arzana-checkbox-option:hover .arzana-checkbox-box { border-color: var(--checkbox-primary); transform: scale(1.03); }
+  .arzana-checkbox-input:focus-visible + .arzana-checkbox-frame .arzana-checkbox-box { outline: 2px solid white; outline-offset: 2px; box-shadow: 0 0 0 4px var(--checkbox-primary-dark), 0 0 0 7px var(--checkbox-primary-light); }
+  .arzana-checkbox-label { min-width: 0; font-size: .875rem; font-weight: 600; line-height: 1.45; transition: color .2s ease; }
+  .arzana-checkbox-option[data-checked="true"] .arzana-checkbox-label { color: var(--checkbox-primary-dark); }
+  @keyframes arzana-checkbox-ring { from { opacity: .5; transform: scale(.72); } to { opacity: 0; transform: scale(1.35); } }
 }
 
 @media (max-width: 640px) {
