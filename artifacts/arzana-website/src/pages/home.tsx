@@ -216,32 +216,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="relative overflow-hidden bg-[#232426] py-20 text-white md:py-28">
-        <div className="industrial-grid absolute inset-0 opacity-20" />
-        <div className="site-container relative grid items-center gap-12 lg:grid-cols-[.95fr_1.05fr]">
-          <div>
-            <p className="eyebrow mb-5 !text-[#deb1bc]">Power distribution</p>
-            <h2 className="section-title !text-white">{t("mvlv.title")}</h2>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-white/75">
-              {t("mvlv.subtitle")}
-            </p>
-            <Button
-              className="mt-9"
-              onClick={() => setLocation("/products/mv-lv-solutions")}
-            >
-              {t("mvlv.view")}
-              <ArrowRight className="ms-2" />
-            </Button>
-          </div>
-          <div className="relative min-h-[25rem] overflow-hidden bg-[#3a3b3d]">
-            <img
-              src={approvedImages.powerDistribution}
-              alt="Ring Main Unit for power distribution"
-              className="absolute inset-0 h-full w-full object-contain p-9 md:p-12"
-            />
-          </div>
-        </div>
-      </section>
       <section className="bg-[#babcc0] py-20 md:py-24">
         <div className="site-container">
           <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">

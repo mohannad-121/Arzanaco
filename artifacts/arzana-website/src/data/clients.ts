@@ -64,6 +64,10 @@ export const clients: Client[] = Object.entries(logoModules)
     'tdp',
     'kec',
     'algihaz holding',
+    'communication',
+    'outlook',
+    'telephone call',
+    'whatsapp',
   ].includes(keyFromFileName(fileNameFromPath(path))))
   .map(([path, logoPath]): Client => {
     const fileName = fileNameFromPath(path);
