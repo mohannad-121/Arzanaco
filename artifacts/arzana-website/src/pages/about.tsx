@@ -35,16 +35,16 @@ export default function About() {
 
   return (
     <PageWrapper>
-      <section className="page-hero py-28 md:py-36">
+      <section className="relative isolate overflow-hidden bg-[#292a2c] py-28 text-white md:py-36"><img src={approvedImages.infrastructure} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-35" /><div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(24,25,26,.94),rgba(32,33,35,.68),rgba(32,33,35,.35))]" />
         <div className="site-container max-w-4xl">
           <p className="eyebrow mb-5 !text-white/70">Our company</p><h1 className="max-w-4xl text-4xl font-bold tracking-[-.045em] text-white md:text-6xl">{copy.title}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">{copy.introduction}</p>
         </div>
       </section>
 
-      <section className="bg-background py-16 md:py-24"><div className="site-container grid max-w-6xl gap-12 lg:grid-cols-2 lg:items-center">
-          <img src={approvedImages.engineering} alt="Transformer testing in an electrical substation" className="h-80 w-full border border-border object-cover shadow-xl lg:h-full" />
-          <div>
+      <section className="bg-[#d8d4cb] py-16 md:py-24"><div className="site-container grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+          <div className="relative"><span className="absolute -start-3 -top-4 text-7xl font-bold tracking-[-.1em] text-primary/20">01</span><img src={approvedImages.engineering} alt="Transformer testing in an electrical substation" className="relative h-80 w-full object-cover shadow-[0_22px_42px_rgba(39,40,42,.2)] lg:h-[34rem]" /></div>
+          <div className="bg-[#f6f3ee] p-7 shadow-[0_18px_35px_rgba(39,40,42,.08)] md:p-10">
             <p className="eyebrow mb-4">Engineering support</p><h2 className="section-title text-3xl">{copy.supportTitle}</h2>
             <p className="mt-5 text-lg leading-relaxed text-foreground/75">{copy.support}</p>
             <h3 className="mt-8 text-lg font-semibold text-foreground">{copy.sectorsTitle}</h3>
@@ -55,12 +55,12 @@ export default function About() {
         </div>
       </section>
 
-      <section className="bg-muted py-16 md:py-24"><div className="site-container max-w-4xl"><article className="steel-card p-8 md:p-12">
-            <h2 className="text-2xl font-bold text-foreground">{copy.portfolioTitle}</h2>
-            <p className="mt-5 text-lg leading-relaxed text-foreground/75">{copy.portfolio}</p>
-            <h2 className="mt-10 text-2xl font-bold text-foreground">{copy.missionTitle}</h2>
-            <p className="mt-5 text-lg leading-relaxed text-foreground/75">{copy.mission}</p>
-            <Link href="/products" className="mt-8 inline-flex bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+      <section className="bg-[#292a2c] py-16 text-white md:py-24"><div className="site-container grid max-w-6xl gap-0 lg:grid-cols-2"><article className="border border-white/15 p-8 md:p-12">
+            <p className="eyebrow mb-4 !text-[#deb1bc]">Portfolio</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.portfolioTitle}</h2>
+            <p className="mt-5 text-lg leading-relaxed text-white/75">{copy.portfolio}</p></article><article className="bg-[#8f1f35] p-8 md:p-12">
+            <p className="eyebrow mb-4 !text-white/70">Mission</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.missionTitle}</h2>
+            <p className="mt-5 text-lg leading-relaxed text-white/85">{copy.mission}</p>
+            <Link href="/products" className="mt-8 inline-flex bg-white px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-[#f0e5e7]">
               {copy.explore}
             </Link>
           </article>

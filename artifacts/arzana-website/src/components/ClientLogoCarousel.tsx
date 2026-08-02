@@ -206,18 +206,10 @@ export function ClientLogoCarousel({ clients }: ClientLogoCarouselProps) {
             <motion.div
               key={activeClient.id}
               custom={direction}
-              initial={
-                isReducedMotion
-                  ? { opacity: 0 }
-                  : { x: direction * 180, y: 80, opacity: 0, scale: 0.88, rotate: direction * 6 }
-              }
-              animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
-              exit={
-                isReducedMotion
-                  ? { opacity: 0 }
-                  : { x: -direction * 180, y: 80, opacity: 0, scale: 0.88, rotate: -direction * 6 }
-              }
-              transition={{ duration: isReducedMotion ? 0.15 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+              initial={isReducedMotion ? { opacity: 0 } : { y: 14, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={isReducedMotion ? { opacity: 0 } : { y: -8, opacity: 0, scale: 0.99 }}
+              transition={{ duration: isReducedMotion ? 0.15 : 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="absolute inset-0 flex items-center justify-center"
             >
               <img
@@ -233,10 +225,10 @@ export function ClientLogoCarousel({ clients }: ClientLogoCarouselProps) {
         <AnimatePresence initial={false} mode="popLayout">
           <motion.p
             key={activeClient.id}
-            initial={{ opacity: 0, y: isReducedMotion ? 0 : 8 }}
+            initial={{ opacity: 0, y: isReducedMotion ? 0 : 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: isReducedMotion ? 0 : -8 }}
-            transition={{ duration: isReducedMotion ? 0.15 : 0.25 }}
+            exit={{ opacity: 0, y: isReducedMotion ? 0 : -5 }}
+            transition={{ duration: isReducedMotion ? 0.15 : 0.2 }}
             className="min-h-6 px-4 text-center text-lg font-semibold text-foreground"
           >
             {activeClient.name}
@@ -249,7 +241,6 @@ export function ClientLogoCarousel({ clients }: ClientLogoCarouselProps) {
             const angle = slot * deltaAngle;
             const x = radius * Math.sin(angle);
             const y = radius * (1 - Math.cos(angle));
-            const angleDegrees = (angle * 180) / Math.PI;
             const absoluteSlot = Math.abs(slot);
             const depth = Math.max(0, 1 - (0.55 * absoluteSlot) / Math.max(1, half));
             const scale = 0.55 + 0.45 * depth;
@@ -270,7 +261,7 @@ export function ClientLogoCarousel({ clients }: ClientLogoCarouselProps) {
                 aria-current={isActive ? 'true' : undefined}
                 onClick={() => selectClient(clientIndex)}
                 initial={false}
-                animate={{ x, y, rotate: angleDegrees, scale, opacity }}
+                animate={{ x, y, scale, opacity }}
                 transition={isReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute left-1/2 top-0 grid place-items-center rounded-full border bg-white p-0 shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 style={{
@@ -288,7 +279,7 @@ export function ClientLogoCarousel({ clients }: ClientLogoCarouselProps) {
                   alt=""
                   draggable={false}
                   className="h-full w-full object-contain p-1.5"
-                  style={{ transform: `rotate(${-angleDegrees}deg)` }}
+                  style={{ transform: 'none' }}
                 />
               </motion.button>
             );

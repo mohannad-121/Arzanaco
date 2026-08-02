@@ -133,7 +133,12 @@ export const testingCommissioningMedia = [
 
 export const approvedImages = {
   powerDistribution: photo1,
+  electricalSystems: photo8,
+  automation: photo17,
+  infrastructure: photo28,
   testing: photo31,
+  testingDetail: photo32,
   engineering: photo33,
   safety: photo13,
+  edgeProtection: photo11,
 } as const;

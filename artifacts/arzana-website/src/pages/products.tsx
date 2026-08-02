@@ -43,7 +43,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
         </div>
       </section>
 
-      <section className="site-container py-14 md:py-20">
+      <section className="bg-[#d9d8d4] py-14 md:py-20"><div className="site-container">
         <div className="flex flex-col gap-8 lg:flex-row">
           <aside className="w-full shrink-0 space-y-6 lg:sticky lg:top-28 lg:h-fit lg:w-72">
             <div className="relative">
@@ -56,7 +56,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
               />
             </div>
 
-            <nav aria-label={t('products.categories')} className="steel-card p-4">
+            <nav aria-label={t('products.categories')} className="border border-[#b9b8b3] bg-[#edeae4] p-4 shadow-[0_14px_35px_rgba(39,40,42,.08)]">
               <h2 className="mb-4 text-xs font-bold uppercase tracking-[.14em] text-foreground">{t('products.categories')}</h2>
               <ul className="space-y-2">
                 <li>
@@ -108,20 +108,20 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                   return (
                     <article
                       key={product.id}
-                      className="group flex min-h-64 flex-col border border-border bg-card p-5 transition-[border-color,transform,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_18px_35px_rgba(39,40,42,.12)]"
+                      className="group relative flex min-h-72 flex-col overflow-hidden bg-[#f6f3ee] p-0 shadow-[0_10px_25px_rgba(39,40,42,.08)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(39,40,42,.16)]"
                     >
                       {image && (
                         <img
                           src={image.src}
                           alt={language === 'ar' ? image.altAr : image.altEn}
-                          className={`mb-5 h-44 w-full border bg-white transition-transform duration-500 group-hover:scale-[1.015] ${image.fit === 'cover' ? 'object-cover' : 'object-contain p-2'}`}
+                          className={`h-52 w-full bg-[#c7c9c9] transition-transform duration-500 group-hover:scale-[1.035] ${image.fit === 'cover' ? 'object-cover' : 'object-contain p-7'}`}
                           loading="lazy"
                         />
                       )}
-                      <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                      <div className="relative flex flex-1 flex-col p-6"><span className="absolute start-6 top-0 h-px w-10 bg-primary transition-[width] duration-300 group-hover:w-20" /><p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
                         {category && (language === 'ar' ? category.nameAr : category.nameEn)}
                       </p>
-                      <h2 className="text-xl font-semibold leading-snug text-foreground">
+                      <h2 className="text-xl font-bold leading-snug text-foreground">
                         {language === 'ar' ? product.nameAr : product.nameEn}
                       </h2>
                       {(language === 'ar' ? product.descriptionAr : product.descriptionEn) && (
@@ -132,14 +132,14 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                       {product.types && product.types.length > 0 && (
                         <p className="mt-3 text-sm text-muted-foreground">{product.types.join(' · ')}</p>
                       )}
-                      <div className="mt-auto border-t pt-5">
+                      <div className="mt-auto border-t border-foreground/10 pt-5">
                         <Link
                           href={`/products/${category?.slug}/${product.slug}`}
                           className="inline-flex items-center text-sm font-bold text-primary hover:underline"
                         >
                           {t('common.viewDetails')} <span className="ms-2 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">→</span>
                         </Link>
-                      </div>
+                      </div></div>
                     </article>
                   );
                 })}
@@ -147,7 +147,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
             )}
           </div>
         </div>
-      </section>
+      </div></section>
     </PageWrapper>
   );
 }
