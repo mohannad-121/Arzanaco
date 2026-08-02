@@ -39,24 +39,21 @@ export default function TestingCommissioning() {
 
   return (
     <PageWrapper>
-      <section className="relative overflow-hidden bg-foreground py-20 text-background">
+      <section className="page-hero py-28 text-background md:py-36">
         <div className="absolute inset-0">
           <img src={testingCommissioningMedia[0].src} alt={testingCommissioningMedia[0].altEn} className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground to-transparent" />
         </div>
-        <div className="container relative z-10 mx-auto max-w-4xl px-4">
+        <div className="site-container relative z-10 max-w-4xl"><p className="eyebrow mb-5 !text-white/70">Field assurance</p>
           <h1 className="max-w-3xl text-4xl font-bold leading-tight text-white md:text-5xl">{copy.title}</h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/80">{copy.introduction}</p>
         </div>
       </section>
 
-      <section className="bg-background py-16 md:py-24">
-        <div className="container mx-auto max-w-5xl px-4">
-          <h2 className="mb-8 text-3xl font-bold text-foreground">{copy.systems}</h2>
-          <div className="rounded-2xl border bg-card p-6 shadow-sm md:p-8">
+      <section className="bg-background py-16 md:py-24"><div className="site-container max-w-5xl"><p className="eyebrow mb-4">Commissioning scope</p><h2 className="section-title mb-8 text-3xl">{copy.systems}</h2><div className="steel-card p-6 md:p-8">
             <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {systemsCovered.map((system) => (
-                <li key={system} className="flex items-start gap-3 rounded-lg bg-muted/70 p-4">
+                <li key={system} className="flex items-start gap-3 border border-border bg-muted/70 p-4">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                   <span className="font-medium text-foreground/80">{system}</span>
                 </li>
@@ -71,7 +68,7 @@ export default function TestingCommissioning() {
                   src={item.src}
                   alt={language === 'ar' ? item.altAr : item.altEn}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  className={`w-full rounded-xl border object-cover ${index === 0 ? 'aspect-[4/3] md:col-span-2 md:aspect-[16/7]' : 'aspect-[4/3]'}`}
+                  className={`w-full border border-border object-cover ${index === 0 ? 'aspect-[4/3] md:col-span-2 md:aspect-[16/7]' : 'aspect-[4/3]'}`}
                 />
               ))}
             </div>

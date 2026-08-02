@@ -1,204 +1,59 @@
+import { Link, useLocation } from 'wouter';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, FileText, Hammer, Settings, Shield, Zap } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from '../components/ui/button';
-import { Link, useLocation } from 'wouter';
-import { ChevronRight, Zap, Shield, FileText, Settings, Hammer } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { ClientLogoCarousel } from '../components/ClientLogoCarousel';
 import { clients } from '../data/clients';
 import { approvedImages } from '../data/assets';
+import { useCatalog } from '../contexts/CatalogContext';
+
+const areas = [
+  { icon: Zap, key: 'areas.power', href: '/products/mv-lv-solutions', number: '01' },
+  { icon: FileText, key: 'areas.electrical', href: '/products/meters-instruments', number: '02' },
+  { icon: Settings, key: 'areas.automation', href: '/products/ups-stabilizers', number: '03' },
+  { icon: Shield, key: 'areas.safety', href: '/safety-systems', number: '04' },
+  { icon: Hammer, key: 'areas.testing', href: '/testing-commissioning', number: '05' },
+];
 
 export default function Home() {
   const { t, language } = useLanguage();
   const [, setLocation] = useLocation();
+  const { categories } = useCatalog();
+  const reduced = useReducedMotion();
+  const featured = categories.slice(0, 4);
+  const heroMotion = reduced ? {} : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { duration: .7, ease: [0.16, 1, .3, 1] as const } };
 
-  const isRtl = language === 'ar';
-  return (
-    <PageWrapper>
-      {/* HERO SECTION */}
-      <section className="relative h-[90vh] min-h-[600px] flex items-center overflow-hidden bg-foreground">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={approvedImages.engineering}
-            alt="Transformer testing in an electrical substation"
-            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/90 via-foreground/60 to-transparent" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="max-w-3xl"
-          >
-            <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
-              {t('hero.title')}
-            </h1>
-            <p className="text-lg md:text-xl text-white/80 leading-relaxed mb-10 max-w-2xl">
-              {t('hero.subtitle')}
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="text-base h-14 px-8" onClick={() => setLocation('/products')}>
-                {t('hero.cta.primary')}
-              </Button>
-              <Button size="lg" variant="secondary" className="text-base h-14 px-8 bg-white text-foreground hover:bg-white/90" onClick={() => setLocation('/request-quote')}>
-                {t('hero.cta.secondary')}
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+  return <PageWrapper>
+    <section className="relative flex min-h-[82svh] items-end overflow-hidden bg-[#1f2022] pb-16 pt-32 text-white md:min-h-[90svh] md:pb-24">
+      {reduced ? <img src={approvedImages.engineering} alt="" className="absolute inset-0 h-full w-full object-cover opacity-55" aria-hidden="true" /> : <video className="absolute inset-0 h-full w-full object-cover opacity-55" autoPlay muted loop playsInline preload="metadata" poster={approvedImages.engineering} aria-hidden="true"><source src="/herovideo.mp4" type="video/mp4" /></video>}
+      <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(21,22,23,.94),rgba(31,32,34,.72)_46%,rgba(31,32,34,.2))]" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#1f2022]/70 to-transparent" />
+      <div className="site-container relative z-10 w-full"><motion.div {...heroMotion} className="max-w-3xl">
+        <p className="eyebrow mb-6 !text-white/75">Saudi Electrical Engineering</p>
+        <h1 className="max-w-3xl text-5xl font-bold leading-[.98] tracking-[-.055em] text-white md:text-7xl xl:text-8xl">{t('hero.title')}</h1>
+        <p className="mt-7 max-w-2xl text-base leading-8 text-white/75 md:text-xl md:leading-9">{t('hero.subtitle')}</p>
+        <div className="mt-10 flex flex-wrap gap-3"><Button size="lg" className="min-h-14 px-7" onClick={() => setLocation('/products')}>{t('hero.cta.primary')}<ArrowRight className="ms-2" /></Button><Button size="lg" variant="secondary" className="min-h-14 px-7" onClick={() => setLocation('/request-quote')}>{t('hero.cta.secondary')}</Button></div>
+      </motion.div>
+      <div className="mt-16 hidden border-t border-white/20 pt-4 text-[.7rem] font-semibold tracking-[.15em] text-white/65 md:flex md:justify-between md:uppercase"><span>ARZANA ARABIA COMPANY LTD.</span><span>POWER / PROTECTION / PERFORMANCE</span></div>
+      </div>
+    </section>
 
-      {/* BUSINESS AREAS */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-foreground mb-4">{t('areas.title')}</h2>
-            <div className="w-24 h-1 bg-primary mx-auto"></div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {[
-              { icon: Zap, title: t('areas.power'), href: '/products/mv-lv-solutions' },
-              { icon: FileText, title: t('areas.electrical'), href: '/products/meters-instruments' },
-              { icon: Settings, title: t('areas.automation'), href: '/products/ups-stabilizers' },
-              { icon: Shield, title: t('areas.safety'), href: '/safety-systems' },
-              { icon: Hammer, title: t('areas.testing'), href: '/testing-commissioning' },
-            ].map((area, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Link href={area.href} className="group block h-full">
-                  <div className="bg-card border border-border rounded-lg p-6 h-full transition-all duration-300 hover:shadow-lg hover:border-primary">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform">
-                      <area.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{area.title}</h3>
-                    <div className="flex items-center text-primary font-medium mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {t('common.readMore')} <ChevronRight className="w-4 h-4 ml-1" />
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+    <section className="industrial-grid border-y border-border bg-muted/60 py-12"><div className="site-container grid gap-8 md:grid-cols-[1.1fr_2fr]"><p className="eyebrow self-center">Engineering with intent</p><p className="max-w-3xl text-xl font-medium leading-relaxed tracking-[-.02em] text-foreground md:text-2xl">Arzana brings together distribution, critical power, modular infrastructure and specialist field support for demanding projects across the Kingdom.</p></div></section>
 
-      {/* MV/LV SHOWCASE */}
-      <section className="py-24 bg-muted overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            <motion.div 
-              className="lg:w-1/2"
-              initial={{ opacity: 0, x: isRtl ? 50 : -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl font-bold text-foreground mb-6">{t('mvlv.title')}</h2>
-              <p className="text-foreground/70 leading-relaxed mb-8 text-lg">{t('mvlv.subtitle')}</p>
-              <Button onClick={() => setLocation('/products/mv-lv-solutions')}>
-                {t('mvlv.view')}
-              </Button>
-            </motion.div>
-            <motion.div 
-              className="lg:w-1/2 relative"
-              initial={{ opacity: 0, x: isRtl ? -50 : 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="relative rounded-lg overflow-hidden shadow-2xl">
-                <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
-                <img src={approvedImages.powerDistribution} alt="Ring Main Unit for power distribution" className="h-auto w-full bg-white object-contain p-4" />
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+    <section className="py-20 md:py-28"><div className="site-container"><div className="mb-12 flex flex-col justify-between gap-5 md:mb-14 md:flex-row md:items-end"><div><p className="eyebrow mb-4">{t('areas.title')}</p><h2 className="section-title">Built around the work your project demands.</h2></div><p className="section-copy">A practical route into Arzana’s electrical solutions, safety systems and commissioning support.</p></div>
+      <div className="grid border-s border-t border-border sm:grid-cols-2 lg:grid-cols-5">{areas.map((area, index) => <motion.div key={area.number} initial={reduced ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ delay: index * .06 }}><Link href={area.href} className="group relative flex min-h-64 flex-col border-b border-e border-border bg-background p-6 transition hover:bg-[#27282a] hover:text-white"><span className="text-xs font-bold tracking-[.16em] text-primary group-hover:text-[#d38a98]">{area.number}</span><area.icon className="mt-auto h-7 w-7 text-primary group-hover:text-white" /><h3 className="mt-6 text-lg font-bold leading-snug">{t(area.key)}</h3><ArrowRight className="absolute bottom-6 end-6 h-4 w-4 text-primary transition-transform group-hover:translate-x-1 group-hover:text-white rtl:group-hover:-translate-x-1" /></Link></motion.div>)}</div>
+    </div></section>
 
-      {/* SAFETY & TESTING DUAL SECTION */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Safety */}
-            <motion.div 
-              className="group relative rounded-2xl overflow-hidden h-[400px]"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <img src={approvedImages.safety} alt="Construction loading platform safety system" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/60 to-transparent" />
-              <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                <h3 className="text-2xl font-bold text-white mb-3">{t('safety.title')}</h3>
-                <p className="text-white/80 mb-6 max-w-md">{t('safety.subtitle')}</p>
-                <Button variant="secondary" className="w-fit" onClick={() => setLocation('/safety-systems')}>
-                  {t('common.readMore')}
-                </Button>
-              </div>
-            </motion.div>
+    <section className="bg-[#27282a] py-20 text-white md:py-28"><div className="site-container grid items-center gap-12 lg:grid-cols-2"><div><p className="eyebrow mb-5 !text-[#d38a98]">Power distribution</p><h2 className="section-title !text-white">{t('mvlv.title')}</h2><p className="mt-7 max-w-xl text-lg leading-8 text-white/70">{t('mvlv.subtitle')}</p><Button className="mt-9" onClick={() => setLocation('/products/mv-lv-solutions')}>{t('mvlv.view')}<ArrowRight className="ms-2" /></Button></div><div className="relative border border-white/15 bg-[#f6f3ee] p-4 shadow-2xl"><div className="industrial-grid absolute inset-0 opacity-35" /><img src={approvedImages.powerDistribution} alt="Ring Main Unit for power distribution" className="relative h-[25rem] w-full object-contain p-5 md:h-[31rem]" /></div></div></section>
 
-            {/* Testing */}
-            <motion.div 
-              className="group relative rounded-2xl overflow-hidden h-[400px]"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-            >
-              <img src={approvedImages.testing} alt="Electrical panel testing and commissioning" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/60 to-transparent" />
-              <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                <h3 className="text-2xl font-bold text-white mb-3">{t('testing.title')}</h3>
-                <p className="text-white/80 mb-6 max-w-md">{t('testing.subtitle')}</p>
-                <Button variant="secondary" className="w-fit" onClick={() => setLocation('/testing-commissioning')}>
-                  {t('testing.explore')}
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+    <section className="py-20 md:py-28"><div className="site-container"><div className="mb-12"><p className="eyebrow mb-4">Product families</p><h2 className="section-title">Solutions that stay clear from specification to site.</h2></div><div className="grid gap-px bg-border md:grid-cols-2">{featured.map((category, index) => <Link key={category.id} href={`/products/${category.slug}`} className="group flex min-h-44 items-end justify-between bg-background p-7 transition hover:bg-primary hover:text-white"><div><span className="text-xs font-bold tracking-[.14em] text-primary group-hover:text-white/70">0{index + 1}</span><h3 className="mt-3 text-xl font-bold">{language === 'ar' ? category.nameAr : category.nameEn}</h3></div><ArrowRight className="h-5 w-5 text-primary transition-transform group-hover:translate-x-1 group-hover:text-white rtl:group-hover:-translate-x-1" /></Link>)}</div><div className="mt-8"><Button variant="outline" onClick={() => setLocation('/products')}>{t('mvlv.view')}</Button></div></div></section>
 
-      {clients.length > 0 && (
-        <section className="bg-muted py-20 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="mx-auto mb-12 max-w-2xl text-center">
-              <h2 className="mb-4 text-3xl font-bold text-foreground">{t('clients.title')}</h2>
-              <p className="text-foreground/70">{t('clients.subtitle')}</p>
-            </div>
-            <div className="mx-auto max-w-3xl">
-              <ClientLogoCarousel clients={clients} />
-            </div>
-            <div className="mt-8 text-center">
-              <Link href="/clients" className="text-sm font-semibold text-primary hover:underline">
-                {t('clients.view')}
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+    <section className="bg-muted py-20 md:py-28"><div className="site-container grid gap-6 lg:grid-cols-2"><Link href="/safety-systems" className="group relative min-h-[29rem] overflow-hidden bg-foreground"><img src={approvedImages.safety} alt="Construction loading platform safety system" className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#1f2022] via-[#1f2022]/45 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-8 text-white"><p className="eyebrow !text-white/70">Systems protection</p><h2 className="mt-4 text-3xl font-bold">{t('safety.title')}</h2><p className="mt-3 max-w-md text-white/75">{t('safety.subtitle')}</p><span className="mt-6 inline-flex items-center text-sm font-bold">{t('common.readMore')}<ArrowRight className="ms-2 h-4 w-4" /></span></div></Link><Link href="/testing-commissioning" className="group relative min-h-[29rem] overflow-hidden bg-foreground"><img src={approvedImages.testing} alt="Electrical panel testing and commissioning" className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#1f2022] via-[#1f2022]/45 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-8 text-white"><p className="eyebrow !text-white/70">Field assurance</p><h2 className="mt-4 text-3xl font-bold">{t('testing.title')}</h2><p className="mt-3 max-w-md text-white/75">{t('testing.subtitle')}</p><span className="mt-6 inline-flex items-center text-sm font-bold">{t('testing.explore')}<ArrowRight className="ms-2 h-4 w-4" /></span></div></Link></div></section>
 
-      {/* CTA */}
-      <section className="py-24 bg-primary text-primary-foreground text-center">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">{t('contact.cta.title')}</h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" variant="secondary" onClick={() => setLocation('/request-quote')}>
-              {t('nav.quote')}
-            </Button>
-            <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90" onClick={() => setLocation('/contact')}>
-              {t('contact.email')}
-            </Button>
-          </div>
-        </div>
-      </section>
-    </PageWrapper>
-  );
+    {clients.length > 0 && <section className="py-20 md:py-28"><div className="site-container"><div className="mx-auto mb-12 max-w-2xl text-center"><p className="eyebrow justify-center mb-4">{t('clients.title')}</p><h2 className="section-title mx-auto">{t('clients.subtitle')}</h2></div><ClientLogoCarousel clients={clients} /><div className="mt-8 text-center"><Link href="/clients" className="text-sm font-bold text-primary hover:underline">{t('clients.view')}</Link></div></div></section>}
+
+    <section className="bg-primary py-20 text-white md:py-24"><div className="site-container grid gap-8 md:grid-cols-[1fr_auto] md:items-end"><div><p className="eyebrow !text-white/70">Project enquiries</p><h2 className="mt-5 max-w-3xl text-4xl font-bold leading-tight tracking-[-.04em] md:text-5xl">{t('contact.cta.title')}</h2></div><div className="flex flex-wrap gap-3"><Button size="lg" variant="secondary" onClick={() => setLocation('/request-quote')}>{t('nav.quote')}</Button><Button size="lg" className="border-white/60 bg-transparent hover:bg-white hover:text-primary" onClick={() => setLocation('/contact')}>{t('contact.email')}</Button></div></div></section>
+  </PageWrapper>;
 }

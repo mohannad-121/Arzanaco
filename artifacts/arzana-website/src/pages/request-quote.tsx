@@ -255,19 +255,18 @@ export default function RequestQuote() {
 
   return (
     <PageWrapper>
-      <section className="border-b bg-muted py-14 md:py-20">
-        <div className="container mx-auto max-w-3xl px-4 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+      <section className="page-hero py-28 md:py-36">
+        <div className="site-container max-w-3xl">
+          <p className="eyebrow mb-5 !text-white/70">
             {copy.eyebrow}
           </p>
-          <h1 className="mb-4 text-4xl font-bold text-foreground md:text-5xl">{copy.title}</h1>
-          <p className="text-lg leading-relaxed text-foreground/70">{copy.introduction}</p>
+          <h1 className="mb-4 text-4xl font-bold tracking-[-.04em] text-white md:text-6xl">{copy.title}</h1>
+          <p className="text-lg leading-relaxed text-white/75">{copy.introduction}</p>
         </div>
       </section>
 
-      <section className="bg-background py-14 md:py-20">
-        <div className="container mx-auto max-w-4xl px-4">
-          <form noValidate onSubmit={handleSubmit} className="relative rounded-2xl border bg-card p-6 shadow-sm md:p-10">
+      <section className="bg-background py-14 md:py-20"><div className="site-container max-w-4xl">
+          <form noValidate onSubmit={handleSubmit} className="relative border border-border bg-card p-6 shadow-[0_18px_50px_rgba(39,40,42,.08)] md:p-10">
             <div className="hidden" aria-hidden="true">
               <label htmlFor="quote-website">Website</label>
               <input

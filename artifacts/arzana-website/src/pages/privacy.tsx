@@ -5,10 +5,10 @@ import { companyAddress, contactPeople } from '../data/contact';
 export default function Privacy() {
   return (
     <PageWrapper>
-      <div className="container mx-auto px-4 py-24 max-w-3xl">
-        <h1 className="text-4xl font-bold text-foreground mb-8">Privacy Policy</h1>
+      <div className="site-container max-w-3xl py-28 md:py-36">
+        <p className="eyebrow mb-5">Legal information</p><h1 className="mb-8 text-4xl font-bold tracking-[-.04em] text-foreground md:text-6xl">Privacy Policy</h1>
         
-        <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
+        <div className="prose prose-neutral max-w-none border border-border bg-card p-7 shadow-[0_18px_50px_rgba(39,40,42,.08)] md:p-10">
           <p>Last updated: {new Date().toLocaleDateString()}</p>
           
           <h2>1. Introduction</h2>

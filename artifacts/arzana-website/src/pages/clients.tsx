@@ -10,19 +10,16 @@ export default function Clients() {
 
   return (
     <PageWrapper>
-      <section className="border-b bg-muted py-16 text-center md:py-24">
-        <div className="container mx-auto max-w-3xl px-4">
-          <h1 className="mb-5 text-4xl font-bold text-foreground md:text-5xl">
+      <section className="page-hero py-28 text-center md:py-36"><div className="site-container max-w-3xl"><p className="eyebrow mb-5 justify-center !text-white/70">Relationships</p><h1 className="mb-5 text-4xl font-bold tracking-[-.04em] text-white md:text-6xl">
             {t('clients.title')}
           </h1>
-          <p className="text-lg leading-relaxed text-foreground/70 md:text-xl">
+          <p className="text-lg leading-relaxed text-white/75 md:text-xl">
             {t('clients.subtitle')}
           </p>
         </div>
       </section>
 
-      <section className="bg-background py-16 md:py-24">
-        <div className="container mx-auto space-y-16 px-4 md:space-y-24">
+      <section className="bg-background py-16 md:py-24"><div className="site-container space-y-16 md:space-y-24">
           {hasClients ? (
             <>
               <div className="mx-auto max-w-3xl">
@@ -34,7 +31,7 @@ export default function Clients() {
                   {clients.map((client) => (
                     <div
                       key={client.id}
-                      className="flex min-h-32 items-center justify-center rounded-xl border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-md sm:min-h-36 sm:p-7"
+                      className="flex min-h-32 items-center justify-center border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-1 hover:border-primary hover:shadow-md sm:min-h-36 sm:p-7"
                     >
                       <img
                         src={client.logoPath}

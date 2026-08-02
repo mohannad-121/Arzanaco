@@ -30,9 +30,10 @@ export default function Products({ params }: { params?: { categorySlug?: string 
 
   return (
     <PageWrapper>
-      <section className="border-b bg-muted py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-foreground">
+      <section className="page-hero py-24 md:py-32">
+        <div className="site-container">
+          <p className="eyebrow mb-5 !text-white/70">Arzana catalogue</p>
+          <h1 className="max-w-3xl text-4xl font-bold tracking-[-.04em] text-white md:text-6xl">
             {activeCategoryData
               ? language === 'ar'
                 ? activeCategoryData.nameAr
@@ -42,9 +43,9 @@ export default function Products({ params }: { params?: { categorySlug?: string 
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-12">
+      <section className="site-container py-14 md:py-20">
         <div className="flex flex-col gap-8 lg:flex-row">
-          <aside className="w-full shrink-0 space-y-6 lg:w-64">
+          <aside className="w-full shrink-0 space-y-6 lg:sticky lg:top-28 lg:h-fit lg:w-72">
             <div className="relative">
               <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -55,14 +56,14 @@ export default function Products({ params }: { params?: { categorySlug?: string 
               />
             </div>
 
-            <nav aria-label={t('products.categories')} className="rounded-lg border bg-card p-4">
-              <h2 className="mb-4 font-semibold text-foreground">{t('products.categories')}</h2>
+            <nav aria-label={t('products.categories')} className="steel-card p-4">
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-[.14em] text-foreground">{t('products.categories')}</h2>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/products"
                     className={`block rounded-md px-3 py-2 text-sm transition-colors ${
-                      !activeCategory ? 'bg-primary/10 font-medium text-primary' : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+                      !activeCategory ? 'bg-primary text-white font-medium' : 'text-foreground/70 hover:bg-muted hover:text-primary'
                     }`}
                   >
                     {t('common.all')}
@@ -74,8 +75,8 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                       href={`/products/${category.slug}`}
                       className={`block rounded-md px-3 py-2 text-sm transition-colors ${
                         activeCategory === category.slug
-                          ? 'bg-primary/10 font-medium text-primary'
-                          : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+                          ? 'bg-primary text-white font-medium'
+                          : 'text-foreground/70 hover:bg-muted hover:text-primary'
                       }`}
                     >
                       {language === 'ar' ? category.nameAr : category.nameEn}
@@ -87,7 +88,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
           </aside>
 
           <div className="min-w-0 flex-1">
-            <p className="mb-6 text-sm text-muted-foreground">
+            <p className="mb-7 border-b border-border pb-4 text-xs font-bold uppercase tracking-[.14em] text-muted-foreground">
               {language === 'ar' ? `${filteredProducts.length} منتجاً` : `${filteredProducts.length} products`}
             </p>
 
@@ -99,7 +100,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {filteredProducts.map((product) => {
                   const category = categories.find((item) => item.id === product.categoryId);
                   const image = getProductMedia(product)[0];
@@ -107,13 +108,13 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                   return (
                     <article
                       key={product.id}
-                      className="flex min-h-52 flex-col rounded-xl border bg-card p-6 transition-shadow hover:shadow-md"
+                      className="group flex min-h-64 flex-col border border-border bg-card p-5 transition-[border-color,transform,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_18px_35px_rgba(39,40,42,.12)]"
                     >
                       {image && (
                         <img
                           src={image.src}
                           alt={language === 'ar' ? image.altAr : image.altEn}
-                          className={`mb-5 h-40 w-full rounded-lg border bg-white ${image.fit === 'cover' ? 'object-cover' : 'object-contain p-2'}`}
+                          className={`mb-5 h-44 w-full border bg-white transition-transform duration-500 group-hover:scale-[1.015] ${image.fit === 'cover' ? 'object-cover' : 'object-contain p-2'}`}
                           loading="lazy"
                         />
                       )}
@@ -134,9 +135,9 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                       <div className="mt-auto border-t pt-5">
                         <Link
                           href={`/products/${category?.slug}/${product.slug}`}
-                          className="text-sm font-medium text-primary hover:underline"
+                          className="inline-flex items-center text-sm font-bold text-primary hover:underline"
                         >
-                          {t('common.viewDetails')}
+                          {t('common.viewDetails')} <span className="ms-2 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">→</span>
                         </Link>
                       </div>
                     </article>

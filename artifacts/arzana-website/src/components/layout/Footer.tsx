@@ -16,13 +16,14 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="bg-foreground text-background">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+    <footer className="relative overflow-hidden bg-[#1f2022] text-background">
+      <div className="industrial-grid pointer-events-none absolute inset-0 opacity-20" />
+      <div className="site-container relative py-16 md:py-20">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
           
           {/* Brand */}
           <div className="space-y-6">
-            <Link href="/" className="flex h-20 w-16 items-center rounded bg-white p-1" aria-label="Arzana Arabia home">
+            <Link href="/" className="flex h-20 w-20 items-center border border-white/25 bg-white p-2" aria-label="Arzana Arabia home">
               <img src={officialLogo} alt="Arzana Arabia" className="h-full w-full object-contain" />
             </Link>
             <p className="text-white/70 leading-relaxed max-w-sm">
@@ -32,7 +33,7 @@ export const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-6">
-            <h4 className="text-lg font-semibold text-white">Company</h4>
+            <h4 className="text-xs font-bold uppercase tracking-[.15em] text-white">Company</h4>
             <ul className="space-y-3">
               <li><Link href="/about" className="text-white/70 hover:text-white transition-colors">{t('nav.about')}</Link></li>
               <li><Link href="/products" className="text-white/70 hover:text-white transition-colors">{t('nav.products')}</Link></li>
@@ -45,7 +46,7 @@ export const Footer = () => {
 
           {/* Solutions */}
           <div className="space-y-6">
-            <h4 className="text-lg font-semibold text-white">Solutions</h4>
+            <h4 className="text-xs font-bold uppercase tracking-[.15em] text-white">Solutions</h4>
             <ul className="space-y-3">
               {categories.slice(0, 5).map(cat => (
                 <li key={cat.id}>
@@ -59,7 +60,7 @@ export const Footer = () => {
 
           {/* Contact */}
           <div className="space-y-6">
-            <h4 className="text-lg font-semibold text-white">Contact Us</h4>
+            <h4 className="text-xs font-bold uppercase tracking-[.15em] text-white">Contact Us</h4>
             <ul className="space-y-4">
               {contactPeople.map((contact) => (
                 <li key={contact.email} className="flex items-start gap-3 text-white/70">
@@ -79,7 +80,7 @@ export const Footer = () => {
 
         </div>
         
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 md:flex-row">
           <p className="text-white/50 text-sm">
             {t('footer.copyright')}
           </p>

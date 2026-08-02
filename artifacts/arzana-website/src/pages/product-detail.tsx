@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { CheckCircle2, ChevronRight, Mail } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
@@ -26,6 +27,7 @@ export default function ProductDetail({
     .filter((item) => item.categoryId === product.categoryId && item.id !== product.id)
     .slice(0, 3);
   const media = getProductMedia(product);
+  const [activeMedia, setActiveMedia] = useState(0);
   const copy =
     language === 'ar'
       ? {
@@ -50,7 +52,7 @@ export default function ProductDetail({
   return (
     <PageWrapper>
       <nav className="border-b bg-muted py-4" aria-label="Breadcrumb">
-        <div className="container mx-auto flex items-center gap-2 px-4 text-sm text-muted-foreground">
+        <div className="site-container flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/" className="hover:text-primary">{t('nav.home')}</Link>
           <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
           <Link href="/products" className="hover:text-primary">{copy.breadcrumb}</Link>
@@ -65,31 +67,32 @@ export default function ProductDetail({
         </div>
       </nav>
 
-      <section className="container mx-auto max-w-4xl px-4 py-14 md:py-20">
-        <article className="rounded-2xl border bg-card p-7 shadow-sm md:p-12">
+      <section className="site-container max-w-6xl py-14 md:py-20">
+        <article className="grid gap-10 border border-border bg-card p-7 shadow-[0_18px_50px_rgba(39,40,42,.08)] lg:grid-cols-2 md:p-10">
+          <div className="contents">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-primary">
             {language === 'ar' ? category.nameAr : category.nameEn}
           </p>
-          <h1 className="text-3xl font-bold leading-tight text-foreground md:text-5xl">
+          <h1 className="text-3xl font-bold leading-tight tracking-[-.04em] text-foreground md:text-5xl">
             {language === 'ar' ? product.nameAr : product.nameEn}
           </h1>
           {media.length > 0 && (
-            <section className="mt-8" aria-label={language === 'ar' ? `معرض صور ${product.nameAr}` : `${product.nameEn} image gallery`}>
+            <section className="lg:col-start-2 lg:row-span-5 lg:row-start-1" aria-label={language === 'ar' ? `معرض صور ${product.nameAr}` : `${product.nameEn} image gallery`}>
               <img
-                src={media[0].src}
-                alt={language === 'ar' ? media[0].altAr : media[0].altEn}
-                className={`h-72 w-full rounded-xl border bg-white md:h-96 ${media[0].fit === 'cover' ? 'object-cover' : 'object-contain p-4'}`}
+                src={media[activeMedia].src}
+                alt={language === 'ar' ? media[activeMedia].altAr : media[activeMedia].altEn}
+                className={`h-72 w-full border bg-white md:h-[32rem] ${media[activeMedia].fit === 'cover' ? 'object-cover' : 'object-contain p-4'}`}
               />
               {media.length > 1 && (
-                <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
-                  {media.slice(1).map((item) => (
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  {media.map((item, index) => (
+                    <button type="button" key={item.src} onClick={() => setActiveMedia(index)} className={`border bg-white p-1 transition ${activeMedia === index ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/50'}`} aria-label={`${language === 'ar' ? product.nameAr : product.nameEn} image ${index + 1}`}>
                     <img
-                      key={item.src}
                       src={item.src}
                       alt={language === 'ar' ? item.altAr : item.altEn}
-                      className={`h-40 w-full rounded-xl border bg-white ${item.fit === 'cover' ? 'object-cover' : 'object-contain p-3'}`}
+                      className={`h-20 w-full ${item.fit === 'cover' ? 'object-cover' : 'object-contain p-2'}`}
                       loading="lazy"
-                    />
+                    /></button>
                   ))}
                 </div>
               )}
@@ -135,7 +138,7 @@ export default function ProductDetail({
               <Mail className="h-4 w-4" aria-hidden="true" />
               {copy.contact}
             </Button>
-          </div>
+          </div></div>
         </article>
 
         {relatedProducts.length > 0 && (

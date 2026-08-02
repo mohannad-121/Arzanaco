@@ -25,18 +25,14 @@ export default function Contact() {
 
   return (
     <PageWrapper>
-      <section className="border-b bg-muted py-16 md:py-20">
-        <div className="container mx-auto max-w-3xl px-4 text-center">
-          <h1 className="text-4xl font-bold text-foreground md:text-5xl">{copy.title}</h1>
-          <p className="mt-5 text-lg leading-relaxed text-foreground/70">{copy.intro}</p>
+      <section className="page-hero py-28 md:py-36"><div className="site-container max-w-3xl"><p className="eyebrow mb-5 !text-white/70">Project enquiries</p><h1 className="text-4xl font-bold tracking-[-.04em] text-white md:text-6xl">{copy.title}</h1><p className="mt-5 text-lg leading-relaxed text-white/75">{copy.intro}</p>
         </div>
       </section>
-      <section className="bg-background py-16 md:py-24">
-        <div className="container mx-auto grid max-w-5xl gap-6 px-4 md:grid-cols-2">
+      <section className="bg-background py-16 md:py-24"><div className="site-container grid max-w-5xl gap-4 md:grid-cols-2">
           {contactPeople.map((contact) => {
             const Icon = contact.whatsapp ? MessageCircle : Phone;
             return (
-              <article key={contact.email} className="rounded-2xl border bg-card p-8">
+              <article key={contact.email} className="steel-card p-8">
                 <Icon className="h-7 w-7 text-primary" aria-hidden="true" />
                 <h2 className="mt-6 text-xl font-semibold text-foreground">{copy.phone}</h2>
                 <div className="mt-2 flex items-center gap-2" dir="ltr">
@@ -49,7 +45,7 @@ export default function Contact() {
               </article>
             );
           })}
-          <article className="rounded-2xl border bg-card p-8 md:col-span-2">
+          <article className="steel-card p-8 md:col-span-2">
             <MapPin className="h-7 w-7 text-primary" aria-hidden="true" />
             <h2 className="mt-6 text-xl font-semibold text-foreground">{copy.address}</h2>
             <address className="mt-2 not-italic text-lg leading-relaxed text-foreground/70">
@@ -57,7 +53,7 @@ export default function Contact() {
             </address>
           </article>
         </div>
-        <div className="container mx-auto mt-10 max-w-5xl px-4"><div className="rounded-2xl bg-primary p-8 text-primary-foreground md:flex md:items-center md:justify-between md:gap-10"><p className="max-w-2xl leading-relaxed">{copy.quoteCopy}</p><Button asChild variant="secondary" className="mt-6 shrink-0 md:mt-0"><Link href="/request-quote">{copy.quote}</Link></Button></div></div>
+        <div className="site-container mt-10 max-w-5xl"><div className="bg-primary p-8 text-primary-foreground md:flex md:items-center md:justify-between md:gap-10"><p className="max-w-2xl leading-relaxed">{copy.quoteCopy}</p><Button asChild variant="secondary" className="mt-6 shrink-0 md:mt-0"><Link href="/request-quote">{copy.quote}</Link></Button></div></div>
       </section>
     </PageWrapper>
   );
