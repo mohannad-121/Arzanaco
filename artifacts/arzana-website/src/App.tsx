@@ -18,6 +18,7 @@ import Contact from './pages/contact';
 import RequestQuote from './pages/request-quote';
 import Privacy from './pages/privacy';
 import Admin from './pages/admin';
+import ArzanaAi from './pages/arzana-ai';
 import NotFound from './pages/not-found';
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/clients" component={Clients} />
       <Route path="/contact" component={Contact} />
       <Route path="/request-quote" component={RequestQuote} />
+      <Route path="/arzana-ai" component={ArzanaAi} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/admin-panel" component={Admin} />
       <Route component={NotFound} />

@@ -44,22 +44,22 @@ export default function About() {
 
       <section className="bg-[#d8d4cb] py-16 md:py-24"><div className="site-container grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <div className="relative"><span className="absolute -start-3 -top-4 text-7xl font-bold tracking-[-.1em] text-primary/20">01</span><img src={approvedImages.engineering} alt="Transformer testing in an electrical substation" className="relative h-80 w-full object-cover shadow-[0_22px_42px_rgba(39,40,42,.2)] lg:h-[34rem]" /></div>
-          <div className="bg-[#f6f3ee] p-7 shadow-[0_18px_35px_rgba(39,40,42,.08)] md:p-10">
+          <div className="corner-card bg-[#f6f3ee] p-7 md:p-10">
             <p className="eyebrow mb-4">Engineering support</p><h2 className="section-title text-3xl">{copy.supportTitle}</h2>
             <p className="mt-5 text-lg leading-relaxed text-foreground/75">{copy.support}</p>
             <h3 className="mt-8 text-lg font-semibold text-foreground">{copy.sectorsTitle}</h3>
-            <ul className="mt-4 flex flex-wrap gap-3">
-              {copy.sectors.map((sector) => <li key={sector} className="border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">{sector}</li>)}
+            <ul className="mt-4 grid grid-cols-2 gap-2">
+              {copy.sectors.map((sector) => <li key={sector} className="bg-primary/7 px-4 py-3 text-sm font-semibold text-primary">{sector}</li>)}
             </ul>
           </div>
         </div>
       </section>
 
-      <section className="bg-[#292a2c] py-16 text-white md:py-24"><div className="site-container grid max-w-6xl gap-0 lg:grid-cols-2"><article className="border border-white/15 p-8 md:p-12">
+      <section className="bg-[#292a2c] py-16 text-white md:py-24"><div className="site-container grid max-w-6xl gap-5 lg:grid-cols-2"><article className="corner-card corner-card--dark p-8 md:p-12">
             <p className="eyebrow mb-4 !text-[#deb1bc]">Portfolio</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.portfolioTitle}</h2>
-            <p className="mt-5 text-lg leading-relaxed text-white/75">{copy.portfolio}</p></article><article className="bg-[#8f1f35] p-8 md:p-12">
+            <p className="corner-card__muted mt-5 text-lg leading-relaxed text-white/75">{copy.portfolio}</p></article><article className="corner-card corner-card--dark bg-[#8f1f35] p-8 md:p-12">
             <p className="eyebrow mb-4 !text-white/70">Mission</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.missionTitle}</h2>
-            <p className="mt-5 text-lg leading-relaxed text-white/85">{copy.mission}</p>
+            <p className="corner-card__muted mt-5 text-lg leading-relaxed text-white/85">{copy.mission}</p>
             <Link href="/products" className="mt-8 inline-flex bg-white px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-[#f0e5e7]">
               {copy.explore}
             </Link>

@@ -1,60 +1,27 @@
 import { Link } from 'wouter';
-import { MapPin, MessageCircle, Phone } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
 import { companyAddress, contactPeople } from '../data/contact';
+import whatsappIcon from '@logos/whatsapp.png';
+import phoneIcon from '@logos/telephone-call.png';
+import emailIcon from '@logos/communication.png';
+import addressImage from '@photos/address.png';
+
+const MAP_URL = 'https://maps.app.goo.gl/nPuY2zpt2Gx1axCY9';
 
 export default function Contact() {
   const { language } = useLanguage();
   const copy = language === 'ar'
-    ? {
-        title: 'اتصل بنا',
-        intro: 'للاستفسارات ومتطلبات المشاريع والتواصل العام، يرجى التواصل مع شركة أرزانا العربية المحدودة.',
-        phone: 'الهاتف', email: 'البريد الإلكتروني', address: 'العنوان',
-        quote: 'طلب عرض سعر',
-        quoteCopy: 'لإعداد طلب عرض سعر، اختر المنتجات المطلوبة وأرسل بيانات التواصل من خلال نموذج طلب عرض السعر.',
-      }
-    : {
-        title: 'Contact Us',
-        intro: 'For enquiries, project requirements, and general communication, please contact Arzana Arabia Company Ltd.',
-        phone: 'Phone', email: 'Email', address: 'Address',
-        quote: 'Request a Quote',
-        quoteCopy: 'To prepare a quote request, select the required products and send your contact details through the Request a Quote form.',
-      };
-
-  return (
-    <PageWrapper>
-      <section className="page-hero py-28 md:py-36"><div className="site-container max-w-3xl"><p className="eyebrow mb-5 !text-white/70">Project enquiries</p><h1 className="text-4xl font-bold tracking-[-.04em] text-white md:text-6xl">{copy.title}</h1><p className="mt-5 text-lg leading-relaxed text-white/75">{copy.intro}</p>
-        </div>
-      </section>
-      <section className="bg-background py-16 md:py-24"><div className="site-container grid max-w-5xl gap-4 md:grid-cols-2">
-          {contactPeople.map((contact) => {
-            const Icon = contact.whatsapp ? MessageCircle : Phone;
-            return (
-              <article key={contact.email} className="steel-card p-8">
-                <Icon className="h-7 w-7 text-primary" aria-hidden="true" />
-                <h2 className="mt-6 text-xl font-semibold text-foreground">{copy.phone}</h2>
-                <div className="mt-2 flex items-center gap-2" dir="ltr">
-                  <a href={contact.phoneHref} className="text-lg text-foreground/70 hover:text-primary">{contact.phone}</a>
-                  {contact.whatsapp && <a href={contact.whatsappHref} target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle className="h-5 w-5 text-primary" /></a>}
-                </div>
-                {contact.whatsapp && <a href={contact.whatsappHref} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline" dir="ltr"><MessageCircle className="h-4 w-4" aria-hidden="true" />WhatsApp</a>}
-                <h3 className="mt-6 text-xl font-semibold text-foreground">{copy.email}</h3>
-                <a href={contact.emailHref} className="mt-2 block break-all text-lg text-foreground/70 hover:text-primary" dir="ltr">{contact.email}</a>
-              </article>
-            );
-          })}
-          <article className="steel-card p-8 md:col-span-2">
-            <MapPin className="h-7 w-7 text-primary" aria-hidden="true" />
-            <h2 className="mt-6 text-xl font-semibold text-foreground">{copy.address}</h2>
-            <address className="mt-2 not-italic text-lg leading-relaxed text-foreground/70">
-              {(language === 'ar' ? companyAddress.linesAr : companyAddress.lines).map((line) => <span key={line} className="block">{line}</span>)}
-            </address>
-          </article>
-        </div>
-        <div className="site-container mt-10 max-w-5xl"><div className="bg-primary p-8 text-primary-foreground md:flex md:items-center md:justify-between md:gap-10"><p className="max-w-2xl leading-relaxed">{copy.quoteCopy}</p><Button asChild variant="secondary" className="mt-6 shrink-0 md:mt-0"><Link href="/request-quote">{copy.quote}</Link></Button></div></div>
-      </section>
-    </PageWrapper>
-  );
+    ? { title: 'اتصل بنا', intro: 'للاستفسارات ومتطلبات المشاريع والتواصل العام، يرجى التواصل مع شركة أرزانا العربية المحدودة.', phone: 'الهاتف', email: 'البريد الإلكتروني', address: 'العنوان', quote: 'طلب عرض سعر', quoteCopy: 'لإعداد طلب عرض سعر، اختر المنتجات المطلوبة وأرسل بيانات التواصل من خلال نموذج طلب عرض السعر.', map: 'عرض الموقع على الخريطة', whatsapp: 'واتساب' }
+    : { title: 'Contact Us', intro: 'For enquiries, project requirements, and general communication, please contact Arzana Arabia Company Ltd.', phone: 'Phone', email: 'Email', address: 'Address', quote: 'Request a Quote', quoteCopy: 'To prepare a quote request, select the required products and send your contact details through the Request a Quote form.', map: 'View on Map', whatsapp: 'WhatsApp' };
+  return <PageWrapper>
+    <section className="page-hero py-28 md:py-36"><div className="site-container max-w-3xl"><p className="eyebrow mb-5 !text-white/70">Project enquiries</p><h1 className="text-4xl font-bold tracking-[-.04em] text-white md:text-6xl">{copy.title}</h1><p className="mt-5 text-lg leading-relaxed text-white/75">{copy.intro}</p></div></section>
+    <section className="bg-[#d8d4cb] py-16 md:py-24"><div className="site-container grid max-w-6xl gap-5 md:grid-cols-2">{contactPeople.map((contact) => <article key={contact.email} className="corner-card min-h-72 bg-[#f6f3ee] p-7 md:p-8"><span className="corner-card__corner" aria-hidden="true" />
+      <div className="corner-card__content"><img src={contact.whatsapp ? whatsappIcon : phoneIcon} alt={contact.whatsapp ? 'WhatsApp' : 'Telephone'} className="h-9 w-9 object-contain" /><p className="corner-card__accent mt-7 text-xs font-bold uppercase tracking-[.14em] text-primary">{contact.whatsapp ? copy.whatsapp : copy.phone}</p><a href={contact.whatsapp ? contact.whatsappHref : contact.phoneHref} target={contact.whatsapp ? '_blank' : undefined} rel={contact.whatsapp ? 'noopener noreferrer' : undefined} className="mt-3 block text-xl font-bold text-foreground transition-colors hover:text-primary" dir="ltr">{contact.phone}</a><div className="mt-8 border-t border-foreground/12 pt-5"><img src={emailIcon} alt="Email" className="h-7 w-7 object-contain" /><p className="corner-card__accent mt-4 text-xs font-bold uppercase tracking-[.14em] text-primary">{copy.email}</p><a href={contact.emailHref} className="mt-2 block break-all text-base font-medium text-foreground/75 hover:text-primary" dir="ltr">{contact.email}</a></div></div>
+    </article>)}
+    <article className="corner-card corner-card--media min-h-[30rem] overflow-hidden md:col-span-2"><span className="corner-card__corner" aria-hidden="true" /><img src={addressImage} alt="Arzana Arabia address map" className="absolute inset-0 h-full w-full object-cover" /><span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(31,32,34,.08),rgba(31,32,34,.94))]" /><div className="corner-card__content flex h-full flex-col justify-end p-7 text-white md:p-10"><MapPin className="h-8 w-8 text-[#f0c9d0]" aria-hidden="true" /><h2 className="mt-5 text-2xl font-bold">{copy.address}</h2><address className="corner-card__muted mt-3 not-italic text-lg leading-relaxed text-white/80">{(language === 'ar' ? companyAddress.linesAr : companyAddress.lines).map((line) => <span key={line} className="block">{line}</span>)}</address><a href={MAP_URL} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex w-fit items-center gap-2 bg-white px-5 py-3 text-sm font-bold text-primary transition hover:bg-[#f0e5e7]">{copy.map}<MapPin className="h-4 w-4" /></a></div></article>
+    </div><div className="site-container mt-10 max-w-6xl"><div className="bg-primary p-8 text-primary-foreground md:flex md:items-center md:justify-between md:gap-10"><p className="max-w-2xl leading-relaxed">{copy.quoteCopy}</p><Button asChild variant="secondary" className="mt-6 shrink-0 md:mt-0"><Link href="/request-quote">{copy.quote}</Link></Button></div></div></section>
+  </PageWrapper>;
 }

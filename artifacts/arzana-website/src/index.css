@@ -153,8 +153,7 @@
 @layer components {
   .site-shell { overflow: clip; }
   .site-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
-  .eyebrow { display: flex; align-items: center; gap: .7rem; color: var(--arzana-burgundy); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-  .eyebrow::before { content: ''; width: 2.5rem; height: 1px; background: currentColor; }
+  .eyebrow { color: var(--arzana-burgundy); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
   .section-title { max-width: 46rem; font-size: clamp(2rem, 4vw, 3.6rem); font-weight: 700; line-height: 1.08; letter-spacing: -.045em; color: var(--arzana-graphite); }
   .section-copy { max-width: 42rem; color: hsl(var(--muted-foreground)); font-size: 1.05rem; line-height: 1.8; }
   .page-hero { position: relative; overflow: hidden; isolation: isolate; background: var(--arzana-graphite); color: white; }
@@ -163,13 +162,45 @@
   .steel-card { border: 1px solid rgba(124, 131, 134, .3); background: rgba(255, 255, 255, .72); box-shadow: 0 18px 50px rgba(39, 40, 42, .08); }
   .industrial-grid { background-image: linear-gradient(rgba(124, 131, 134, .12) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 131, 134, .12) 1px, transparent 1px); background-size: 28px 28px; }
   .section-reveal { overflow: clip; }
-  .client-marquee { overflow: hidden; border-top: 1px solid rgba(39, 40, 42, .16); border-bottom: 1px solid rgba(39, 40, 42, .16); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+  .client-marquee { overflow: hidden; border-block: 1px solid rgba(39, 40, 42, .16); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
   .client-marquee__track { display: flex; width: max-content; animation: client-marquee 36s linear infinite; }
   .client-marquee:hover .client-marquee__track { animation-play-state: paused; }
   .client-marquee__item { display: grid; height: 8.5rem; width: clamp(10rem, 16vw, 15rem); place-items: center; border-inline-end: 1px solid rgba(39, 40, 42, .14); padding: 1.5rem; }
-  .client-marquee__logo { max-height: 3.5rem; max-width: 100%; object-fit: contain; filter: grayscale(1) contrast(.85); opacity: .82; }
+  .client-marquee__logo { max-height: 3.5rem; max-width: 100%; object-fit: contain; opacity: .92; }
   .client-marquee__logo--large { max-height: 4.5rem; }
   @keyframes client-marquee { to { transform: translateX(-50%); } }
+  .corner-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid rgba(39, 40, 42, .14); background: #f6f3ee; color: var(--arzana-graphite); box-shadow: 0 14px 32px rgba(39, 40, 42, .08); transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s cubic-bezier(.22,1,.36,1), color .34s ease; }
+  .corner-card::before { content: ''; position: absolute; z-index: -1; top: -3.4rem; right: -3.4rem; width: 7rem; aspect-ratio: 1; border-radius: 999px; background: linear-gradient(135deg, #7c1e32, #292a2c); transform: scale(.28); transform-origin: center; transition: transform .4s cubic-bezier(.22,1,.36,1); }
+  [dir="rtl"] .corner-card::before { right: auto; left: -3.4rem; }
+  .corner-card:hover, .corner-card:focus-within { color: white; transform: translateY(-.22rem); box-shadow: 0 21px 42px rgba(39, 40, 42, .17); }
+  .corner-card:hover::before, .corner-card:focus-within::before { transform: scale(5.5); }
+  .corner-card__content { position: relative; z-index: 1; height: 100%; }
+  .corner-card__corner { position: absolute; z-index: 2; top: 0; right: 0; display: grid; height: 2.9rem; width: 2.9rem; place-items: center; border-radius: 0 .5rem 0 1.75rem; background: var(--arzana-burgundy); color: white; transition: background-color .3s ease, transform .3s cubic-bezier(.22,1,.36,1); }
+  [dir="rtl"] .corner-card__corner { right: auto; left: 0; border-radius: .5rem 0 1.75rem 0; }
+  .corner-card:hover .corner-card__corner, .corner-card:focus-within .corner-card__corner { transform: translate(-.08rem,.08rem); background: #ae263c; }
+  [dir="rtl"] .corner-card:hover .corner-card__corner, [dir="rtl"] .corner-card:focus-within .corner-card__corner { transform: translate(.08rem,.08rem); }
+  .corner-card--dark { border-color: rgba(255,255,255,.18); background: #292a2c; color: white; }
+  .corner-card--dark::before { background: linear-gradient(135deg, #ae263c, #5d1726); }
+  .corner-card--media::before { background: linear-gradient(135deg, rgba(124,30,50,.96), rgba(31,32,34,.96)); }
+  .corner-card:hover .corner-card__muted, .corner-card:focus-within .corner-card__muted { color: rgba(255,255,255,.78); }
+  .corner-card:hover .corner-card__accent, .corner-card:focus-within .corner-card__accent { color: #f0c9d0; }
+  .coverflow { overflow: hidden; border: 1px solid rgba(255,255,255,.16); background: linear-gradient(145deg, #242527, #343638); padding: clamp(1rem, 3vw, 2rem); color: white; }
+  .coverflow__viewport { position: relative; height: clamp(15rem, 40vw, 29rem); overflow: hidden; isolation: isolate; }
+  .coverflow-card { position: absolute; inset: 0; margin: auto; height: 100%; width: min(65%, 42rem); overflow: hidden; border: 1px solid rgba(255,255,255,.22); background: #1f2022; box-shadow: 0 20px 45px rgba(0,0,0,.32); cursor: pointer; }
+  .coverflow-card:focus-visible { outline: 3px solid #e4aab6; outline-offset: 3px; }
+  .coverflow-card__image { height: 100%; width: 100%; object-fit: cover; }
+  .coverflow-card__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(31,32,34,.78), rgba(31,32,34,.1)); }
+  .coverflow-card__shade--end { background: linear-gradient(270deg, rgba(31,32,34,.78), rgba(31,32,34,.1)); }
+  .coverflow__controls { display: grid; grid-template-columns: 3rem minmax(0,1fr) 3rem; align-items: center; gap: 1rem; margin-top: 1rem; }
+  .coverflow__arrow { display: grid; height: 3rem; width: 3rem; place-items: center; border: 1px solid rgba(255,255,255,.35); background: #7c1e32; color: white; transition: background-color .2s ease, transform .2s ease; }
+  .coverflow__arrow:hover { background: #ae263c; transform: translateY(-1px); }
+  .coverflow__arrow:focus-visible { outline: 3px solid #e4aab6; outline-offset: 2px; }
+  .coverflow__caption { min-width: 0; text-align: center; font-size: .9rem; font-weight: 600; line-height: 1.4; color: rgba(255,255,255,.78); }
+}
+
+@media (max-width: 640px) {
+  .coverflow-card { width: 76%; }
+  .coverflow__viewport { height: 16rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
