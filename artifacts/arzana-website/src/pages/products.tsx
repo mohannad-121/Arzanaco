@@ -5,7 +5,7 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { Input } from '../components/ui/input';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
-import { productImageBySlug } from '../data/assets';
+import { getProductMedia } from '../data/assets';
 
 export default function Products({ params }: { params?: { categorySlug?: string } }) {
   const { t, language } = useLanguage();
@@ -102,7 +102,7 @@ export default function Products({ params }: { params?: { categorySlug?: string 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {filteredProducts.map((product) => {
                   const category = categories.find((item) => item.id === product.categoryId);
-                  const image = productImageBySlug[product.slug];
+                  const image = getProductMedia(product)[0];
 
                   return (
                     <article
@@ -111,9 +111,9 @@ export default function Products({ params }: { params?: { categorySlug?: string 
                     >
                       {image && (
                         <img
-                          src={image}
-                          alt={language === 'ar' ? product.nameAr : product.nameEn}
-                          className="mb-5 h-40 w-full rounded-lg border bg-white object-contain p-2"
+                          src={image.src}
+                          alt={language === 'ar' ? image.altAr : image.altEn}
+                          className={`mb-5 h-40 w-full rounded-lg border bg-white ${image.fit === 'cover' ? 'object-cover' : 'object-contain p-2'}`}
                           loading="lazy"
                         />
                       )}

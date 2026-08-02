@@ -224,7 +224,7 @@ export function ClientLogoCarousel({ clients }: ClientLogoCarouselProps) {
                 src={activeClient.logoPath}
                 alt={activeClient.alt}
                 draggable={false}
-                className="h-full w-full object-contain p-8 sm:p-10"
+                className={`h-full w-full object-contain ${activeClient.emphasis === 'large' ? 'p-4 sm:p-5' : 'p-8 sm:p-10'}`}
               />
             </motion.div>
           </AnimatePresence>

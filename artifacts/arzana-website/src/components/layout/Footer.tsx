@@ -2,9 +2,10 @@ import React from 'react';
 import { Link } from 'wouter';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCatalog } from '../../contexts/CatalogContext';
-import { Mail, Phone, ArrowUp } from 'lucide-react';
+import { Phone, MessageCircle, MapPin, ArrowUp } from 'lucide-react';
 import { Button } from '../ui/button';
 import { officialLogo } from '../../data/assets';
+import { companyAddress, contactPeople } from '../../data/contact';
 
 export const Footer = () => {
   const { t, language } = useLanguage();
@@ -60,17 +61,18 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-lg font-semibold text-white">Contact Us</h4>
             <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-white/70">
-                <Phone className="w-5 h-5 shrink-0 text-primary" />
-                <div className="flex flex-col gap-1">
-                  <a href="tel:+96659708048" className="hover:text-white transition-colors" dir="ltr">+966 59 708 048</a>
-                </div>
-              </li>
-              <li className="flex items-center gap-3 text-white/70">
-                <Mail className="w-5 h-5 shrink-0 text-primary" />
-                <div className="flex flex-col gap-1">
-                  <a href="mailto:projects@arzanaco.com" className="hover:text-white transition-colors" dir="ltr">projects@arzanaco.com</a>
-                </div>
+              {contactPeople.map((contact) => (
+                <li key={contact.email} className="flex items-start gap-3 text-white/70">
+                  {contact.whatsapp ? <a href={contact.whatsappHref} target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" /></a> : <Phone className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />}
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <a href={contact.phoneHref} className="hover:text-white transition-colors" dir="ltr">{contact.phone}</a>
+                    <a href={contact.emailHref} className="break-all hover:text-white transition-colors" dir="ltr">{contact.email}</a>
+                  </div>
+                </li>
+              ))}
+              <li className="flex items-start gap-3 text-white/70">
+                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                <address className="not-italic leading-relaxed">{(language === 'ar' ? companyAddress.linesAr : companyAddress.lines).map((line) => <span key={line} className="block">{line}</span>)}</address>
               </li>
             </ul>
           </div>

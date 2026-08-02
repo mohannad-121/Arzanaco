@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
+import { companyAddress, contactPeople } from '../data/contact';
 
 export default function Privacy() {
   return (
@@ -40,8 +41,8 @@ export default function Privacy() {
           <h2>5. Contact Us</h2>
           <p>
             If you have any questions about this privacy policy or our privacy practices, please contact us at:<br/>
-            Email: projects@arzanaco.com<br/>
-            Telephone: +966 59 708 048
+            {contactPeople.map((contact) => <React.Fragment key={contact.email}><a href={contact.emailHref}>{contact.email}</a> · <a href={contact.phoneHref} dir="ltr">{contact.phone}</a><br/></React.Fragment>)}
+            {companyAddress.lines.map((line) => <React.Fragment key={line}>{line}<br/></React.Fragment>)}
           </p>
         </div>
       </div>

@@ -1,8 +1,15 @@
+import algihazLogo from '@logos/algihaz-holding.png';
+import kecLogo from '@logos/kec.jpeg';
+import ltConstructionLogo from '@logos/l-and-t-construction.png';
+import tdpLogo from '@logos/tdp.jpeg';
+
 export interface Client {
   id: string;
   name: string;
   logoPath: string;
   alt: string;
+  /** Give the detailed L&T Construction mark more useful visual space. */
+  emphasis?: 'large';
 }
 
 const logoModules = import.meta.glob(
@@ -50,8 +57,15 @@ function nameFromFileName(fileName: string) {
 }
 
 export const clients: Client[] = Object.entries(logoModules)
-  .filter(([path]) => keyFromFileName(fileNameFromPath(path)) !== 'arz logo')
-  .map(([path, logoPath]) => {
+  .filter(([path]) => ![
+    'arz logo',
+    'l and t construction',
+    'l-and-t-construction',
+    'tdp',
+    'kec',
+    'algihaz holding',
+  ].includes(keyFromFileName(fileNameFromPath(path))))
+  .map(([path, logoPath]): Client => {
     const fileName = fileNameFromPath(path);
     const name = nameFromFileName(fileName);
 
@@ -62,4 +76,16 @@ export const clients: Client[] = Object.entries(logoModules)
       alt: `${name} logo`,
     };
   })
+  .concat([
+    {
+      id: 'l-and-t-construction',
+      name: 'L&T Construction',
+      logoPath: ltConstructionLogo,
+      alt: 'L&T Construction Power Transmission & Distribution logo',
+      emphasis: 'large' as const,
+    },
+    { id: 'tdp', name: 'TDP', logoPath: tdpLogo, alt: 'TDP logo' },
+    { id: 'kec', name: 'KEC', logoPath: kecLogo, alt: 'KEC logo' },
+    { id: 'algihaz-holding', name: 'Algihaz Holding', logoPath: algihazLogo, alt: 'Algihaz Holding logo' },
+  ])
   .sort((first, second) => first.name.localeCompare(second.name, undefined, { sensitivity: 'base' }));

@@ -300,7 +300,7 @@ async function validateQuoteRequest(
   const language = body.language === "ar" || body.language === "en" ? body.language : null;
 
   if (!fullName) errors.fullName = "A full name is required.";
-  if (!companyName) errors.companyName = "A company or business name is required.";
+  if (!companyName) errors.companyName = "A company name is required.";
   if (!email || !EMAIL_PATTERN.test(email)) errors.email = "A valid email address is required.";
   if (!isValidPhone(phone)) errors.phone = "A valid phone number is required.";
   if (!language) errors.language = "A supported language is required.";
@@ -534,7 +534,7 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
     "New Quote Request - Arzana Co",
     "",
     "Full Name: " + quote.fullName,
-    "Company / Business: " + quote.companyName,
+    "Company Name: " + quote.companyName,
     "Email: " + quote.email,
     "Phone: " + quote.phone,
     "",
@@ -549,7 +549,7 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
   const html = [
     "<h1>New Quote Request - Arzana Co</h1>",
     "<p><strong>Full Name:</strong> " + escapeHtml(quote.fullName) + "</p>",
-    "<p><strong>Company / Business:</strong> " + escapeHtml(quote.companyName) + "</p>",
+    "<p><strong>Company Name:</strong> " + escapeHtml(quote.companyName) + "</p>",
     "<p><strong>Email:</strong> " + escapeHtml(quote.email) + "</p>",
     "<p><strong>Phone:</strong> " + escapeHtml(quote.phone) + "</p>",
     "<p><strong>Interested Products:</strong></p>",
@@ -602,7 +602,7 @@ function buildWhatsAppUrl(quote: QuoteRequest): string {
           "",
           "الاسم الكامل:",
           quote.fullName,
-          "اسم الشركة أو النشاط التجاري:",
+          "اسم الشركة:",
           quote.companyName,
           "البريد الإلكتروني:",
           quote.email,
@@ -619,7 +619,7 @@ function buildWhatsAppUrl(quote: QuoteRequest): string {
           "",
           "Full Name:",
           quote.fullName,
-          "Company / Business:",
+          "Company Name:",
           quote.companyName,
           "Email:",
           quote.email,

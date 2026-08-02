@@ -22,6 +22,7 @@ export interface ManagedProduct {
   applicationsEn?: readonly string[];
   applicationsAr?: readonly string[];
   types?: string[];
+  imageUrls?: string[];
 }
 
 export interface CatalogState {
@@ -51,6 +52,7 @@ function createInitialCatalog(): CatalogState {
       applicationsEn: product.applicationsEn ? [...product.applicationsEn] : undefined,
       applicationsAr: product.applicationsAr ? [...product.applicationsAr] : undefined,
       types: 'types' in product && product.types ? [...product.types] : undefined,
+      imageUrls: product.imageUrls ? [...product.imageUrls] : undefined,
     })),
     categories: defaultCategories.map((category) => ({ ...category })),
   };
@@ -99,7 +101,8 @@ export function normalizeCatalog(value: unknown): CatalogState | null {
       (product.descriptionAr !== undefined && typeof product.descriptionAr !== 'string') ||
       (product.applicationsEn !== undefined && !isStringArray(product.applicationsEn)) ||
       (product.applicationsAr !== undefined && !isStringArray(product.applicationsAr)) ||
-      (product.types !== undefined && !isStringArray(product.types))
+      (product.types !== undefined && !isStringArray(product.types)) ||
+      (product.imageUrls !== undefined && !isStringArray(product.imageUrls))
     ) return null;
 
     return {
@@ -107,6 +110,7 @@ export function normalizeCatalog(value: unknown): CatalogState | null {
       applicationsEn: product.applicationsEn ? [...product.applicationsEn] : undefined,
       applicationsAr: product.applicationsAr ? [...product.applicationsAr] : undefined,
       types: product.types ? [...product.types] : undefined,
+      imageUrls: product.imageUrls ? [...product.imageUrls] : undefined,
     };
   });
 

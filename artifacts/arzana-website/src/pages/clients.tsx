@@ -40,7 +40,7 @@ export default function Clients() {
                         src={client.logoPath}
                         alt={client.alt}
                         loading="lazy"
-                        className="h-20 w-full object-contain sm:h-24"
+                        className={`w-full object-contain ${client.emphasis === 'large' ? 'h-24 sm:h-28' : 'h-20 sm:h-24'}`}
                       />
                     </div>
                   ))}

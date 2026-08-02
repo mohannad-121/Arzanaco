@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
-import { approvedImages } from '../data/assets';
+import { testingCommissioningMedia } from '../data/assets';
 
 const systemsCovered = [
   'Low voltage switchgear',
@@ -41,7 +41,7 @@ export default function TestingCommissioning() {
     <PageWrapper>
       <section className="relative overflow-hidden bg-foreground py-20 text-background">
         <div className="absolute inset-0">
-          <img src={approvedImages.testing} alt="Electrical panel testing and commissioning" className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
+          <img src={testingCommissioningMedia[0].src} alt={testingCommissioningMedia[0].altEn} className="h-full w-full object-cover opacity-20 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground to-transparent" />
         </div>
         <div className="container relative z-10 mx-auto max-w-4xl px-4">
@@ -63,6 +63,19 @@ export default function TestingCommissioning() {
               ))}
             </ul>
           </div>
+          <section className="mt-12" aria-label={language === 'ar' ? 'معرض صور الاختبار والتشغيل' : 'Testing and commissioning gallery'}>
+            <div className="grid gap-4 md:grid-cols-2">
+              {testingCommissioningMedia.map((item, index) => (
+                <img
+                  key={item.src}
+                  src={item.src}
+                  alt={language === 'ar' ? item.altAr : item.altEn}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  className={`w-full rounded-xl border object-cover ${index === 0 ? 'aspect-[4/3] md:col-span-2 md:aspect-[16/7]' : 'aspect-[4/3]'}`}
+                />
+              ))}
+            </div>
+          </section>
           <div className="mt-10 flex flex-wrap gap-4">
             <Button size="lg" onClick={() => setLocation('/contact')}>{copy.contact}</Button>
             <Button size="lg" variant="outline" onClick={() => setLocation('/request-quote')}>

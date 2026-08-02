@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 import NotFound from './not-found';
-import { productImageBySlug } from '../data/assets';
+import { getProductMedia } from '../data/assets';
 
 export default function ProductDetail({
   params,
@@ -25,7 +25,7 @@ export default function ProductDetail({
   const relatedProducts = products
     .filter((item) => item.categoryId === product.categoryId && item.id !== product.id)
     .slice(0, 3);
-  const image = productImageBySlug[product.slug];
+  const media = getProductMedia(product);
   const copy =
     language === 'ar'
       ? {
@@ -73,12 +73,27 @@ export default function ProductDetail({
           <h1 className="text-3xl font-bold leading-tight text-foreground md:text-5xl">
             {language === 'ar' ? product.nameAr : product.nameEn}
           </h1>
-          {image && (
-            <img
-              src={image}
-              alt={language === 'ar' ? product.nameAr : product.nameEn}
-              className="mt-8 h-72 w-full rounded-xl border bg-white object-contain p-4 md:h-96"
-            />
+          {media.length > 0 && (
+            <section className="mt-8" aria-label={language === 'ar' ? `معرض صور ${product.nameAr}` : `${product.nameEn} image gallery`}>
+              <img
+                src={media[0].src}
+                alt={language === 'ar' ? media[0].altAr : media[0].altEn}
+                className={`h-72 w-full rounded-xl border bg-white md:h-96 ${media[0].fit === 'cover' ? 'object-cover' : 'object-contain p-4'}`}
+              />
+              {media.length > 1 && (
+                <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {media.slice(1).map((item) => (
+                    <img
+                      key={item.src}
+                      src={item.src}
+                      alt={language === 'ar' ? item.altAr : item.altEn}
+                      className={`h-40 w-full rounded-xl border bg-white ${item.fit === 'cover' ? 'object-cover' : 'object-contain p-3'}`}
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
           )}
           <p className="mt-5 text-lg leading-relaxed text-foreground/70">
             {(language === 'ar' ? product.descriptionAr : product.descriptionEn) || copy.catalogEntry}
@@ -133,6 +148,14 @@ export default function ProductDetail({
                   href={`/products/${category.slug}/${relatedProduct.slug}`}
                   className="rounded-xl border bg-card p-5 transition-colors hover:border-primary"
                 >
+                  {getProductMedia(relatedProduct)[0] && (
+                    <img
+                      src={getProductMedia(relatedProduct)[0].src}
+                      alt={language === 'ar' ? getProductMedia(relatedProduct)[0].altAr : getProductMedia(relatedProduct)[0].altEn}
+                      loading="lazy"
+                      className={`mb-4 h-28 w-full rounded-lg border bg-white ${getProductMedia(relatedProduct)[0].fit === 'cover' ? 'object-cover' : 'object-contain p-2'}`}
+                    />
+                  )}
                   <p className="font-semibold text-foreground">
                     {language === 'ar' ? relatedProduct.nameAr : relatedProduct.nameEn}
                   </p>

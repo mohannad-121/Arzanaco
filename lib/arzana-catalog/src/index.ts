@@ -9,6 +9,8 @@ export interface CatalogProduct {
   applicationsEn?: readonly string[];
   applicationsAr?: readonly string[];
   types?: readonly string[];
+  /** Optional admin-managed image URLs; bundled Amendment 2 media remains the fallback. */
+  imageUrls?: readonly string[];
 }
 
 const product = (item: CatalogProduct) => item;
@@ -60,6 +62,7 @@ export const catalogProducts = [
   product({ id: 'p40', slug: 'fire-fighting-system', categoryId: 'cat-8', nameEn: 'Fire Fighting System', nameAr: 'نظام مكافحة الحريق', descriptionEn: 'Integrated fire suppression solutions protecting personnel and critical assets.', descriptionAr: 'حلول متكاملة لإخماد الحريق تحمي الأفراد والأصول الحرجة.' }),
   product({ id: 'p41', slug: 'fire-extinguisher', categoryId: 'cat-8', nameEn: 'Fire Extinguisher', nameAr: 'طفاية حريق', descriptionEn: 'Certified portable extinguishers suitable for industrial and commercial facilities.', descriptionAr: 'طفايات محمولة معتمدة ومناسبة للمنشآت الصناعية والتجارية.' }),
   product({ id: 'p42', slug: 'led-obstruction-light', categoryId: 'cat-8', nameEn: 'LED Obstruction Light', nameAr: 'ضوء عوائق LED', descriptionEn: 'High-visibility aviation obstruction lighting for towers and tall structures.', descriptionAr: 'إضاءة عوائق للطيران عالية الوضوح للأبراج والمنشآت العالية.' }),
+  product({ id: 'p43', slug: 'tower-crane-tie-supports', categoryId: 'cat-3', nameEn: 'Tower Crane Tie Supports', nameAr: 'دعامات ربط الرافعات البرجية', descriptionEn: 'Tie-In (Wall Tie) systems provide engineered structural connections that safely stabilize tower cranes for operation beyond their freestanding height. Designed to meet applicable engineering standards and project requirements, our solutions ensure reliable load transfer, enhanced safety, and dependable performance throughout construction.', descriptionAr: 'توفر أنظمة ربط الرافعات البرجية بالجدران وصلات إنشائية هندسية تثبّت الرافعات البرجية بأمان عند التشغيل فوق ارتفاعها الحر. صُممت هذه الحلول لتتوافق مع المعايير الهندسية المعمول بها ومتطلبات المشاريع، لضمان نقل موثوق للأحمال وتعزيز السلامة وتحقيق أداء يُعتمد عليه طوال مراحل الإنشاء.' }),
 ] as const satisfies readonly CatalogProduct[];
 
 export type CatalogProductId = (typeof catalogProducts)[number]['id'];

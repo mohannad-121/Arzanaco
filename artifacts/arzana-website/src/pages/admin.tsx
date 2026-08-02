@@ -18,12 +18,13 @@ type ProductForm = {
   descriptionEn: string;
   descriptionAr: string;
   types: string;
+  imageUrls: string;
 };
 
 type CategoryForm = { nameEn: string; nameAr: string; slug: string };
 
 const emptyProductForm: ProductForm = {
-  nameEn: '', nameAr: '', slug: '', categoryId: '', descriptionEn: '', descriptionAr: '', types: '',
+  nameEn: '', nameAr: '', slug: '', categoryId: '', descriptionEn: '', descriptionAr: '', types: '', imageUrls: '',
 };
 const emptyCategoryForm: CategoryForm = { nameEn: '', nameAr: '', slug: '' };
 
@@ -59,7 +60,7 @@ export default function AdminPanel() {
         logout: 'تسجيل الخروج', products: 'المنتجات', solutions: 'الحلول / الفئات', addProduct: 'إضافة منتج', addSolution: 'إضافة حل',
         editProduct: 'تعديل المنتج', editSolution: 'تعديل الحل', englishName: 'الاسم بالإنجليزية', arabicName: 'الاسم بالعربية',
         slug: 'رابط الصفحة', category: 'الحل / الفئة', englishDescription: 'الوصف بالإنجليزية', arabicDescription: 'الوصف بالعربية',
-        options: 'الخيارات (افصل بينها بفواصل)', edit: 'تعديل', remove: 'حذف', save: 'حفظ', cancel: 'إلغاء',
+        options: 'الخيارات (افصل بينها بفواصل)', images: 'روابط الصور (رابط في كل سطر)', edit: 'تعديل', remove: 'حذف', save: 'حفظ', cancel: 'إلغاء',
         required: 'يرجى إكمال جميع الحقول المطلوبة.', duplicateSlug: 'رابط الصفحة مستخدم بالفعل.', noProducts: 'لا توجد منتجات.', noSolutions: 'لا توجد حلول.',
         deleteProduct: 'هل تريد حذف هذا المنتج؟ سيختفي من الموقع.', deleteSolution: 'هل تريد حذف هذا الحل؟ سيتم أيضاً حذف جميع المنتجات التابعة له.',
       }
@@ -68,7 +69,7 @@ export default function AdminPanel() {
         logout: 'Log out', products: 'Products', solutions: 'Solutions / Categories', addProduct: 'Add product', addSolution: 'Add solution',
         editProduct: 'Edit product', editSolution: 'Edit solution', englishName: 'English name', arabicName: 'Arabic name',
         slug: 'Page URL', category: 'Solution / category', englishDescription: 'English description', arabicDescription: 'Arabic description',
-        options: 'Options (comma separated)', edit: 'Edit', remove: 'Delete', save: 'Save', cancel: 'Cancel',
+        options: 'Options (comma separated)', images: 'Image URLs (one per line)', edit: 'Edit', remove: 'Delete', save: 'Save', cancel: 'Cancel',
         required: 'Complete all required fields.', duplicateSlug: 'That page URL is already in use.', noProducts: 'No products available.', noSolutions: 'No solutions available.',
         deleteProduct: 'Delete this product? It will disappear from the website.', deleteSolution: 'Delete this solution? All products inside it will also be deleted.',
       };
@@ -116,6 +117,7 @@ export default function AdminPanel() {
       descriptionEn: product.descriptionEn ?? '',
       descriptionAr: product.descriptionAr ?? '',
       types: product.types?.join(', ') ?? '',
+      imageUrls: product.imageUrls?.join('\n') ?? '',
     });
     setFormError('');
     setProductModalOpen(true);
@@ -145,6 +147,7 @@ export default function AdminPanel() {
         descriptionEn: productForm.descriptionEn.trim() || undefined,
         descriptionAr: productForm.descriptionAr.trim() || undefined,
         types: productForm.types.split(',').map((item) => item.trim()).filter(Boolean),
+        imageUrls: productForm.imageUrls.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
       }, adminPassword);
       setProductModalOpen(false);
       setSuccessMessage(language === 'ar' ? 'تم حفظ المنتج.' : 'Product saved.');
@@ -285,6 +288,7 @@ export default function AdminPanel() {
             <Field label={copy.englishDescription}><textarea rows={3} value={productForm.descriptionEn} onChange={(event) => setProductForm({ ...productForm, descriptionEn: event.target.value })} className={FIELD_CLASS} /></Field>
             <Field label={copy.arabicDescription}><textarea dir="rtl" rows={3} value={productForm.descriptionAr} onChange={(event) => setProductForm({ ...productForm, descriptionAr: event.target.value })} className={FIELD_CLASS} /></Field>
             <Field label={copy.options}><input value={productForm.types} onChange={(event) => setProductForm({ ...productForm, types: event.target.value })} className={FIELD_CLASS} /></Field>
+            <Field label={copy.images}><textarea rows={3} value={productForm.imageUrls} onChange={(event) => setProductForm({ ...productForm, imageUrls: event.target.value })} className={FIELD_CLASS} /></Field>
             {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
             <ModalActions cancel={copy.cancel} save={isSaving ? (language === 'ar' ? 'جارٍ الحفظ…' : 'Saving…') : copy.save} onCancel={() => setProductModalOpen(false)} disabled={isSaving} />
           </form>

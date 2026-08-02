@@ -54,7 +54,7 @@ export default function RequestQuote() {
           title: 'أخبرنا بالمنتجات التي تهمك',
           introduction: 'حدد المنتجات من قائمة الكتالوج وأضف بيانات الاتصال حتى نتمكن من إعداد طلبك.',
           fullName: 'الاسم الكامل',
-          company: 'اسم الشركة أو المؤسسة',
+          company: 'اسم الشركة',
           email: 'البريد الإلكتروني',
           phone: 'رقم الهاتف',
           products: 'المنتجات التي تهمك',
@@ -81,7 +81,7 @@ export default function RequestQuote() {
           title: 'Tell us which products interest you',
           introduction: 'Select products from the company catalog and add your contact details to prepare your request.',
           fullName: 'Full Name',
-          company: 'Company or Business Name',
+          company: 'Company Name',
           email: 'Email Address',
           phone: 'Phone Number',
           products: 'Products You Are Interested In',
@@ -310,6 +310,7 @@ export default function RequestQuote() {
                   name="companyName"
                   autoComplete="organization"
                   maxLength={160}
+                  placeholder={copy.company}
                   value={formData.companyName}
                   onChange={(event) => updateField('companyName', event.target.value)}
                   aria-invalid={Boolean(errors.companyName)}
