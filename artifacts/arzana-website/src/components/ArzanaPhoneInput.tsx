@@ -130,10 +130,10 @@ export function ArzanaPhoneInput({
             <SelectItem
               key={country.iso}
               value={country.iso}
+              aria-label={isArabic ? country.nameAr : country.nameEn}
               className="py-2.5 text-white focus:bg-[#9f183d]/30 focus:text-white"
             >
               <span dir="ltr">{country.iso} {country.dialCode}</span>
-              <span className="ms-2 text-white/70">{isArabic ? country.nameAr : country.nameEn}</span>
             </SelectItem>
           ))}
         </SelectContent>
