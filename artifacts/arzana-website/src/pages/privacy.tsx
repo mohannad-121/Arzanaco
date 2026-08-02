@@ -41,7 +41,7 @@ export default function Privacy() {
           <h2>5. Contact Us</h2>
           <p>
             If you have any questions about this privacy policy or our privacy practices, please contact us at:<br/>
-            {contactPeople.map((contact) => <React.Fragment key={contact.email}><a href={contact.emailHref}>{contact.email}</a> · <a href={contact.phoneHref} dir="ltr">{contact.phone}</a><br/></React.Fragment>)}
+            {contactPeople.map((contact) => <React.Fragment key={contact.email}><a href={contact.emailHref}>{contact.email}</a> · <a href={contact.phoneHref} className="whitespace-nowrap" dir="ltr">{contact.phone}</a><br/></React.Fragment>)}
             {companyAddress.lines.map((line) => <React.Fragment key={line}>{line}<br/></React.Fragment>)}
           </p>
         </div>

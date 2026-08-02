@@ -66,7 +66,7 @@ export const Footer = () => {
                 <li key={contact.email} className="flex items-start gap-3 text-white/70">
                   <div className="flex shrink-0 items-center gap-1"><a href={contact.phoneHref} aria-label="Call Arzana"><Phone className="h-5 w-5 text-primary" /></a><a href={contact.whatsappHref} target="_blank" rel="noreferrer" aria-label="Contact Arzana on WhatsApp"><MessageCircle className="h-5 w-5 text-primary" /></a></div>
                   <div className="flex min-w-0 flex-col gap-1">
-                    <a href={contact.phoneHref} className="hover:text-white transition-colors" dir="ltr">{contact.phone}</a>
+                    <a href={contact.phoneHref} className="whitespace-nowrap hover:text-white transition-colors" dir="ltr">{contact.phone}</a>
                     <a href={contact.emailHref} className="break-all hover:text-white transition-colors" dir="ltr">{contact.email}</a>
                   </div>
                 </li>

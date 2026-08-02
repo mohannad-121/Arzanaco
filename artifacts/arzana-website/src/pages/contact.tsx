@@ -62,7 +62,7 @@ export default function Contact() {
             >
               <span className="corner-card__corner" aria-hidden="true" />
               <div className="corner-card__content">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <a
                     href={contact.phoneHref}
                     className="rounded-md border border-foreground/12 bg-white/55 p-3 transition hover:border-primary/50 hover:bg-primary/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -76,7 +76,7 @@ export default function Contact() {
                       {copy.phone}
                     </p>
                     <span
-                      className="mt-1 block text-sm font-bold text-foreground"
+                      className="mt-1 block whitespace-nowrap text-[.76rem] font-bold text-foreground"
                       dir="ltr"
                     >
                       {contact.phone}
@@ -97,7 +97,7 @@ export default function Contact() {
                       {copy.whatsapp}
                     </p>
                     <span
-                      className="mt-1 block text-sm font-bold text-foreground"
+                      className="mt-1 block whitespace-nowrap text-[.76rem] font-bold text-foreground"
                       dir="ltr"
                     >
                       {contact.phone}
