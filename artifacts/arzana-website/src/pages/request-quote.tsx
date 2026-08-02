@@ -14,7 +14,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
-const MAX_ATTACHMENT_BYTES = 2.5 * 1024 * 1024;
+const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024;
 const ALLOWED_ATTACHMENT_TYPES = new Set([
   'application/pdf',
   'application/msword',
@@ -80,7 +80,7 @@ export default function RequestQuote() {
           productDetails: 'تفاصيل المنتج أو المتطلبات',
           productDetailsPlaceholder: 'أضف أي مواصفات أو كميات أو متطلبات خاصة.',
           attachment: 'إرفاق ملف',
-          attachmentHelp: 'اختياري. PDF أو Word أو Excel أو JPG أو PNG، حتى 2.5 ميجابايت.',
+          attachmentHelp: 'اختياري. PDF أو Word أو Excel أو JPG أو PNG، حتى 3 ميجابايت.',
           removeAttachment: 'إزالة الملف',
           fullNamePlaceholder: 'أدخل الاسم الكامل',
           companyPlaceholder: 'أدخل اسم الشركة',
@@ -100,7 +100,7 @@ export default function RequestQuote() {
           phoneError: 'أدخل رقم هاتف صالحاً.',
           productsError: 'اختر منتجاً واحداً على الأقل من الكتالوج.',
           productDetailsError: 'أدخل تفاصيل لا تتجاوز 4000 حرف.',
-          attachmentError: 'أرفق ملفاً مدعوماً لا يتجاوز 2.5 ميجابايت.',
+          attachmentError: 'أرفق ملفاً مدعوماً لا يتجاوز 3 ميجابايت.',
           genericError: 'تعذر إرسال طلب عرض السعر. بياناتك ما زالت موجودة؛ يرجى المحاولة مرة أخرى.',
           successTitle: 'تم إرسال طلبك عبر البريد الإلكتروني',
           successDescription:
@@ -118,7 +118,7 @@ export default function RequestQuote() {
           productDetails: 'Product Details or Requirements',
           productDetailsPlaceholder: 'Add specifications, quantities, or any special requirements.',
           attachment: 'Attach a File',
-          attachmentHelp: 'Optional. PDF, Word, Excel, JPG, or PNG up to 2.5 MB.',
+          attachmentHelp: 'Optional. PDF, Word, Excel, JPG, or PNG up to 3 MB.',
           removeAttachment: 'Remove file',
           fullNamePlaceholder: 'Enter your full name',
           companyPlaceholder: 'Enter your company name',
@@ -138,7 +138,7 @@ export default function RequestQuote() {
           phoneError: 'Enter a valid phone number.',
           productsError: 'Select at least one catalog product.',
           productDetailsError: 'Enter details of no more than 4,000 characters.',
-          attachmentError: 'Attach a supported file no larger than 2.5 MB.',
+          attachmentError: 'Attach a supported file no larger than 3 MB.',
           genericError:
             'We could not submit your quote request. Your details are still here—please try again.',
           successTitle: 'Your quote request was emailed to Arzana',

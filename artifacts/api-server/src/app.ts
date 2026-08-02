@@ -26,7 +26,7 @@ app.use(
   }),
 );
 app.use(cors());
-// Quote requests may include one encoded document/image attachment (up to 2.5 MB).
+// Quote requests may include one encoded document/image attachment (up to 3 MB).
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
