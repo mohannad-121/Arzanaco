@@ -2,12 +2,18 @@ import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { ArzanaCheckbox } from '../components/ArzanaCheckbox';
-import { Input } from '../components/ui/input';
+import { ArzanaTextInput } from '../components/ArzanaTextInput';
+import {
+  ArzanaPhoneInput,
+  DEFAULT_PHONE_COUNTRY,
+  isValidInternationalPhone,
+  normalizeInternationalPhone,
+  type PhoneCountry,
+} from '../components/ArzanaPhoneInput';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
-const PHONE_ALLOWED_PATTERN = /^[0-9+().\-\s]+$/;
 
 type QuoteFormData = {
   fullName: string;
@@ -41,6 +47,7 @@ export default function RequestQuote() {
   const { language } = useLanguage();
   const { categories, products } = useCatalog();
   const [formData, setFormData] = useState<QuoteFormData>(initialFormData);
+  const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
   const [errors, setErrors] = useState<QuoteErrors>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [success, setSuccess] = useState<QuoteSuccess | null>(null);
@@ -57,6 +64,10 @@ export default function RequestQuote() {
           company: 'اسم الشركة',
           email: 'البريد الإلكتروني',
           phone: 'رقم الهاتف',
+          fullNamePlaceholder: 'أدخل الاسم الكامل',
+          companyPlaceholder: 'أدخل اسم الشركة',
+          emailPlaceholder: 'أدخل البريد الإلكتروني',
+          phonePlaceholder: '50 000 0000',
           products: 'المنتجات التي تهمك',
           required: 'مطلوب',
           selectProducts: 'اختر منتجاً واحداً على الأقل من كتالوج الشركة.',
@@ -84,6 +95,10 @@ export default function RequestQuote() {
           company: 'Company Name',
           email: 'Email Address',
           phone: 'Phone Number',
+          fullNamePlaceholder: 'Enter your full name',
+          companyPlaceholder: 'Enter your company name',
+          emailPlaceholder: 'Enter your email address',
+          phonePlaceholder: '50 000 0000',
           products: 'Products You Are Interested In',
           required: 'Required',
           selectProducts: 'Select at least one product from the company catalog.',
@@ -137,7 +152,10 @@ export default function RequestQuote() {
     } else if (!EMAIL_PATTERN.test(formData.email.trim())) {
       nextErrors.email = copy.emailError;
     }
-    if (!isValidPhone(formData.phone)) nextErrors.phone = formData.phone.trim() ? copy.phoneError : copy.requiredError;
+    const normalizedPhone = normalizeInternationalPhone(formData.phone, selectedCountry);
+    if (!isValidInternationalPhone(normalizedPhone)) {
+      nextErrors.phone = formData.phone.trim() ? copy.phoneError : copy.requiredError;
+    }
     if (
       formData.productIds.length === 0 ||
       selectedProducts.some((product) => !product) ||
@@ -177,7 +195,7 @@ export default function RequestQuote() {
           fullName: formData.fullName.trim(),
           companyName: formData.companyName.trim(),
           email: formData.email.trim(),
-          phone: formData.phone.trim(),
+          phone: normalizeInternationalPhone(formData.phone, selectedCountry),
           productIds: formData.productIds,
           language,
           website: formData.website,
@@ -248,6 +266,7 @@ export default function RequestQuote() {
     if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
     popupRef.current = null;
     setFormData(initialFormData);
+    setSelectedCountry(DEFAULT_PHONE_COUNTRY);
     setErrors({});
     setSubmissionError(null);
     setSuccess(null);
@@ -286,11 +305,13 @@ export default function RequestQuote() {
                 error={errors.fullName}
                 requiredLabel={copy.required}
               >
-                <Input
+                <ArzanaTextInput
                   id="quote-full-name"
                   name="fullName"
+                  type="text"
                   autoComplete="name"
                   maxLength={160}
+                  placeholder={copy.fullNamePlaceholder}
                   value={formData.fullName}
                   onChange={(event) => updateField('fullName', event.target.value)}
                   aria-invalid={Boolean(errors.fullName)}
@@ -304,12 +325,13 @@ export default function RequestQuote() {
                 error={errors.companyName}
                 requiredLabel={copy.required}
               >
-                <Input
+                <ArzanaTextInput
                   id="quote-company"
                   name="companyName"
+                  type="text"
                   autoComplete="organization"
                   maxLength={160}
-                  placeholder={copy.company}
+                  placeholder={copy.companyPlaceholder}
                   value={formData.companyName}
                   onChange={(event) => updateField('companyName', event.target.value)}
                   aria-invalid={Boolean(errors.companyName)}
@@ -323,12 +345,14 @@ export default function RequestQuote() {
                 error={errors.email}
                 requiredLabel={copy.required}
               >
-                <Input
+                <ArzanaTextInput
                   id="quote-email"
                   name="email"
                   type="email"
                   autoComplete="email"
+                  inputMode="email"
                   maxLength={254}
+                  placeholder={copy.emailPlaceholder}
                   value={formData.email}
                   onChange={(event) => updateField('email', event.target.value)}
                   aria-invalid={Boolean(errors.email)}
@@ -342,17 +366,22 @@ export default function RequestQuote() {
                 error={errors.phone}
                 requiredLabel={copy.required}
               >
-                <Input
+                <ArzanaPhoneInput
                   id="quote-phone"
                   name="phone"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  maxLength={32}
                   value={formData.phone}
-                  onChange={(event) => updateField('phone', event.target.value)}
-                  aria-invalid={Boolean(errors.phone)}
-                  aria-describedby={errors.phone ? 'quote-phone-error' : undefined}
+                  onChange={(value) => updateField('phone', value)}
+                  selectedCountry={selectedCountry}
+                  onCountryChange={(country) => {
+                    setSelectedCountry(country);
+                    setErrors((current) => ({ ...current, phone: undefined }));
+                    setSubmissionError(null);
+                    setSuccess(null);
+                  }}
+                  placeholder={copy.phonePlaceholder}
+                  language={language}
+                  error={Boolean(errors.phone)}
+                  describedBy={errors.phone ? 'quote-phone-error' : undefined}
                 />
               </FormField>
             </div>
@@ -490,13 +519,6 @@ function FormField({
       )}
     </div>
   );
-}
-
-function isValidPhone(value: string): boolean {
-  const phone = value.trim();
-  if (!phone || !PHONE_ALLOWED_PATTERN.test(phone)) return false;
-  const digitCount = phone.replace(/\D/g, '').length;
-  return digitCount >= 7 && digitCount <= 15;
 }
 
 function isSuccessfulQuote(value: unknown): value is {
