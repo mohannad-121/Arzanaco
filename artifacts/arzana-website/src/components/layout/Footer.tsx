@@ -64,7 +64,7 @@ export const Footer = () => {
             <ul className="space-y-4">
               {contactPeople.map((contact) => (
                 <li key={contact.email} className="flex items-start gap-3 text-white/70">
-                  {contact.whatsapp ? <a href={contact.whatsappHref} target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" /></a> : <Phone className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />}
+                  <div className="flex shrink-0 items-center gap-1"><a href={contact.phoneHref} aria-label="Call Arzana"><Phone className="h-5 w-5 text-primary" /></a><a href={contact.whatsappHref} target="_blank" rel="noreferrer" aria-label="Contact Arzana on WhatsApp"><MessageCircle className="h-5 w-5 text-primary" /></a></div>
                   <div className="flex min-w-0 flex-col gap-1">
                     <a href={contact.phoneHref} className="hover:text-white transition-colors" dir="ltr">{contact.phone}</a>
                     <a href={contact.emailHref} className="break-all hover:text-white transition-colors" dir="ltr">{contact.email}</a>
