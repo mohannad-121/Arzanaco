@@ -32,6 +32,10 @@ import photo31 from '@photos/31.jpg';
 import photo32 from '@photos/32.jpg';
 import photo33 from '@photos/33.jpg';
 import photo34 from '@photos/34.jpg';
+import amendmentThreeTelecommunicationShelter from '@photos/amendment-3-telecommunication-shelter.jpeg';
+import amendmentThreeShaftGate from '@photos/amendment-3-shaft-gate.jpeg';
+import amendmentThreeLoadingPlatform from '@photos/amendment-3-loading-platform.jpeg';
+import amendmentThreeDryTypeTransformer from '@photos/amendment-3-dry-type-transformer.jpeg';
 
 export const officialLogo = logo;
 
@@ -57,6 +61,30 @@ const site = (src: string, altEn: string, altAr: string): ProductMedia => ({
   altAr,
   fit: 'cover',
 });
+
+const amendmentThreeProductMedia: Record<string, readonly ProductMedia[]> = {
+  'dry-type-transformer': [equipment(amendmentThreeDryTypeTransformer, 'Cast-resin dry type transformer', 'محول جاف من راتنج مصبوب')],
+  'loading-platforms': [
+    site(photo13, 'External construction loading platform', 'منصة تحميل خارجية في موقع إنشاء'),
+    site(amendmentThreeLoadingPlatform, 'Red construction loading platform', 'منصة تحميل حمراء في موقع إنشاء'),
+  ],
+  'shaft-gates': [
+    site(photo14, 'Yellow construction shaft gate', 'بوابة صفراء لمنور الإنشاء'),
+    site(amendmentThreeShaftGate, 'Orange construction shaft gate', 'بوابة برتقالية لمنور الإنشاء'),
+  ],
+  'telecommunication-shelter': [
+    equipment(photo26, 'Outdoor telecommunication shelter', 'مأوى اتصالات خارجي'),
+    equipment(amendmentThreeTelecommunicationShelter, 'Climate-controlled telecommunication shelter', 'مأوى اتصالات مزود بالتحكم المناخي'),
+  ],
+  'lcc-container': [
+    equipment(photo27, 'Indoor LCC modular container', 'حاوية LCC معيارية داخلية'),
+    site(photo28, 'LCC containers in the factory', 'حاويات LCC في المصنع'),
+  ],
+  'electrical-house-e-house': [
+    site(photo29, 'Containerized electrical house', 'مبنى كهربائي داخل حاوية'),
+    site(photo30, 'Electrical house switchgear interior', 'المعدات الكهربائية داخل المبنى الكهربائي'),
+  ],
+};
 
 /**
  * Approved Amendment 2 product photography. This local, versioned map is the
@@ -103,6 +131,7 @@ export const productMediaBySlug: Record<string, readonly ProductMedia[]> = {
     site(photo29, 'Containerized electrical house', 'مبنى كهربائي داخل حاوية'),
     site(photo30, 'Electrical house switchgear interior', 'المعدات الكهربائية داخل المبنى الكهربائي'),
   ],
+  ...amendmentThreeProductMedia,
 };
 
 export function getProductMedia(product: {

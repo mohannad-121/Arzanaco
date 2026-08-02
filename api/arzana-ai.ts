@@ -19,10 +19,10 @@ type VercelResponse = { statusCode: number; setHeader(name: string, value: strin
 const CLIENTS = ['ABB', 'Alfanar', 'Algihaz Holding', 'Al Yamama', 'Al Bawani', 'EG&G Middle East', 'El Seif', 'HC Telecom', 'KEC', 'L&T Construction', 'Ministry of Media', 'Saudi Customs', 'Saudi Electricity Company', 'SANS', 'Safari', 'King Saud University', 'Princess Nourah University', 'Al Faisaliah Medical Systems', 'TDP'];
 const CONTACTS = {
   whatsapp: '+966 56 667 6600',
-  phones: ['+966 56 667 6600', '+966 59 708 048', '+966 53 063 7156'],
-  emails: ['m.saadi@arzanaco.com', 'Moath@arzanaco.com', 'projects@arzanaco.com'],
-  addressEn: 'Servcorp Building #13, Laysen Valley Complex, Riyadh, Saudi Arabia',
-  addressAr: 'مبنى سيرفكورب رقم 13، مجمع ليسن فالي، الرياض، المملكة العربية السعودية',
+  phones: ['+966 56 667 6600', '+966 59 708 0480', '+966 53 063 7156'],
+  emails: ['m.saadi@arzanaco.com', 'moath@arzanaco.com', 'projects@arzanaco.com'],
+  addressEn: 'Servcorp Building #13, Laysen Valley Complex, Riyadh 12329, Saudi Arabia',
+  addressAr: 'مبنى سيرفكورب رقم 13، مجمع ليسن فالي، الرياض 12329، المملكة العربية السعودية',
 };
 
 function json(res: VercelResponse, status: number, body: unknown) { res.statusCode = status; res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.setHeader('Cache-Control', 'no-store'); res.end(JSON.stringify(body)); }
