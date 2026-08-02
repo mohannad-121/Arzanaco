@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { ArzanaCheckbox } from '../components/ArzanaCheckbox';
@@ -14,6 +14,16 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
+const MAX_ATTACHMENT_BYTES = 2.5 * 1024 * 1024;
+const ALLOWED_ATTACHMENT_TYPES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/jpeg',
+  'image/png',
+]);
 
 type QuoteFormData = {
   fullName: string;
@@ -21,10 +31,11 @@ type QuoteFormData = {
   email: string;
   phone: string;
   productIds: string[];
+  productDetails: string;
   website: string;
 };
 
-type QuoteField = Exclude<keyof QuoteFormData, 'website'>;
+type QuoteField = Exclude<keyof QuoteFormData, 'website'> | 'attachment';
 type QuoteErrors = Partial<Record<QuoteField, string>>;
 
 type QuoteSuccess = {
@@ -40,6 +51,7 @@ const initialFormData: QuoteFormData = {
   email: '',
   phone: '',
   productIds: [],
+  productDetails: '',
   website: '',
 };
 
@@ -47,12 +59,13 @@ export default function RequestQuote() {
   const { language } = useLanguage();
   const { categories, products } = useCatalog();
   const [formData, setFormData] = useState<QuoteFormData>(initialFormData);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
   const [errors, setErrors] = useState<QuoteErrors>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [success, setSuccess] = useState<QuoteSuccess | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const popupRef = useRef<Window | null>(null);
 
   const copy =
     language === 'ar'
@@ -64,6 +77,11 @@ export default function RequestQuote() {
           company: 'اسم الشركة',
           email: 'البريد الإلكتروني',
           phone: 'رقم الهاتف',
+          productDetails: 'تفاصيل المنتج أو المتطلبات',
+          productDetailsPlaceholder: 'أضف أي مواصفات أو كميات أو متطلبات خاصة.',
+          attachment: 'إرفاق ملف',
+          attachmentHelp: 'اختياري. PDF أو Word أو Excel أو JPG أو PNG، حتى 2.5 ميجابايت.',
+          removeAttachment: 'إزالة الملف',
           fullNamePlaceholder: 'أدخل الاسم الكامل',
           companyPlaceholder: 'أدخل اسم الشركة',
           emailPlaceholder: 'أدخل البريد الإلكتروني',
@@ -81,10 +99,12 @@ export default function RequestQuote() {
           emailError: 'أدخل عنوان بريد إلكتروني صالحاً.',
           phoneError: 'أدخل رقم هاتف صالحاً.',
           productsError: 'اختر منتجاً واحداً على الأقل من الكتالوج.',
+          productDetailsError: 'أدخل تفاصيل لا تتجاوز 4000 حرف.',
+          attachmentError: 'أرفق ملفاً مدعوماً لا يتجاوز 2.5 ميجابايت.',
           genericError: 'تعذر إرسال طلب عرض السعر. بياناتك ما زالت موجودة؛ يرجى المحاولة مرة أخرى.',
           successTitle: 'تم إرسال طلبك عبر البريد الإلكتروني',
           successDescription:
-            'تم إرسال تفاصيل الطلب إلى أرزانا. تم تجهيز رسالة واتساب أيضاً؛ اضغط إرسال داخل واتساب لإكمال الإرسال عبر واتساب.',
+            'تم إرسال تفاصيل طلبك والمرفق، إن وُجد، مباشرةً إلى أرزانا عبر البريد الإلكتروني.',
           preparedProducts: 'المنتجات المجهزة للطلب:',
         }
       : {
@@ -95,6 +115,11 @@ export default function RequestQuote() {
           company: 'Company Name',
           email: 'Email Address',
           phone: 'Phone Number',
+          productDetails: 'Product Details or Requirements',
+          productDetailsPlaceholder: 'Add specifications, quantities, or any special requirements.',
+          attachment: 'Attach a File',
+          attachmentHelp: 'Optional. PDF, Word, Excel, JPG, or PNG up to 2.5 MB.',
+          removeAttachment: 'Remove file',
           fullNamePlaceholder: 'Enter your full name',
           companyPlaceholder: 'Enter your company name',
           emailPlaceholder: 'Enter your email address',
@@ -112,11 +137,13 @@ export default function RequestQuote() {
           emailError: 'Enter a valid email address.',
           phoneError: 'Enter a valid phone number.',
           productsError: 'Select at least one catalog product.',
+          productDetailsError: 'Enter details of no more than 4,000 characters.',
+          attachmentError: 'Attach a supported file no larger than 2.5 MB.',
           genericError:
             'We could not submit your quote request. Your details are still here—please try again.',
           successTitle: 'Your quote request was emailed to Arzana',
           successDescription:
-            'Your email request was delivered. A WhatsApp message is also prepared; press Send inside WhatsApp to complete the WhatsApp submission.',
+            'Your request details and any attached file were sent directly to Arzana by email.',
           preparedProducts: 'Products included in the request:',
         };
 
@@ -180,14 +207,10 @@ export default function RequestQuote() {
       return;
     }
 
-    // This blank tab is opened synchronously from the customer action. It is redirected
-    // to WhatsApp only after the API confirms that the email was delivered.
-    const popup = window.open('about:blank', '_blank');
-    if (popup) popup.opener = null;
-    popupRef.current = popup;
     setIsSubmitting(true);
 
     try {
+      const encodedAttachment = attachment ? await encodeAttachment(attachment) : null;
       const response = await fetch('/api/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -197,6 +220,8 @@ export default function RequestQuote() {
           email: formData.email.trim(),
           phone: normalizeInternationalPhone(formData.phone, selectedCountry),
           productIds: formData.productIds,
+          productDetails: formData.productDetails.trim(),
+          attachment: encodedAttachment,
           language,
           website: formData.website,
         }),
@@ -204,8 +229,6 @@ export default function RequestQuote() {
       const result = await readQuoteResponse(response);
 
       if (!response.ok || !isSuccessfulQuote(result)) {
-        if (popup && !popup.closed) popup.close();
-        popupRef.current = null;
         const apiFieldErrors = getApiValidationErrors(result, copy);
         if (Object.keys(apiFieldErrors).length > 0) {
           setErrors((current) => ({ ...current, ...apiFieldErrors }));
@@ -226,14 +249,7 @@ export default function RequestQuote() {
         whatsappUrl: result.whatsappUrl,
         emailStatus: result.emailStatus,
       });
-      if (popup && !popup.closed) {
-        popup.location.replace(result.whatsappUrl);
-        popup.focus();
-      }
-      popupRef.current = null;
     } catch (error) {
-      if (popup && !popup.closed) popup.close();
-      popupRef.current = null;
       if (import.meta.env.DEV) {
         console.warn('[quote] network request failed', { name: error instanceof Error ? error.name : 'unknown' });
       }
@@ -243,9 +259,26 @@ export default function RequestQuote() {
     }
   };
 
-  const updateField = (field: Exclude<QuoteField, 'productIds'>, value: string) => {
+  const updateField = (field: Exclude<keyof QuoteFormData, 'productIds' | 'website'>, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+    setSubmissionError(null);
+    setSuccess(null);
+  };
+
+  const handleAttachmentChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextAttachment = event.target.files?.[0] ?? null;
+    if (!nextAttachment) return;
+
+    if (nextAttachment.size > MAX_ATTACHMENT_BYTES || !ALLOWED_ATTACHMENT_TYPES.has(nextAttachment.type)) {
+      setAttachment(null);
+      event.target.value = '';
+      setErrors((current) => ({ ...current, attachment: copy.attachmentError }));
+      return;
+    }
+
+    setAttachment(nextAttachment);
+    setErrors((current) => ({ ...current, attachment: undefined }));
     setSubmissionError(null);
     setSuccess(null);
   };
@@ -263,9 +296,9 @@ export default function RequestQuote() {
   };
 
   const resetForm = () => {
-    if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
-    popupRef.current = null;
     setFormData(initialFormData);
+    setAttachment(null);
+    if (attachmentInputRef.current) attachmentInputRef.current.value = '';
     setSelectedCountry(DEFAULT_PHONE_COUNTRY);
     setErrors({});
     setSubmissionError(null);
@@ -386,6 +419,71 @@ export default function RequestQuote() {
               </FormField>
             </div>
 
+            <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="quote-product-details" className="text-sm font-medium text-foreground">
+                  {copy.productDetails}
+                </label>
+                <textarea
+                  id="quote-product-details"
+                  name="productDetails"
+                  rows={5}
+                  maxLength={4000}
+                  placeholder={copy.productDetailsPlaceholder}
+                  value={formData.productDetails}
+                  onChange={(event) => updateField('productDetails', event.target.value)}
+                  aria-invalid={Boolean(errors.productDetails)}
+                  aria-describedby={errors.productDetails ? 'quote-product-details-error' : undefined}
+                  className="quote-dark-input min-h-32 resize-y"
+                />
+                {errors.productDetails && (
+                  <p id="quote-product-details-error" role="alert" className="text-sm font-medium text-destructive">
+                    {errors.productDetails}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="quote-attachment" className="text-sm font-medium text-foreground">
+                  {copy.attachment}
+                </label>
+                <input
+                  id="quote-attachment"
+                  ref={attachmentInputRef}
+                  name="attachment"
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png"
+                  onChange={handleAttachmentChange}
+                  disabled={isSubmitting}
+                  aria-invalid={Boolean(errors.attachment)}
+                  aria-describedby="quote-attachment-help quote-attachment-error"
+                  className="block w-full cursor-pointer rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground file:me-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+                <p id="quote-attachment-help" className="text-sm text-muted-foreground">{copy.attachmentHelp}</p>
+                {attachment && (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                    <span className="min-w-0 truncate text-foreground">{attachment.name}</span>
+                    <button
+                      type="button"
+                      className="shrink-0 font-medium text-primary hover:underline"
+                      onClick={() => {
+                        setAttachment(null);
+                        if (attachmentInputRef.current) attachmentInputRef.current.value = '';
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      {copy.removeAttachment}
+                    </button>
+                  </div>
+                )}
+                {errors.attachment && (
+                  <p id="quote-attachment-error" role="alert" className="text-sm font-medium text-destructive">
+                    {errors.attachment}
+                  </p>
+                )}
+              </div>
+            </div>
+
             <fieldset className="mt-8">
               <legend className="text-base font-semibold text-foreground">
                 {copy.products} <span className="text-primary">*</span>
@@ -471,14 +569,6 @@ export default function RequestQuote() {
               <p className="mt-3 text-xs font-medium text-foreground/65" dir="ltr">
                 {language === 'ar' ? 'الرقم المرجعي: ' : 'Reference: '}{success.quoteId}
               </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4"
-                onClick={() => window.open(success.whatsappUrl, '_blank', 'noopener,noreferrer')}
-              >
-                {copy.openWhatsApp}
-              </Button>
               <p className="mt-4 font-medium text-foreground">{copy.preparedProducts}</p>
               <ul className="mt-2 list-disc space-y-1 ps-5 text-foreground/75">
                 {success.productNames.map((productName) => (
@@ -594,6 +684,8 @@ function getApiValidationErrors(
     emailError: string;
     phoneError: string;
     productsError: string;
+    productDetailsError: string;
+    attachmentError: string;
   },
 ): QuoteErrors {
   if (getApiErrorCode(value) !== 'VALIDATION_FAILED' || typeof value !== 'object' || value === null) {
@@ -610,5 +702,29 @@ function getApiValidationErrors(
     ...(hasError('email') ? { email: copy.emailError } : {}),
     ...(hasError('phone') ? { phone: copy.phoneError } : {}),
     ...(hasError('productIds') ? { productIds: copy.productsError } : {}),
+    ...(hasError('productDetails') ? { productDetails: copy.productDetailsError } : {}),
+    ...(hasError('attachment') ? { attachment: copy.attachmentError } : {}),
   };
+}
+
+function encodeAttachment(file: File): Promise<{ filename: string; content: string; contentType: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Unable to read the selected file.'));
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      const separatorIndex = result.indexOf(',');
+      if (separatorIndex === -1) {
+        reject(new Error('Unable to encode the selected file.'));
+        return;
+      }
+
+      resolve({
+        filename: file.name,
+        content: result.slice(separatorIndex + 1),
+        contentType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+  });
 }

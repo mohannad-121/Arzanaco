@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-const QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
+const DEFAULT_QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
 const QUOTE_SENDER_ADDRESS = "quotes@mail.arzanaco.com";
 const WHATSAPP_NUMBER = "966566676600";
 const MAX_REQUESTS_PER_WINDOW = 5;
@@ -8,10 +8,23 @@ const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FIELD_LENGTH = 160;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PHONE_LENGTH = 32;
+const MAX_PRODUCT_DETAILS_LENGTH = 4000;
+const MAX_ATTACHMENT_BYTES = 2.5 * 1024 * 1024;
+const MAX_ATTACHMENT_FILENAME_LENGTH = 120;
 const MAX_PROVIDER_ID_LENGTH = 160;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const PHONE_ALLOWED_PATTERN = /^[0-9+().\-\s]+$/u;
 const PROVIDER_ID_PATTERN = /^[A-Za-z0-9_-]+$/u;
+const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
+const ALLOWED_ATTACHMENT_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "image/jpeg",
+  "image/png",
+]);
 const requestTimesByIp = new Map<string, number[]>();
 
 type QuoteLanguage = "en" | "ar";
@@ -26,6 +39,14 @@ type QuoteRequest = {
   productIds: string[];
   language: QuoteLanguage;
   productNames: string[];
+  productDetails: string | null;
+  attachment: QuoteAttachment | null;
+};
+
+type QuoteAttachment = {
+  filename: string;
+  content: string;
+  contentType: string;
 };
 
 type QuoteValidation = { quote: QuoteRequest } | { errors: Record<string, string> };
@@ -241,54 +262,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (!supabase) {
-    logQuote("error", "[quote] database unavailable", { reason: "configuration_missing" });
-    sendJson(res, 503, {
-      success: false,
-      code: "DATABASE_SAVE_FAILED",
-      message: "We could not save your quote request.",
-    });
-    return;
-  }
-
-  const quoteId = await insertQuoteRequest(supabase, validation.quote);
-  if (!quoteId) {
-    sendJson(res, 503, {
-      success: false,
-      code: "DATABASE_SAVE_FAILED",
-      message: "We could not save your quote request.",
-    });
-    return;
-  }
-
   const emailDelivery = await sendQuoteEmail(validation.quote);
-  const whatsappUrl = buildWhatsAppUrl(validation.quote);
-  const submissionStatus: SubmissionStatus =
-    emailDelivery.emailStatus === "sent" ? "completed" : "partially_completed";
-
-  const statusSaved = await updateQuoteRequest(supabase, quoteId, {
-    emailStatus: emailDelivery.emailStatus,
-    whatsappStatus: "prepared",
-    submissionStatus,
-    emailProviderId: emailDelivery.providerId,
-    errorCode: emailDelivery.errorCode,
-  });
-
-  if (!statusSaved) {
-    logQuote("error", "[quote] database status update failed", { quoteId });
+  if (emailDelivery.emailStatus !== "sent") {
+    sendJson(res, 502, {
+      success: false,
+      code: "EMAIL_DELIVERY_FAILED",
+      message: "We could not deliver your quote request by email.",
+    });
+    return;
   }
 
-  const emailDelivered = emailDelivery.emailStatus === "sent";
+  // Email is the primary delivery path. Storage is attempted afterwards so an
+  // unavailable database can never prevent a valid request reaching Arzana.
+  const quoteId = supabase ? await insertQuoteRequest(supabase, validation.quote) : null;
+  if (quoteId && supabase) {
+    const statusSaved = await updateQuoteRequest(supabase, quoteId, {
+      emailStatus: emailDelivery.emailStatus,
+      whatsappStatus: "not_prepared",
+      submissionStatus: "completed",
+      emailProviderId: emailDelivery.providerId,
+      errorCode: emailDelivery.errorCode,
+    });
+    if (!statusSaved) logQuote("error", "[quote] database status update failed", { quoteId });
+  } else {
+    logQuote("warn", "[quote] database storage unavailable after email delivery");
+  }
+
+  const referenceId = quoteId ?? emailDelivery.providerId ?? "email-" + Date.now().toString(36);
   sendJson(res, 200, {
     success: true,
-    quoteId,
-    message: emailDelivered
-      ? "Quote request delivered successfully."
-      : "Quote request saved. Email delivery could not be confirmed; WhatsApp is ready.",
+    quoteId: referenceId,
+    message: "Quote request delivered successfully.",
     productNames: validation.quote.productNames,
-    whatsappUrl,
+    whatsappUrl: buildWhatsAppUrl(validation.quote),
     emailStatus: emailDelivery.emailStatus,
-    submissionStatus,
+    submissionStatus: "completed",
   });
 }
 
@@ -301,12 +309,18 @@ async function validateQuoteRequest(
   const companyName = cleanText(body.companyName, MAX_FIELD_LENGTH);
   const email = cleanText(body.email, MAX_EMAIL_LENGTH);
   const phone = cleanText(body.phone, MAX_PHONE_LENGTH);
+  const productDetails = cleanOptionalText(body.productDetails, MAX_PRODUCT_DETAILS_LENGTH);
+  const attachment = readAttachment(body.attachment);
   const language = body.language === "ar" || body.language === "en" ? body.language : null;
 
   if (!fullName) errors.fullName = "A full name is required.";
   if (!companyName) errors.companyName = "A company name is required.";
   if (!email || !EMAIL_PATTERN.test(email)) errors.email = "A valid email address is required.";
   if (!isValidPhone(phone)) errors.phone = "A valid phone number is required.";
+  if (typeof body.productDetails === "string" && body.productDetails.trim() && !productDetails) {
+    errors.productDetails = "Product details are too long or invalid.";
+  }
+  if (attachment === "invalid") errors.attachment = "The attachment is invalid or exceeds the size limit.";
   if (!language) errors.language = "A supported language is required.";
 
   const productIds = Array.isArray(body.productIds)
@@ -353,6 +367,8 @@ async function validateQuoteRequest(
       productNames: selectedProducts.map((product) =>
         language === "ar" ? product!.nameAr : product!.nameEn,
       ),
+      productDetails,
+      attachment: attachment === "invalid" ? null : attachment,
     },
   };
 }
@@ -471,6 +487,48 @@ function cleanText(value: unknown, maxLength: number): string | null {
   return cleaned && cleaned.length <= maxLength ? cleaned : null;
 }
 
+function cleanOptionalText(value: unknown, maxLength: number): string | null {
+  if (typeof value !== "string") return null;
+  const cleaned = value
+    .replace(/[\u0000-\u001F\u007F]/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+  return cleaned && cleaned.length <= maxLength ? cleaned : null;
+}
+
+function readAttachment(value: unknown): QuoteAttachment | null | "invalid" {
+  if (value === undefined || value === null) return null;
+  if (!isRecord(value)) return "invalid";
+
+  const filename = cleanAttachmentFilename(value.filename);
+  const content = typeof value.content === "string" ? value.content.trim() : "";
+  const contentType = typeof value.contentType === "string" ? value.contentType.trim().toLowerCase() : "";
+  const estimatedBytes = Math.floor((content.length * 3) / 4) - (content.endsWith("==") ? 2 : content.endsWith("=") ? 1 : 0);
+
+  if (
+    !filename ||
+    !content ||
+    content.length % 4 !== 0 ||
+    !BASE64_PATTERN.test(content) ||
+    estimatedBytes <= 0 ||
+    estimatedBytes > MAX_ATTACHMENT_BYTES ||
+    !ALLOWED_ATTACHMENT_TYPES.has(contentType)
+  ) {
+    return "invalid";
+  }
+
+  return { filename, content, contentType };
+}
+
+function cleanAttachmentFilename(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const filename = value
+    .replace(/[\\/\u0000-\u001F\u007F]/gu, "-")
+    .replace(/\s+/gu, " ")
+    .trim();
+  return filename && filename.length <= MAX_ATTACHMENT_FILENAME_LENGTH ? filename : null;
+}
+
 function isValidPhone(phone: string | null): phone is string {
   if (!phone || !PHONE_ALLOWED_PATTERN.test(phone)) return false;
   const digitCount = phone.replace(/\D/gu, "").length;
@@ -507,6 +565,7 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
   const environment = getEnvironment();
   const resendApiKey = environment?.RESEND_API_KEY?.trim();
   const senderEmail = environment?.QUOTE_FROM_EMAIL?.trim();
+  const recipientEmail = getQuoteRecipientEmail(environment);
 
   if (!resendApiKey || !senderEmail || !isExpectedSender(senderEmail)) {
     logQuote("error", "[quote] email configuration unavailable", {
@@ -524,6 +583,8 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
   logQuote("info", "[quote] email delivery attempted", {
     language: quote.language,
     productCount: quote.productNames.length,
+    hasProductDetails: Boolean(quote.productDetails),
+    hasAttachment: Boolean(quote.attachment),
   });
 
   const fetchFunction = (globalThis as { fetch?: FetchFunction }).fetch;
@@ -545,6 +606,12 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
     "Interested Products:",
     ...quote.productNames.map((productName) => "- " + productName),
     "",
+    "Product Details:",
+    quote.productDetails ?? "Not provided",
+    "",
+    "Attached File:",
+    quote.attachment ? quote.attachment.filename : "Not provided",
+    "",
     "Submitted From: Arzana Website",
     "Submission Language: " + languageLabel,
     "Submission Date: " + submittedAt,
@@ -558,6 +625,9 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
     "<p><strong>Phone:</strong> " + escapeHtml(quote.phone) + "</p>",
     "<p><strong>Interested Products:</strong></p>",
     "<ul>" + quote.productNames.map((productName) => "<li>" + escapeHtml(productName) + "</li>").join("") + "</ul>",
+    "<p><strong>Product Details:</strong></p>",
+    "<p style=\"white-space:pre-wrap\">" + escapeHtml(quote.productDetails ?? "Not provided") + "</p>",
+    "<p><strong>Attached File:</strong> " + escapeHtml(quote.attachment?.filename ?? "Not provided") + "</p>",
     "<hr>",
     "<p><strong>Submitted From:</strong> Arzana Website</p>",
     "<p><strong>Submission Language:</strong> " + languageLabel + "</p>",
@@ -573,11 +643,22 @@ async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult>
       },
       body: JSON.stringify({
         from: senderEmail,
-        to: [QUOTE_RECIPIENT_EMAIL],
+        to: [recipientEmail],
         reply_to: quote.email,
         subject: "New Quote Request - " + quote.fullName + " - " + quote.companyName,
         html,
         text,
+        ...(quote.attachment
+          ? {
+              attachments: [
+                {
+                  filename: quote.attachment.filename,
+                  content: quote.attachment.content,
+                  content_type: quote.attachment.contentType,
+                },
+              ],
+            }
+          : {}),
       }),
     });
 
@@ -655,6 +736,13 @@ async function readProviderId(response: FetchResponse): Promise<string | null> {
 
 function getEnvironment(): Record<string, string | undefined> | undefined {
   return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+}
+
+function getQuoteRecipientEmail(environment: Record<string, string | undefined> | undefined): string {
+  const configuredRecipient = environment?.QUOTE_TO_EMAIL?.trim();
+  return configuredRecipient && EMAIL_PATTERN.test(configuredRecipient)
+    ? configuredRecipient
+    : DEFAULT_QUOTE_RECIPIENT_EMAIL;
 }
 
 function isExpectedSender(value: string): boolean {
