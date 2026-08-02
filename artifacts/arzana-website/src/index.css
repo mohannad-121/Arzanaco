@@ -196,6 +196,20 @@
   .coverflow__arrow:hover { background: #ae263c; transform: translateY(-1px); }
   .coverflow__arrow:focus-visible { outline: 3px solid #e4aab6; outline-offset: 2px; }
   .coverflow__caption { min-width: 0; text-align: center; font-size: .9rem; font-weight: 600; line-height: 1.4; color: rgba(255,255,255,.78); }
+  .arzana-ai-input { position: relative; display: flex; align-items: center; overflow: hidden; border: 1px solid rgba(111,16,45,.28); border-radius: .85rem; background: #fffdfb; padding: .35rem; box-shadow: 0 3px 10px rgba(39,40,42,.06); transition: border-color .3s ease, box-shadow .3s ease, transform .3s ease; }
+  .arzana-ai-input:hover, .arzana-ai-input:focus-within { border-color: #991b3f; box-shadow: 0 7px 18px rgba(111,16,45,.14); transform: translateY(-1px); }
+  .arzana-ai-input__underline { position: absolute; z-index: 1; inset-inline-start: 0; bottom: 0; width: 0; height: 2px; background: #991b3f; transition: width .36s cubic-bezier(.25,.8,.25,1); }
+  .arzana-ai-input:focus-within .arzana-ai-input__underline { width: 100%; }
+  .arzana-ai-input__ripple { position: absolute; z-index: 0; top: 50%; inset-inline-start: 50%; width: 2rem; height: 2rem; border-radius: 999px; background: rgba(217,165,181,.35); opacity: 0; transform: translate(-50%,-50%) scale(.2); transition: opacity .3s ease, transform .4s ease; }
+  .arzana-ai-input:focus-within .arzana-ai-input__ripple { opacity: 1; transform: translate(-50%,-50%) scale(5); }
+  .arzana-ai-input__fade { position: absolute; inset: 0; z-index: 0; background: linear-gradient(90deg,rgba(247,233,238,.8),rgba(255,253,251,0)); opacity: 0; transition: opacity .3s ease; }
+  .arzana-ai-input:focus-within .arzana-ai-input__fade { opacity: 1; }
+  .arzana-ai-input__dots { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+  .arzana-ai-input__dots span { position: absolute; width: 3px; height: 3px; border-radius: 999px; background: #991b3f; opacity: 0; }
+  .arzana-ai-input__dots span:nth-child(1) { left: 16%; top: 30%; } .arzana-ai-input__dots span:nth-child(2) { left: 30%; bottom: 24%; } .arzana-ai-input__dots span:nth-child(3) { right: 23%; top: 28%; } .arzana-ai-input__dots span:nth-child(4) { right: 12%; bottom: 30%; }
+  .arzana-ai-input:focus-within .arzana-ai-input__dots span { animation: arzana-ai-dot .5s ease-out both; }
+  .arzana-ai-input:focus-within .arzana-ai-input__dots span:nth-child(2) { animation-delay: .05s; } .arzana-ai-input:focus-within .arzana-ai-input__dots span:nth-child(3) { animation-delay: .1s; } .arzana-ai-input:focus-within .arzana-ai-input__dots span:nth-child(4) { animation-delay: .15s; }
+  @keyframes arzana-ai-dot { 0% { opacity: 0; transform: translateY(0) scale(.6); } 45% { opacity: .75; } 100% { opacity: 0; transform: translateY(-.6rem) scale(1); } }
   .arzana-checkbox-option {
     --checkbox-primary: #a8163f;
     --checkbox-primary-dark: #78112f;

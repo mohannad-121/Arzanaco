@@ -5,6 +5,7 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { CatalogProvider } from './contexts/CatalogContext';
 import { ScrollToTop } from './components/layout/ScrollToTop';
+import { AssistantProvider } from './components/ArzanaAssistant';
 
 // Pages
 import Home from './pages/home';
@@ -58,8 +59,10 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <AssistantProvider>
               <ScrollToTop />
               <Router />
+              </AssistantProvider>
             </WouterRouter>
             <Toaster />
           </TooltipProvider>
