@@ -107,7 +107,7 @@ export default function Home() {
             transition={{ duration: reduced ? 0 : 0.45, ease }}
             className="max-w-3xl"
           >
-            <h1 className="hero-title-light max-w-3xl text-[clamp(2.6rem,5.7vw,5.65rem)] font-bold leading-[.93] tracking-[-.06em]">
+            <h1 className="hero-title-light max-w-3xl text-[clamp(2.35rem,4.8vw,4.75rem)] font-bold leading-[.96] tracking-[-.055em]">
               {t("hero.title")}
             </h1>
             <p className="mt-8 max-w-2xl text-base leading-8 text-white/90 md:text-xl md:leading-9">
