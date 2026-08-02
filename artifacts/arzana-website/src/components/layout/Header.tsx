@@ -6,7 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useCatalog } from '../../contexts/CatalogContext';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
-import headerLogo from '@photos/arzana-arabia-logo.png';
+import headerLogo from '@photos/arzana-arabia-logo-transparent.png';
 
 const navItems = [
   { href: '/', label: 'nav.home' }, { href: '/about', label: 'nav.about' },
@@ -44,7 +44,7 @@ export const Header = () => {
   return <header className={cn('fixed inset-x-0 top-0 z-50 h-[76px] transition-[background-color,border-color,box-shadow] duration-300 md:h-[84px]', isFloating ? 'border-b border-white/10 bg-gradient-to-b from-black/30 to-transparent' : 'border-b border-[#d5d1c9] bg-[#f7f4ef]/95 text-foreground shadow-[0_7px_26px_rgba(31,32,34,.09)] backdrop-blur-md')}>
     <a href="#main-content" className="sr-only z-[60] bg-primary px-4 py-3 text-white focus:not-sr-only focus:absolute focus:start-4 focus:top-4">Skip to content</a>
     <div className="site-container flex h-full items-center justify-between gap-4">
-      <Link href="/" className="flex h-14 w-40 shrink-0 items-center sm:h-16 sm:w-44" aria-label="Arzana Arabia home"><img src={headerLogo} alt="Arzana Arabia" className="h-full w-full object-contain mix-blend-multiply" /></Link>
+      <Link href="/" className="flex h-12 w-32 shrink-0 items-center sm:h-14 sm:w-36" aria-label="Arzana Arabia home"><img src={headerLogo} alt="Arzana Arabia" className="h-full w-full object-contain drop-shadow-[0_1px_4px_rgba(0,0,0,.35)]" /></Link>
       <nav className="hidden items-center gap-0.5 xl:flex" aria-label="Primary navigation">
         {navItems.slice(0, 2).map((item) => <Link key={item.href} href={item.href} className={navClass(item.href)}>{t(item.label)}</Link>)}
         <div className="group relative"><Link href="/products" className={cn(navClass('/products'), location.startsWith('/products') && (isFloating ? 'text-white' : 'text-primary'))}>{t('nav.products')}<ChevronDown className="ms-1 h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180" /></Link>
