@@ -192,7 +192,7 @@ export default function ProductDetail({
                     <Link
                       key={related.id}
                       href={`/products/${category.slug}/${related.slug}`}
-                      className="corner-card group block min-h-56"
+                      className="corner-card corner-card--product group block min-h-56"
                     >
                       <span className="corner-card__corner" aria-hidden="true">
                         <ArrowRight className="h-4 w-4 rtl:rotate-180" />

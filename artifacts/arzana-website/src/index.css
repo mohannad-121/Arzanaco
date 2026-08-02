@@ -212,6 +212,9 @@
   .corner-card--dark { border-color: rgba(255,255,255,.18); background: #292a2c; color: white; }
   .corner-card--dark::before { background: linear-gradient(135deg, #ae263c, #5d1726); }
   .corner-card--media::before { background: linear-gradient(135deg, rgba(124,30,50,.96), rgba(31,32,34,.96)); }
+  .corner-card--product:hover, .corner-card--product:focus-within { color: var(--arzana-graphite); }
+  .corner-card--product:hover::before, .corner-card--product:focus-within::before { transform: scale(.28); }
+  .corner-card--product:hover .corner-card__accent, .corner-card--product:focus-within .corner-card__accent { color: var(--arzana-burgundy); }
   .corner-card:hover .corner-card__muted, .corner-card:focus-within .corner-card__muted { color: rgba(255,255,255,.78); }
   .corner-card:hover .corner-card__accent, .corner-card:focus-within .corner-card__accent { color: #f0c9d0; }
   .coverflow { overflow: hidden; border: 1px solid rgba(255,255,255,.16); background: linear-gradient(145deg, #242527, #343638); padding: clamp(1rem, 3vw, 2rem); color: white; }
