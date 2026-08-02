@@ -1,5 +1,4 @@
 import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
-import { upload } from '@vercel/blob/client';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button } from '../components/ui/button';
 import { ArzanaCheckbox } from '../components/ArzanaCheckbox';
@@ -15,7 +14,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useCatalog } from '../contexts/CatalogContext';
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
-const MAX_ATTACHMENT_BYTES = 100 * 1024 * 1024;
+const MAX_ATTACHMENT_BYTES = 2.5 * 1024 * 1024;
 const ALLOWED_ATTACHMENT_TYPES = new Set([
   'application/pdf',
   'application/msword',
@@ -46,13 +45,6 @@ type QuoteSuccess = {
   emailStatus: 'sent' | 'failed' | 'configuration_error';
 };
 
-type UploadedAttachment = {
-  pathname: string;
-  filename: string;
-  contentType: string;
-  size: number;
-};
-
 const initialFormData: QuoteFormData = {
   fullName: '',
   companyName: '',
@@ -68,8 +60,6 @@ export default function RequestQuote() {
   const { categories, products } = useCatalog();
   const [formData, setFormData] = useState<QuoteFormData>(initialFormData);
   const [attachment, setAttachment] = useState<File | null>(null);
-  const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
   const [errors, setErrors] = useState<QuoteErrors>({});
@@ -90,7 +80,7 @@ export default function RequestQuote() {
           productDetails: 'تفاصيل المنتج أو المتطلبات',
           productDetailsPlaceholder: 'أضف أي مواصفات أو كميات أو متطلبات خاصة.',
           attachment: 'إرفاق ملف',
-          attachmentHelp: 'اختياري. PDF أو Word أو Excel أو JPG أو PNG، حتى 100 ميجابايت.',
+          attachmentHelp: 'اختياري. PDF أو Word أو Excel أو JPG أو PNG، حتى 2.5 ميجابايت.',
           removeAttachment: 'إزالة الملف',
           fullNamePlaceholder: 'أدخل الاسم الكامل',
           companyPlaceholder: 'أدخل اسم الشركة',
@@ -110,11 +100,11 @@ export default function RequestQuote() {
           phoneError: 'أدخل رقم هاتف صالحاً.',
           productsError: 'اختر منتجاً واحداً على الأقل من الكتالوج.',
           productDetailsError: 'أدخل تفاصيل لا تتجاوز 4000 حرف.',
-          attachmentError: 'أرفق ملفاً مدعوماً لا يتجاوز 100 ميجابايت.',
+          attachmentError: 'أرفق ملفاً مدعوماً لا يتجاوز 2.5 ميجابايت.',
           genericError: 'تعذر إرسال طلب عرض السعر. بياناتك ما زالت موجودة؛ يرجى المحاولة مرة أخرى.',
           successTitle: 'تم إرسال طلبك عبر البريد الإلكتروني',
           successDescription:
-            'تم إرسال تفاصيل طلبك ورابط تنزيل آمن للمرفق، إن وُجد، مباشرةً إلى أرزانا عبر البريد الإلكتروني.',
+            'تم إرسال تفاصيل طلبك والمرفق، إن وُجد، مباشرةً إلى أرزانا عبر البريد الإلكتروني.',
           preparedProducts: 'المنتجات المجهزة للطلب:',
         }
       : {
@@ -128,7 +118,7 @@ export default function RequestQuote() {
           productDetails: 'Product Details or Requirements',
           productDetailsPlaceholder: 'Add specifications, quantities, or any special requirements.',
           attachment: 'Attach a File',
-          attachmentHelp: 'Optional. PDF, Word, Excel, JPG, or PNG up to 100 MB.',
+          attachmentHelp: 'Optional. PDF, Word, Excel, JPG, or PNG up to 2.5 MB.',
           removeAttachment: 'Remove file',
           fullNamePlaceholder: 'Enter your full name',
           companyPlaceholder: 'Enter your company name',
@@ -148,12 +138,12 @@ export default function RequestQuote() {
           phoneError: 'Enter a valid phone number.',
           productsError: 'Select at least one catalog product.',
           productDetailsError: 'Enter details of no more than 4,000 characters.',
-          attachmentError: 'Attach a supported file no larger than 100 MB.',
+          attachmentError: 'Attach a supported file no larger than 2.5 MB.',
           genericError:
             'We could not submit your quote request. Your details are still here—please try again.',
           successTitle: 'Your quote request was emailed to Arzana',
           successDescription:
-            'Your request details and a secure download link for any attached file were sent directly to Arzana by email.',
+            'Your request details and any attached file were sent directly to Arzana by email.',
           preparedProducts: 'Products included in the request:',
         };
 
@@ -220,10 +210,7 @@ export default function RequestQuote() {
     setIsSubmitting(true);
 
     try {
-      const attachmentForEmail = attachment
-        ? uploadedAttachment ?? await uploadQuoteAttachment(attachment, setUploadProgress)
-        : null;
-      if (attachmentForEmail && !uploadedAttachment) setUploadedAttachment(attachmentForEmail);
+      const encodedAttachment = attachment ? await encodeAttachment(attachment) : null;
       const response = await fetch('/api/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -234,7 +221,7 @@ export default function RequestQuote() {
           phone: normalizeInternationalPhone(formData.phone, selectedCountry),
           productIds: formData.productIds,
           productDetails: formData.productDetails.trim(),
-          attachment: attachmentForEmail,
+          attachment: encodedAttachment,
           language,
           website: formData.website,
         }),
@@ -269,7 +256,6 @@ export default function RequestQuote() {
       setSubmissionError(quoteErrorCopy.network);
     } finally {
       setIsSubmitting(false);
-      setUploadProgress(null);
     }
   };
 
@@ -292,7 +278,6 @@ export default function RequestQuote() {
     }
 
     setAttachment(nextAttachment);
-    setUploadedAttachment(null);
     setErrors((current) => ({ ...current, attachment: undefined }));
     setSubmissionError(null);
     setSuccess(null);
@@ -313,8 +298,6 @@ export default function RequestQuote() {
   const resetForm = () => {
     setFormData(initialFormData);
     setAttachment(null);
-    setUploadedAttachment(null);
-    setUploadProgress(null);
     if (attachmentInputRef.current) attachmentInputRef.current.value = '';
     setSelectedCountry(DEFAULT_PHONE_COUNTRY);
     setErrors({});
@@ -485,21 +468,12 @@ export default function RequestQuote() {
                       className="shrink-0 font-medium text-primary hover:underline"
                       onClick={() => {
                         setAttachment(null);
-                        setUploadedAttachment(null);
                         if (attachmentInputRef.current) attachmentInputRef.current.value = '';
                       }}
                       disabled={isSubmitting}
                     >
                       {copy.removeAttachment}
                     </button>
-                  </div>
-                )}
-                {uploadProgress !== null && (
-                  <div aria-live="polite" className="space-y-1">
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-primary transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Uploading file: {uploadProgress}%</p>
                   </div>
                 )}
                 {errors.attachment && (
@@ -733,23 +707,24 @@ function getApiValidationErrors(
   };
 }
 
-async function uploadQuoteAttachment(
-  file: File,
-  setProgress: (progress: number) => void,
-): Promise<UploadedAttachment> {
-  const safeFilename = file.name.replace(/[^A-Za-z0-9._-]/g, '-').replace(/-+/g, '-');
-  const blob = await upload(`quote-attachments/${crypto.randomUUID()}-${safeFilename || 'attachment'}`, file, {
-    access: 'private',
-    contentType: file.type,
-    handleUploadUrl: '/api/quote-upload',
-    multipart: file.size > 4.5 * 1024 * 1024,
-    onUploadProgress: ({ percentage }) => setProgress(Math.round(percentage)),
-  });
+function encodeAttachment(file: File): Promise<{ filename: string; content: string; contentType: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Unable to read the selected file.'));
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      const separatorIndex = result.indexOf(',');
+      if (separatorIndex === -1) {
+        reject(new Error('Unable to encode the selected file.'));
+        return;
+      }
 
-  return {
-    pathname: blob.pathname,
-    filename: file.name,
-    contentType: file.type,
-    size: file.size,
-  };
+      resolve({
+        filename: file.name,
+        content: result.slice(separatorIndex + 1),
+        contentType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+  });
 }

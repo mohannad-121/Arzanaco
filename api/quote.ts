@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { createHmac } from "node:crypto";
 
 const DEFAULT_QUOTE_RECIPIENT_EMAIL = "m.saadi@arzanaco.com";
 const QUOTE_SENDER_ADDRESS = "quotes@mail.arzanaco.com";
@@ -10,12 +9,13 @@ const MAX_FIELD_LENGTH = 160;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_PHONE_LENGTH = 32;
 const MAX_PRODUCT_DETAILS_LENGTH = 4000;
-const MAX_ATTACHMENT_BYTES = 100 * 1024 * 1024;
+const MAX_ATTACHMENT_BYTES = 2.5 * 1024 * 1024;
 const MAX_ATTACHMENT_FILENAME_LENGTH = 120;
 const MAX_PROVIDER_ID_LENGTH = 160;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const PHONE_ALLOWED_PATTERN = /^[0-9+().\-\s]+$/u;
 const PROVIDER_ID_PATTERN = /^[A-Za-z0-9_-]+$/u;
+const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
 const ALLOWED_ATTACHMENT_TYPES = new Set([
   "application/pdf",
   "application/msword",
@@ -44,10 +44,9 @@ type QuoteRequest = {
 };
 
 type QuoteAttachment = {
-  pathname: string;
   filename: string;
+  content: string;
   contentType: string;
-  size: number;
 };
 
 type QuoteValidation = { quote: QuoteRequest } | { errors: Record<string, string> };
@@ -263,7 +262,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const emailDelivery = await sendQuoteEmail(validation.quote, req);
+  const emailDelivery = await sendQuoteEmail(validation.quote);
   if (emailDelivery.emailStatus !== "sent") {
     sendJson(res, 502, {
       success: false,
@@ -501,23 +500,24 @@ function readAttachment(value: unknown): QuoteAttachment | null | "invalid" {
   if (value === undefined || value === null) return null;
   if (!isRecord(value)) return "invalid";
 
-  const pathname = typeof value.pathname === "string" ? value.pathname.trim() : "";
   const filename = cleanAttachmentFilename(value.filename);
+  const content = typeof value.content === "string" ? value.content.trim() : "";
   const contentType = typeof value.contentType === "string" ? value.contentType.trim().toLowerCase() : "";
-  const size = typeof value.size === "number" && Number.isSafeInteger(value.size) ? value.size : 0;
+  const estimatedBytes = Math.floor((content.length * 3) / 4) - (content.endsWith("==") ? 2 : content.endsWith("=") ? 1 : 0);
 
   if (
-    !pathname.startsWith("quote-attachments/") ||
-    pathname.length > 240 ||
     !filename ||
-    size <= 0 ||
-    size > MAX_ATTACHMENT_BYTES ||
+    !content ||
+    content.length % 4 !== 0 ||
+    !BASE64_PATTERN.test(content) ||
+    estimatedBytes <= 0 ||
+    estimatedBytes > MAX_ATTACHMENT_BYTES ||
     !ALLOWED_ATTACHMENT_TYPES.has(contentType)
   ) {
     return "invalid";
   }
 
-  return { pathname, filename, contentType, size };
+  return { filename, content, contentType };
 }
 
 function cleanAttachmentFilename(value: unknown): string | null {
@@ -561,7 +561,7 @@ function isWithinRateLimit(ip: string): boolean {
   return true;
 }
 
-async function sendQuoteEmail(quote: QuoteRequest, req: VercelRequest): Promise<EmailDeliveryResult> {
+async function sendQuoteEmail(quote: QuoteRequest): Promise<EmailDeliveryResult> {
   const environment = getEnvironment();
   const resendApiKey = environment?.RESEND_API_KEY?.trim();
   const senderEmail = environment?.QUOTE_FROM_EMAIL?.trim();
@@ -595,7 +595,6 @@ async function sendQuoteEmail(quote: QuoteRequest, req: VercelRequest): Promise<
 
   const submittedAt = new Date().toISOString();
   const languageLabel = quote.language === "ar" ? "Arabic" : "English";
-  const attachmentDownloadUrl = quote.attachment ? buildAttachmentDownloadUrl(quote.attachment) : null;
   const text = [
     "New Quote Request - Arzana Co",
     "",
@@ -611,9 +610,7 @@ async function sendQuoteEmail(quote: QuoteRequest, req: VercelRequest): Promise<
     quote.productDetails ?? "Not provided",
     "",
     "Attached File:",
-    quote.attachment
-      ? quote.attachment.filename + (attachmentDownloadUrl ? "\nDownload: " + attachmentDownloadUrl : "")
-      : "Not provided",
+    quote.attachment ? quote.attachment.filename : "Not provided",
     "",
     "Submitted From: Arzana Website",
     "Submission Language: " + languageLabel,
@@ -630,12 +627,7 @@ async function sendQuoteEmail(quote: QuoteRequest, req: VercelRequest): Promise<
     "<ul>" + quote.productNames.map((productName) => "<li>" + escapeHtml(productName) + "</li>").join("") + "</ul>",
     "<p><strong>Product Details:</strong></p>",
     "<p style=\"white-space:pre-wrap\">" + escapeHtml(quote.productDetails ?? "Not provided") + "</p>",
-    quote.attachment
-      ? "<p><strong>Attached File:</strong> " + escapeHtml(quote.attachment.filename) + "</p>" +
-        (attachmentDownloadUrl
-          ? "<p><a href=\"" + escapeHtml(attachmentDownloadUrl) + "\">Download attached file</a></p>"
-          : "<p>The uploaded file is stored securely with this request.</p>")
-      : "<p><strong>Attached File:</strong> Not provided</p>",
+    "<p><strong>Attached File:</strong> " + escapeHtml(quote.attachment?.filename ?? "Not provided") + "</p>",
     "<hr>",
     "<p><strong>Submitted From:</strong> Arzana Website</p>",
     "<p><strong>Submission Language:</strong> " + languageLabel + "</p>",
@@ -656,6 +648,17 @@ async function sendQuoteEmail(quote: QuoteRequest, req: VercelRequest): Promise<
         subject: "New Quote Request - " + quote.fullName + " - " + quote.companyName,
         html,
         text,
+        ...(quote.attachment
+          ? {
+              attachments: [
+                {
+                  filename: quote.attachment.filename,
+                  content: quote.attachment.content,
+                  content_type: quote.attachment.contentType,
+                },
+              ],
+            }
+          : {}),
       }),
     });
 
@@ -740,26 +743,6 @@ function getQuoteRecipientEmail(environment: Record<string, string | undefined> 
   return configuredRecipient && EMAIL_PATTERN.test(configuredRecipient)
     ? configuredRecipient
     : DEFAULT_QUOTE_RECIPIENT_EMAIL;
-}
-
-function buildAttachmentDownloadUrl(attachment: QuoteAttachment): string | null {
-  const environment = getEnvironment();
-  const signingSecret = environment?.QUOTE_ATTACHMENT_LINK_SECRET?.trim() || environment?.BLOB_READ_WRITE_TOKEN?.trim();
-  if (!signingSecret) return null;
-
-  const configuredSiteUrl = environment?.SITE_URL?.trim() || "https://arzanaco.com";
-  let origin: string;
-  try {
-    origin = new URL(configuredSiteUrl).origin;
-  } catch {
-    return null;
-  }
-
-  const signature = createHmac("sha256", signingSecret)
-    .update(attachment.pathname + "\n" + attachment.filename)
-    .digest("hex");
-  const params = new URLSearchParams({ pathname: attachment.pathname, filename: attachment.filename, signature });
-  return origin + "/api/quote-attachment?" + params.toString();
 }
 
 function isExpectedSender(value: string): boolean {

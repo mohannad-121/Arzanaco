@@ -10,8 +10,7 @@
   },
   "private": true,
   "dependencies": {
-    "@supabase/supabase-js": "2.110.7",
-    "@vercel/blob": "^2.6.1"
+    "@supabase/supabase-js": "2.110.7"
   },
   "devDependencies": {
     "prettier": "^3.9.5",
