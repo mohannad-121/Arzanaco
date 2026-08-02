@@ -110,7 +110,7 @@ export default function Home() {
             <p className="eyebrow mb-7 !text-white/85">
               Saudi Electrical Engineering
             </p>
-            <h1 className="max-w-3xl text-[clamp(3rem,7vw,6.8rem)] font-bold leading-[.93] tracking-[-.06em] text-white">
+            <h1 className="hero-title-light max-w-3xl text-[clamp(2.85rem,6.35vw,6.25rem)] font-bold leading-[.93] tracking-[-.06em]">
               {t("hero.title")}
             </h1>
             <p className="mt-8 max-w-2xl text-base leading-8 text-white/90 md:text-xl md:leading-9">

@@ -156,6 +156,15 @@
   .eyebrow { color: var(--arzana-burgundy); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
   .section-title { max-width: 46rem; font-size: clamp(2rem, 4vw, 3.6rem); font-weight: 700; line-height: 1.08; letter-spacing: -.045em; color: var(--arzana-graphite); }
   .section-copy { max-width: 42rem; color: hsl(var(--muted-foreground)); font-size: 1.05rem; line-height: 1.8; }
+  .hero-title-light {
+    background: linear-gradient(100deg, #fff 0%, #fff 39%, #9f183d 47%, #e7b6c3 50%, #9f183d 53%, #fff 61%, #fff 100%);
+    background-clip: text;
+    background-size: 240% 100%;
+    color: transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: hero-title-light 6s ease-in-out infinite;
+  }
   .page-hero { position: relative; overflow: hidden; isolation: isolate; background: var(--arzana-graphite); color: white; }
   .page-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgba(20, 21, 22, .95) 0%, rgba(31, 32, 34, .78) 45%, rgba(31, 32, 34, .3) 100%); }
   [dir="rtl"] .page-hero::after { background: linear-gradient(260deg, rgba(20, 21, 22, .95) 0%, rgba(31, 32, 34, .78) 45%, rgba(31, 32, 34, .3) 100%); }
@@ -169,6 +178,8 @@
   .client-marquee__logo { max-height: 3.5rem; max-width: 100%; object-fit: contain; opacity: .92; }
   .client-marquee__logo--large { max-height: 4.5rem; }
   @keyframes client-marquee { to { transform: translateX(-50%); } }
+  @keyframes hero-title-light { from { background-position: 200% center; } to { background-position: -40% center; } }
+  @media (prefers-reduced-motion: reduce) { .hero-title-light { animation: none; background-position: 50% center; } }
   .corner-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid rgba(39, 40, 42, .14); background: #f6f3ee; color: var(--arzana-graphite); box-shadow: 0 14px 32px rgba(39, 40, 42, .08); transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s cubic-bezier(.22,1,.36,1), color .34s ease; }
   .corner-card::before { content: ''; position: absolute; z-index: -1; top: -3.4rem; right: -3.4rem; width: 7rem; aspect-ratio: 1; border-radius: 999px; background: linear-gradient(135deg, #7c1e32, #292a2c); transform: scale(.28); transform-origin: center; transition: transform .4s cubic-bezier(.22,1,.36,1); }
   [dir="rtl"] .corner-card::before { right: auto; left: -3.4rem; }
