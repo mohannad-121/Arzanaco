@@ -35,6 +35,8 @@ interface CatalogSnapshot {
   updatedAt: string | null;
 }
 
+const REQUIRED_FALLBACK_PRODUCT_IDS = new Set(['p43']);
+
 interface CatalogContextValue extends CatalogState {
   isLoading: boolean;
   catalogError: string | null;
@@ -56,6 +58,25 @@ function createInitialCatalog(): CatalogState {
     })),
     categories: defaultCategories.map((category) => ({ ...category })),
   };
+}
+
+/**
+ * The live catalog is administrator-managed, but this approved product must
+ * remain accessible while an older catalog_state row is being migrated.
+ */
+function includeRequiredFallbackProducts(catalog: CatalogState): CatalogState {
+  const requiredProducts = createInitialCatalog().products.filter((product) =>
+    REQUIRED_FALLBACK_PRODUCT_IDS.has(product.id),
+  );
+  const missingProducts = requiredProducts.filter(
+    (fallback) => !catalog.products.some(
+      (product) => product.id === fallback.id || product.slug === fallback.slug,
+    ),
+  );
+
+  return missingProducts.length > 0
+    ? { ...catalog, products: [...catalog.products, ...missingProducts] }
+    : catalog;
 }
 
 const CatalogContext = createContext<CatalogContextValue | null>(null);
@@ -146,7 +167,9 @@ async function fetchRemoteCatalog(): Promise<CatalogSnapshot | null> {
   }
 
   const catalog = normalizeCatalog(data?.data);
-  return catalog ? { catalog, updatedAt: typeof data?.updated_at === 'string' ? data.updated_at : null } : null;
+  return catalog
+    ? { catalog: includeRequiredFallbackProducts(catalog), updatedAt: typeof data?.updated_at === 'string' ? data.updated_at : null }
+    : null;
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
@@ -156,7 +179,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
   const acceptRemoteCatalog = useCallback((snapshot: CatalogSnapshot) => {
-    setCatalog(snapshot.catalog);
+    setCatalog(includeRequiredFallbackProducts(snapshot.catalog));
     setCatalogUpdatedAt(snapshot.updatedAt);
     setCatalogError(null);
   }, []);

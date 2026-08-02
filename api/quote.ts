@@ -112,6 +112,7 @@ type EmailDeliveryResult = {
 };
 
 let catalogModulePromise: Promise<CatalogModule> | undefined;
+const REQUIRED_FALLBACK_PRODUCT_IDS = new Set(["p43"]);
 
 /**
  * The approved catalog package is ESM. Keep this as a native runtime import so
@@ -157,7 +158,10 @@ async function getCurrentCatalogProductFinder(
         .maybeSingle();
       if (!error && isLiveCatalog(data?.data)) {
         const productById = new Map(data.data.products.map((product) => [product.id, product]));
-        return (productId) => productById.get(productId);
+        const findBundledProduct = await getCatalogProductFinder();
+        return (productId) =>
+          productById.get(productId) ??
+          (REQUIRED_FALLBACK_PRODUCT_IDS.has(productId) ? findBundledProduct(productId) : undefined);
       }
       if (error) logQuote("warn", "[quote] live catalog unavailable", { reason: error.code ?? "unknown" });
     } catch {
