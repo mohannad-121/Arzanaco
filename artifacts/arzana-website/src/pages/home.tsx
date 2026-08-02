@@ -107,10 +107,7 @@ export default function Home() {
             transition={{ duration: reduced ? 0 : 0.45, ease }}
             className="max-w-3xl"
           >
-            <p className="eyebrow mb-7 !text-white/85">
-              Saudi Electrical Engineering
-            </p>
-            <h1 className="hero-title-light max-w-3xl text-[clamp(2.85rem,6.35vw,6.25rem)] font-bold leading-[.93] tracking-[-.06em]">
+            <h1 className="hero-title-light max-w-3xl text-[clamp(2.6rem,5.7vw,5.65rem)] font-bold leading-[.93] tracking-[-.06em]">
               {t("hero.title")}
             </h1>
             <p className="mt-8 max-w-2xl text-base leading-8 text-white/90 md:text-xl md:leading-9">
@@ -126,9 +123,6 @@ export default function Home() {
             </div>
           </motion.div>
           <div className="mt-14 flex items-end justify-between pt-4">
-            <p className="hidden text-[.68rem] font-semibold tracking-[.15em] text-white/75 md:block">
-              ARZANA ARABIA COMPANY LTD.
-            </p>
             <a
               href="#business-areas"
               className="ms-auto flex min-h-11 items-center gap-3 text-[.68rem] font-bold uppercase tracking-[.13em] text-white/80 hover:text-white"
@@ -264,11 +258,11 @@ export default function Home() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#241519] via-[#241519]/45 to-transparent" />
             <div className="corner-card__content absolute inset-x-0 bottom-0 p-8">
-              <p className="eyebrow !text-white/70">Systems protection</p>
-              <h2 className="mt-4 text-4xl font-bold tracking-[-.04em]">
+              <p className="eyebrow !text-white">Systems protection</p>
+              <h2 className="mt-4 text-4xl font-bold tracking-[-.04em] !text-white">
                 {t("safety.title")}
               </h2>
-              <p className="mt-3 max-w-md text-white/80">
+              <p className="mt-3 max-w-md !text-white">
                 {t("safety.subtitle")}
               </p>
             </div>
@@ -284,11 +278,11 @@ export default function Home() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#241519] via-[#241519]/45 to-transparent" />
             <div className="corner-card__content absolute inset-x-0 bottom-0 p-8">
-              <p className="eyebrow !text-white/70">Field assurance</p>
-              <h2 className="mt-4 text-4xl font-bold tracking-[-.04em]">
+              <p className="eyebrow !text-white">Field assurance</p>
+              <h2 className="mt-4 text-4xl font-bold tracking-[-.04em] !text-white">
                 {t("testing.title")}
               </h2>
-              <p className="mt-3 max-w-md text-white/80">
+              <p className="mt-3 max-w-md !text-white">
                 {t("testing.subtitle")}
               </p>
             </div>
@@ -299,10 +293,7 @@ export default function Home() {
         <section className="bg-[#eee9e1] py-20 md:py-24">
           <div className="site-container">
             <div className="mb-10 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
-              <div>
-                <p className="eyebrow mb-4">{t("clients.title")}</p>
-                <h2 className="section-title">{t("clients.subtitle")}</h2>
-              </div>
+              <p className="eyebrow mb-4">{t("clients.title")}</p>
               <Link
                 href="/clients"
                 className="inline-flex items-center text-sm font-bold text-primary hover:underline"
