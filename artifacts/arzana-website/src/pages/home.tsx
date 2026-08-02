@@ -117,14 +117,11 @@ export default function Home() {
               {t("hero.subtitle")}
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Button
+              <RequestQuoteButton
                 size="lg"
-                className="min-h-14 px-7"
-                onClick={() => setLocation("/products")}
-              >
-                {t("hero.cta.primary")}
-                <ArrowRight className="ms-2" />
-              </Button>
+                href="/products"
+                label={t("hero.cta.primary")}
+              />
               <RequestQuoteButton size="lg" />
             </div>
           </motion.div>
