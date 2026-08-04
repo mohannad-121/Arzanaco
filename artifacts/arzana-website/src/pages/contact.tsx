@@ -58,9 +58,8 @@ export default function Contact() {
           {contactPeople.map((contact) => (
             <article
               key={contact.email}
-              className="corner-card min-h-72 bg-[#f6f3ee] p-7 md:p-8"
+              className="contact-card min-h-72 p-7 md:p-8"
             >
-              <span className="corner-card__corner" aria-hidden="true" />
               <div className="corner-card__content">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <a
