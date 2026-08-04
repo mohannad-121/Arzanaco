@@ -219,15 +219,7 @@
   .corner-card:hover .corner-card__accent, .corner-card:focus-within .corner-card__accent { color: #f0c9d0; }
   .contact-card { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.25rem; background: #171717; color: #fff; box-shadow: 0 14px 32px rgba(23, 23, 23, .18); }
   .contact-card::before { position: absolute; z-index: -2; top: -15%; left: calc(50% - 3.125rem); width: 6.25rem; height: 130%; background: linear-gradient(180deg, #8f1f35, #171717); content: ''; animation: contact-card-rotate 3s linear infinite; }
-  .contact-card::after { position: absolute; z-index: -1; inset: .3125rem; border-radius: .9375rem; background: #171717; content: ''; }
-  .contact-card .corner-card__content { color: #fff; }
-  .contact-card a { border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .06); }
-  .contact-card a:hover { border-color: #8f1f35; background: rgba(143, 31, 53, .18); }
-  .contact-card a:focus-visible { outline-color: #d9a3b0; }
-  .contact-card .border-t { border-color: rgba(255, 255, 255, .16); }
-  .contact-card .text-foreground { color: #fff; }
-  .contact-card [class~="text-foreground/75"] { color: rgba(255, 255, 255, .78); }
-  .contact-card .text-primary { color: #e5a5b4; }
+  .contact-card::after { position: absolute; z-index: -1; inset: .3125rem; border-radius: .9375rem; background: #f6f3ee; content: ''; }
   @keyframes contact-card-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .coverflow { overflow: hidden; border: 1px solid rgba(255,255,255,.16); background: linear-gradient(145deg, #242527, #343638); padding: clamp(1rem, 3vw, 2rem); color: white; }
   .coverflow__viewport { position: relative; height: clamp(15rem, 40vw, 29rem); overflow: hidden; isolation: isolate; }
