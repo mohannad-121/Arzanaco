@@ -68,16 +68,16 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
       onMouseLeave={normalizeSpeed}
     >
       <div className="absolute inset-0 bg-[linear-gradient(rgba(124,131,134,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(124,131,134,.11)_1px,transparent_1px)] bg-[size:28px_28px] opacity-45" />
-      <div className="absolute left-1/2 top-1/2 z-10 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border border-[#8f1f35]/25 bg-[#292a2c] p-4 text-center text-white shadow-[0_12px_28px_rgba(39,40,42,.25)] md:h-52 md:w-52 md:gap-4 md:p-6">
+      <div className="absolute left-1/2 top-1/2 z-10 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border border-[#8f1f35]/25 bg-[#292a2c] text-center text-white shadow-[0_12px_28px_rgba(39,40,42,.25)] md:h-52 md:w-52">
         {activeClient ? (
           <>
             <img
               src={activeClient.logoPath}
               alt=""
               draggable={false}
-              className={`h-12 w-20 object-contain md:h-16 md:w-28 ${activeClient.emphasis === 'large' ? 'scale-110' : ''}`}
+              className={`absolute inset-0 h-full w-full bg-white object-contain p-3 transition-transform duration-300 md:p-5 ${activeClient.emphasis === 'large' ? 'scale-110' : ''}`}
             />
-            <p className="max-w-full text-xs font-bold leading-5 tracking-[.06em] md:text-sm md:leading-6">{activeClient.name}</p>
+            <p className="absolute inset-x-2 bottom-2 z-10 rounded-full bg-[#292a2c]/90 px-2 py-1 text-[.62rem] font-bold leading-4 tracking-[.05em] text-white md:inset-x-4 md:bottom-4 md:px-3 md:py-1.5 md:text-xs md:leading-5">{activeClient.name}</p>
           </>
         ) : (
           <p className="text-xs font-bold leading-5 tracking-[.08em]">Our clients</p>
