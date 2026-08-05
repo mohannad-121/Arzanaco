@@ -1,4 +1,3 @@
-import { Link } from 'wouter';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { approvedImages } from '../data/assets';
@@ -55,14 +54,11 @@ export default function About() {
         </div>
       </section>
 
-      <section className="bg-[#292a2c] py-16 text-white md:py-24"><div className="site-container grid max-w-6xl gap-5 lg:grid-cols-2"><article className="corner-card corner-card--dark p-8 md:p-12">
+      <section className="bg-[#292a2c] py-16 text-white md:py-24"><div className="site-container grid max-w-6xl gap-5 lg:grid-cols-2"><article className="border border-white/20 bg-[#292a2c] p-8 md:p-12">
             <p className="eyebrow mb-4 !text-[#deb1bc]">Portfolio</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.portfolioTitle}</h2>
-            <p className="corner-card__muted mt-5 text-lg leading-relaxed text-white/75">{copy.portfolio}</p></article><article className="corner-card corner-card--dark bg-[#8f1f35] p-8 md:p-12">
-            <p className="eyebrow mb-4 !text-white/70">Mission</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.missionTitle}</h2>
-            <p className="corner-card__muted mt-5 text-lg leading-relaxed text-white/85">{copy.mission}</p>
-            <Link href="/products" className="mt-8 inline-flex bg-white px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-[#f0e5e7]">
-              {copy.explore}
-            </Link>
+            <p className="mt-5 text-lg leading-relaxed text-white/75">{copy.portfolio}</p></article><article className="border border-white/20 bg-[#292a2c] p-8 md:p-12">
+            <p className="eyebrow mb-4 !text-[#deb1bc]">Mission</p><h2 className="text-3xl font-bold tracking-[-.04em] text-white">{copy.missionTitle}</h2>
+            <p className="mt-5 text-lg leading-relaxed text-white/75">{copy.mission}</p>
           </article>
         </div>
       </section>

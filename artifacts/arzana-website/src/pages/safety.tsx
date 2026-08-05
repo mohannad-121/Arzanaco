@@ -1,7 +1,6 @@
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { PageWrapper } from "../components/layout/PageWrapper";
-import { Button } from "../components/ui/button";
 import { useLanguage } from "../contexts/LanguageContext";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
 import { useCatalog } from "../contexts/CatalogContext";
@@ -10,7 +9,6 @@ import { approvedImages, getProductMedia } from "../data/assets";
 export default function SafetySystems() {
   const { language } = useLanguage();
   const { categories, products } = useCatalog();
-  const [, setLocation] = useLocation();
   const category = categories.find((item) => item.id === "cat-3");
   const safetyProducts = products.filter(
     (product) => product.categoryId === "cat-3",
@@ -54,12 +52,11 @@ export default function SafetySystems() {
             {copy.introduction}
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Button
+            <RequestQuoteButton
               size="lg"
-              onClick={() => setLocation("/products/safety-fall-protection")}
-            >
-              {copy.viewProducts}
-            </Button>
+              href="/products/safety-fall-protection"
+              label={copy.viewProducts}
+            />
             <RequestQuoteButton size="lg" />
           </div>
         </div>
