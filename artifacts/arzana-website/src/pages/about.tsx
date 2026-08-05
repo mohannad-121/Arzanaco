@@ -1,6 +1,7 @@
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { approvedImages } from '../data/assets';
+import aboutUsVideo from '@videos/aboutus3.mp4';
 
 export default function About() {
   const { language } = useLanguage();
@@ -34,7 +35,11 @@ export default function About() {
 
   return (
     <PageWrapper>
-      <section className="relative isolate overflow-hidden bg-[#292a2c] py-28 text-white md:py-36"><img src={approvedImages.infrastructure} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-35" /><div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(24,25,26,.94),rgba(32,33,35,.68),rgba(32,33,35,.35))]" />
+      <section className="relative isolate overflow-hidden bg-[#292a2c] py-28 text-white md:py-36">
+        <video autoPlay muted loop playsInline aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover brightness-125 contrast-105">
+          <source src={aboutUsVideo} type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(24,25,26,.78),rgba(32,33,35,.50),rgba(32,33,35,.22))]" />
         <div className="site-container max-w-4xl">
           <p className="eyebrow mb-5 !text-white/70">Our company</p><h1 className="max-w-4xl text-4xl font-bold tracking-[-.045em] text-white md:text-6xl">{copy.title}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">{copy.introduction}</p>
