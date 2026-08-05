@@ -54,7 +54,19 @@ function actions(language: Language, keys: string[], catalog?: PublicCatalog): A
 }
 
 function has(text: string, expressions: string[]) { return expressions.some((expression) => text.includes(expression)); }
-function welcome(language: Language) { return language === 'ar' ? 'مرحبًا بك في بوت أرزانا. يمكنني مساعدتك في المنتجات والخدمات وأنظمة السلامة والاختبار والتشغيل والعملاء وطرق التواصل وطلب عرض السعر.' : 'Welcome to Arzana Bot. I can help with products, services, safety systems, testing and commissioning, clients, contact details, and quotation requests.'; }
+function addReplyEmoji(message: string, question: string) {
+  const query = question.toLowerCase();
+  if (has(query, ['whatsapp', 'wa.me', '\u0648\u0627\u062a\u0633\u0627\u0628'])) return `📱 ${message}`;
+  if (has(query, ['map', 'location', 'address', 'where', '\u062e\u0631\u064a\u0637\u0629', '\u0627\u0644\u0645\u0648\u0642\u0639', '\u0627\u0644\u0639\u0646\u0648\u0627\u0646', '\u0623\u064a\u0646'])) return `📍 ${message}`;
+  if (has(query, ['phone', 'call', 'email', 'contact', '\u0647\u0627\u062a\u0641', '\u0627\u062a\u0635\u0627\u0644', '\u0627\u0644\u0628\u0631\u064a\u062f', '\u062a\u0648\u0627\u0635\u0644'])) return `📞 ${message}`;
+  if (has(query, ['quote', 'price', 'pricing', 'request', '\u0639\u0631\u0636 \u0633\u0639\u0631', '\u0633\u0639\u0631', '\u0637\u0644\u0628'])) return `📝 ${message}`;
+  if (has(query, ['safety', 'fall', 'protection', '\u0633\u0644\u0627\u0645\u0629', '\u062d\u0645\u0627\u064a\u0629', '\u0633\u0642\u0648\u0637'])) return `🦺 ${message}`;
+  if (has(query, ['testing', 'commissioning', '\u0627\u062e\u062a\u0628\u0627\u0631', '\u0627\u0644\u062a\u0634\u063a\u064a\u0644'])) return `⚡ ${message}`;
+  if (has(query, ['client', 'customer', '\u0639\u0645\u0644\u0627\u0621'])) return `🤝 ${message}`;
+  if (has(query, ['product', 'products', 'service', 'services', '\u0645\u0646\u062a\u062c', '\u062e\u062f\u0645\u0627\u062a'])) return `📦 ${message}`;
+  return `😊 ${message}`;
+}
+function welcome(language: Language) { return language === 'ar' ? 'مرحبًا بك في ARZANA BOT! يسعدني وجودك هنا. يمكنني مساعدتك في المنتجات والخدمات وأنظمة السلامة والاختبار والتشغيل والعملاء وطرق التواصل وطلب عرض السعر.' : 'Welcome to ARZANA BOT! It’s great to have you here. I can help with products, services, safety systems, testing and commissioning, clients, contact details, and quotation requests. What can I help you with today?'; }
 function productSearch(query: string, language: Language, catalog: PublicCatalog) {
   const terms = query.toLowerCase().split(/\s+/).filter((term) => term.length > 2 && !['what', 'with', 'about', 'show', 'tell', 'please', 'اريد', 'عن', 'من', 'على', 'الى', 'كيف', 'ماهي'].includes(term));
   return catalog.products.map((product) => {
@@ -89,5 +101,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let catalog: PublicCatalog | null; try { catalog = await getLiveCatalog(); } catch { catalog = null; }
   if (!catalog) { json(res, 503, { error: 'BOT_UNAVAILABLE', message: language === 'ar' ? 'بوت أرزانا غير متاح مؤقتاً. يرجى التواصل مع أرزانا عبر واتساب أو البريد الإلكتروني.' : 'Arzana Bot is temporarily unavailable. Please contact Arzana through WhatsApp or email.' }); return; }
   const response = answer(message, language, catalog);
-  json(res, 200, response);
+  json(res, 200, { ...response, message: addReplyEmoji(response.message, message) });
 }

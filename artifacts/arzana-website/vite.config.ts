@@ -39,6 +39,8 @@ export default defineConfig({
       ),
       '@photos': path.resolve(import.meta.dirname, '..', '..', 'photos'),
       '@logos': path.resolve(import.meta.dirname, '..', '..', 'logos'),
+      '@videos': path.resolve(import.meta.dirname, '..', '..', 'videos'),
+      '@pages': path.resolve(import.meta.dirname, '..', '..', 'photosforpages'),
     },
     dedupe: ['react', 'react-dom'],
   },

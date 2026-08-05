@@ -5,6 +5,7 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { CatalogProvider } from './contexts/CatalogContext';
 import { ScrollToTop } from './components/layout/ScrollToTop';
+import { PageTransitionLoader } from './components/layout/PageTransitionLoader';
 import { AssistantProvider } from './components/ArzanaAssistant';
 
 // Pages
@@ -61,6 +62,7 @@ function App() {
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
               <AssistantProvider>
               <ScrollToTop />
+              <PageTransitionLoader />
               <Router />
               </AssistantProvider>
             </WouterRouter>

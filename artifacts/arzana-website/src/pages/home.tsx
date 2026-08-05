@@ -12,8 +12,7 @@ import {
 import { PageWrapper } from "../components/layout/PageWrapper";
 import { useLanguage } from "../contexts/LanguageContext";
 import { Button } from "../components/ui/button";
-import { ClientLogoCarousel } from "../components/ClientLogoCarousel";
-import { ClientLogoMarquee } from "../components/ClientLogoMarquee";
+import { ClientProximityOrbit } from "../components/ClientProximityOrbit";
 import { clients } from "../data/clients";
 import { approvedImages } from "../data/assets";
 import { useCatalog } from "../contexts/CatalogContext";
@@ -226,7 +225,7 @@ export default function Home() {
               <Link
                 key={category.id}
                 href={`/products/${category.slug}`}
-                className="corner-card group block min-h-48 bg-[#f6f3ee] p-7"
+                className="corner-card corner-card--product group block min-h-48 bg-[#f6f3ee] p-7"
               >
                 <span className="corner-card__corner" aria-hidden="true">
                   <ArrowRight className="h-4 w-4 rtl:rotate-180" />
@@ -302,17 +301,7 @@ export default function Home() {
                 <ArrowRight className="ms-2 h-4 w-4" />
               </Link>
             </div>
-            <ClientLogoMarquee />
-            <div className="mt-8 grid gap-8 bg-[#292a2c] p-6 text-white md:grid-cols-[.8fr_1.2fr] md:p-9">
-              <div>
-                <p className="eyebrow !text-[#deb1bc]">Trusted relationships</p>
-                <p className="mt-5 text-lg leading-8 text-white/75">
-                  A focused look at the organisations represented in Arzana’s
-                  approved client portfolio.
-                </p>
-              </div>
-              <ClientLogoCarousel clients={clients} />
-            </div>
+            <ClientProximityOrbit clients={clients} />
           </div>
         </section>
       )}

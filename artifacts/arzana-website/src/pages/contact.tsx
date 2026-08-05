@@ -6,6 +6,7 @@ import whatsappIcon from "@logos/whatsapp.png";
 import phoneIcon from "@logos/telephone-call.png";
 import emailIcon from "@logos/outlook.png";
 import addressImage from "@photos/address.png";
+import contactBackgroundVideo from "@videos/saudicity.mp4";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
 
 const MAP_URL = "https://maps.app.goo.gl/nPuY2zpt2Gx1axCY9";
@@ -53,8 +54,18 @@ export default function Contact() {
           </p>
         </div>
       </section>
-      <section className="bg-[#d8d4cb] py-16 md:py-24">
-        <div className="site-container grid max-w-6xl gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <section className="relative isolate overflow-hidden bg-[#d8d4cb] py-16 md:py-24">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 h-full w-full object-cover"
+        >
+          <source src={contactBackgroundVideo} type="video/mp4" />
+        </video>
+        <div className="site-container relative z-10 grid max-w-6xl gap-5 md:grid-cols-2 lg:grid-cols-3">
           {contactPeople.map((contact) => (
             <article
               key={contact.email}
@@ -156,7 +167,7 @@ export default function Contact() {
             </div>
           </article>
         </div>
-        <div className="site-container mt-10 max-w-6xl">
+        <div className="site-container relative z-10 mt-10 max-w-6xl">
           <div className="border border-[#d9b8c0] border-s-4 border-s-primary bg-[#f7e9ec] p-7 text-foreground shadow-[0_12px_30px_rgba(120,17,47,.08)] md:flex md:items-center md:justify-between md:gap-10 md:p-8">
             <p className="max-w-2xl leading-relaxed text-foreground/80">
               {copy.quoteCopy}

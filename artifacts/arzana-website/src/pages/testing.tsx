@@ -1,11 +1,10 @@
 import { CheckCircle2 } from "lucide-react";
-import { useLocation } from "wouter";
 import { CoverflowCarousel } from "../components/CoverflowCarousel";
 import { PageWrapper } from "../components/layout/PageWrapper";
-import { Button } from "../components/ui/button";
 import { useLanguage } from "../contexts/LanguageContext";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
 import { testingCommissioningMedia } from "../data/assets";
+import testingVideo from "@videos/testing.mp4";
 
 const systemsCovered = [
   "Low voltage switchgear",
@@ -21,7 +20,6 @@ const systemsCovered = [
 
 export default function TestingCommissioning() {
   const { language } = useLanguage();
-  const [, setLocation] = useLocation();
   const copy =
     language === "ar"
       ? {
@@ -45,12 +43,17 @@ export default function TestingCommissioning() {
     <PageWrapper>
       <section className="page-hero py-28 text-background md:py-36">
         <div className="absolute inset-0">
-          <img
-            src={testingCommissioningMedia[0].src}
-            alt={testingCommissioningMedia[0].altEn}
-            className="h-full w-full object-cover opacity-20 mix-blend-overlay"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground to-transparent" />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-hidden="true"
+            className="h-full w-full object-cover brightness-125 contrast-105"
+          >
+            <source src={testingVideo} type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1f2022]/70 via-[#1f2022]/42 to-[#1f2022]/12" />
         </div>
         <div className="site-container relative z-10 max-w-4xl">
           <p className="eyebrow mb-5 !text-white/70">Field assurance</p>
@@ -101,9 +104,7 @@ export default function TestingCommissioning() {
             />
           </section>
           <div className="mt-10 flex flex-wrap gap-4">
-            <Button size="lg" onClick={() => setLocation("/contact")}>
-              {copy.contact}
-            </Button>
+            <RequestQuoteButton size="lg" href="/contact" label={copy.contact} />
             <RequestQuoteButton size="lg" />
           </div>
         </div>
