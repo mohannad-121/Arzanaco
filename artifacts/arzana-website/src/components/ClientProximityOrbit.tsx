@@ -20,7 +20,7 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
   const outerRingClientCount = Math.ceil(clients.length / 2);
   const outerRingClients = clients.slice(0, outerRingClientCount);
   const innerRingClients = clients.slice(outerRingClientCount);
-  const logoSize = Math.max(46, Math.min(72, outerRadius * 0.38));
+  const logoSize = Math.max(54, Math.min(84, outerRadius * 0.39));
 
   useEffect(() => {
     const element = containerRef.current;
@@ -64,20 +64,20 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
     <section
       ref={containerRef}
       aria-label="Client logo orbit"
-      className="relative h-[25rem] overflow-hidden border border-[#b9b8b3] bg-[radial-gradient(circle_at_center,#fffdfa_0%,#eee9e1_53%,#d8d4cb_100%)] shadow-[0_18px_38px_rgba(39,40,42,.12)] md:h-[31rem]"
+      className="relative h-[25rem] overflow-hidden border border-[#b9b8b3] bg-[radial-gradient(circle_at_center,#fffdfa_0%,#eee9e1_53%,#d8d4cb_100%)] shadow-[0_18px_38px_rgba(39,40,42,.12)] md:h-[36rem]"
       onMouseLeave={normalizeSpeed}
     >
       <div className="absolute inset-0 bg-[linear-gradient(rgba(124,131,134,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(124,131,134,.11)_1px,transparent_1px)] bg-[size:28px_28px] opacity-45" />
-      <div className="absolute left-1/2 top-1/2 z-10 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border border-[#8f1f35]/25 bg-[#292a2c] p-4 text-center text-white shadow-[0_12px_28px_rgba(39,40,42,.25)] md:h-48 md:w-48 md:gap-3 md:p-5">
+      <div className="absolute left-1/2 top-1/2 z-10 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border border-[#8f1f35]/25 bg-[#292a2c] p-4 text-center text-white shadow-[0_12px_28px_rgba(39,40,42,.25)] md:h-52 md:w-52 md:gap-4 md:p-6">
         {activeClient ? (
           <>
             <img
               src={activeClient.logoPath}
               alt=""
               draggable={false}
-              className={`h-12 w-20 object-contain ${activeClient.emphasis === 'large' ? 'scale-110' : ''}`}
+              className={`h-12 w-20 object-contain md:h-16 md:w-28 ${activeClient.emphasis === 'large' ? 'scale-110' : ''}`}
             />
-            <p className="text-xs font-bold leading-5 tracking-[.08em]">{activeClient.name}</p>
+            <p className="max-w-full text-xs font-bold leading-5 tracking-[.06em] md:text-sm md:leading-6">{activeClient.name}</p>
           </>
         ) : (
           <p className="text-xs font-bold leading-5 tracking-[.08em]">Our clients</p>
