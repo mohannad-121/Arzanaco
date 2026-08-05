@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Client } from '../data/clients';
 
 type ClientProximityOrbitProps = {
@@ -15,10 +15,12 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
   const [activeClient, setActiveClient] = useState<Client | null>(clients[0] ?? null);
   const reducedMotion = useReducedMotion();
 
-  const radius = Math.max(92, Math.min(size.width * 0.31, size.height * 0.32));
-  const itemCount = Math.min(clients.length, Math.max(8, Math.min(16, Math.round(radius / 12))));
-  const orbitClients = useMemo(() => clients.slice(0, itemCount), [clients, itemCount]);
-  const logoSize = Math.max(54, Math.min(88, radius * 0.37));
+  const outerRadius = Math.max(128, Math.min(size.width * 0.36, size.height * 0.37));
+  const innerRadius = outerRadius * 0.76;
+  const outerRingClientCount = Math.ceil(clients.length / 2);
+  const outerRingClients = clients.slice(0, outerRingClientCount);
+  const innerRingClients = clients.slice(outerRingClientCount);
+  const logoSize = Math.max(46, Math.min(72, outerRadius * 0.38));
 
   useEffect(() => {
     const element = containerRef.current;
@@ -32,7 +34,7 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
   }, []);
 
   useEffect(() => {
-    if (reducedMotion || !orbitClients.length) return;
+    if (reducedMotion || !clients.length) return;
 
     let frameId = 0;
     let previousTime: number | null = null;
@@ -48,7 +50,7 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
     };
     frameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameId);
-  }, [orbitClients.length, reducedMotion]);
+  }, [clients.length, reducedMotion]);
 
   if (!clients.length) return null;
 
@@ -66,7 +68,7 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
       onMouseLeave={normalizeSpeed}
     >
       <div className="absolute inset-0 bg-[linear-gradient(rgba(124,131,134,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(124,131,134,.11)_1px,transparent_1px)] bg-[size:28px_28px] opacity-45" />
-      <div className="absolute left-1/2 top-1/2 z-10 flex h-40 w-40 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-3 rounded-full border border-[#8f1f35]/25 bg-[#292a2c] p-5 text-center text-white shadow-[0_12px_28px_rgba(39,40,42,.25)] md:h-48 md:w-48">
+      <div className="absolute left-1/2 top-1/2 z-10 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border border-[#8f1f35]/25 bg-[#292a2c] p-4 text-center text-white shadow-[0_12px_28px_rgba(39,40,42,.25)] md:h-48 md:w-48 md:gap-3 md:p-5">
         {activeClient ? (
           <>
             <img
@@ -81,10 +83,15 @@ export function ClientProximityOrbit({ clients }: ClientProximityOrbitProps) {
           <p className="text-xs font-bold leading-5 tracking-[.08em]">Our clients</p>
         )}
       </div>
-      {orbitClients.map((client, index) => {
-        const angle = ((index / orbitClients.length) * 360 + rotation) * (Math.PI / 180);
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
+      {clients.map((client, index) => {
+        const isOuterRing = index < outerRingClientCount;
+        const ringClients = isOuterRing ? outerRingClients : innerRingClients;
+        const ringIndex = isOuterRing ? index : index - outerRingClientCount;
+        const ringRadius = isOuterRing ? outerRadius : innerRadius;
+        const ringRotation = isOuterRing ? rotation : -rotation * 1.2 + 18;
+        const angle = ((ringIndex / ringClients.length) * 360 + ringRotation) * (Math.PI / 180);
+        const x = Math.cos(angle) * ringRadius;
+        const y = Math.sin(angle) * ringRadius;
         return (
           <div
             key={client.id}
