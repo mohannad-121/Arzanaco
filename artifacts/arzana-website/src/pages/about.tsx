@@ -1,7 +1,6 @@
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
-import { approvedImages } from '../data/assets';
-import aboutUsVideo from '@videos/aboutus3.mp4';
+import testingPhoto from '@pages/testingphoto.png';
 
 export default function About() {
   const { language } = useLanguage();
@@ -35,25 +34,22 @@ export default function About() {
 
   return (
     <PageWrapper>
-      <section className="relative isolate overflow-hidden bg-[#292a2c] py-28 text-white md:py-36">
-        <video autoPlay muted loop playsInline aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover brightness-125 contrast-105">
-          <source src={aboutUsVideo} type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(24,25,26,.78),rgba(32,33,35,.50),rgba(32,33,35,.22))]" />
+      <section className="bg-[#292a2c] py-16 text-white md:py-24">
         <div className="site-container max-w-4xl">
-          <p className="eyebrow mb-5 !text-white/70">Our company</p><h1 className="max-w-4xl text-4xl font-bold tracking-[-.045em] text-white md:text-6xl">{copy.title}</h1>
+          <p className="eyebrow mb-5 !text-[#deb1bc]">Our company</p>
+          <h1 className="max-w-4xl text-4xl font-bold tracking-[-.045em] text-white md:text-6xl">{copy.title}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">{copy.introduction}</p>
         </div>
       </section>
 
-      <section className="bg-[#d8d4cb] py-16 md:py-24"><div className="site-container grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-          <div className="relative"><span className="absolute -start-3 -top-4 text-7xl font-bold tracking-[-.1em] text-primary/20">01</span><img src={approvedImages.engineering} alt="Transformer testing in an electrical substation" className="relative h-80 w-full object-cover shadow-[0_22px_42px_rgba(39,40,42,.2)] lg:h-[34rem]" /></div>
-          <div className="corner-card bg-[#f6f3ee] p-7 md:p-10">
-            <p className="eyebrow mb-4">Engineering support</p><h2 className="section-title text-3xl">{copy.supportTitle}</h2>
-            <p className="mt-5 text-lg leading-relaxed text-foreground/75">{copy.support}</p>
-            <h3 className="mt-8 text-lg font-semibold text-foreground">{copy.sectorsTitle}</h3>
-            <ul className="mt-4 grid grid-cols-2 gap-2">
-              {copy.sectors.map((sector) => <li key={sector} className="bg-primary/7 px-4 py-3 text-sm font-semibold text-primary">{sector}</li>)}
+      <section className="bg-[#d8d4cb] py-16 md:py-24"><div className="site-container grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-stretch">
+          <div className="corner-card relative h-80 w-full lg:h-[34rem]"><img src={testingPhoto} alt="Transformer testing in an electrical substation" className="relative h-full w-full object-cover" /></div>
+          <div className="border border-[#c7c3bb] bg-[#f6f3ee] p-7 shadow-[0_14px_32px_rgba(39,40,42,.08)] md:p-8 lg:h-[34rem]">
+            <p className="eyebrow mb-3">Engineering support</p><h2 className="section-title text-[1.75rem] leading-tight">{copy.supportTitle}</h2>
+            <p className="mt-4 text-base leading-7 text-foreground/75">{copy.support}</p>
+            <h3 className="mt-6 text-lg font-semibold text-foreground">{copy.sectorsTitle}</h3>
+            <ul className="mt-3 grid grid-cols-2 gap-1.5">
+              {copy.sectors.map((sector) => <li key={sector} className="bg-primary/7 px-3 py-2 text-sm font-semibold text-primary">{sector}</li>)}
             </ul>
           </div>
         </div>

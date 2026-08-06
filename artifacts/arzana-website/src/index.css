@@ -289,7 +289,7 @@
   @keyframes arzana-checkbox-ring { from { opacity: .5; transform: scale(.72); } to { opacity: 0; transform: scale(1.35); } }
 
   /* Branded page-transition loader */
-  .page-loader { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; background: #1f2022; animation: page-loader-in .16s ease-out both; }
+  .page-loader { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; background: #1f2022 center / cover no-repeat; animation: page-loader-in .16s ease-out both; }
   .loader-wrapper { position: relative; display: grid; width: min(13.5rem, 72vw); aspect-ratio: 1; place-items: center; overflow: visible; border-radius: 50%; background: rgba(143, 31, 53, .26); box-shadow: 0 0 60px -10px rgba(255,255,255,.42), inset 0 0 0 1px rgba(255,255,255,.12); color: #fff; font-family: var(--app-font-sans); font-size: clamp(.76rem, 2.2vw, 1rem); font-weight: 700; letter-spacing: .08em; user-select: none; }
   .loader { position: absolute; inset: 0; border-radius: inherit; background: transparent; animation: loader-rotate 2s linear infinite; }
   .loader-word { position: relative; z-index: 1; display: flex; max-width: 88%; align-items: center; justify-content: center; line-height: 1.4; text-align: center; white-space: pre; }

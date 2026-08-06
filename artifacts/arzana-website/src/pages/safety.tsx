@@ -5,6 +5,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
 import { useCatalog } from "../contexts/CatalogContext";
 import { approvedImages, getProductMedia } from "../data/assets";
+import safetyVideo from "@videos/safety.mp4";
 
 export default function SafetySystems() {
   const { language } = useLanguage();
@@ -36,12 +37,19 @@ export default function SafetySystems() {
     <PageWrapper>
       <section className="page-hero py-28 text-background md:py-36">
         <div className="absolute inset-0">
-          <img
-            src={approvedImages.safety}
-            alt="Construction loading platform safety system"
-            className="h-full w-full object-cover opacity-20 mix-blend-overlay"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground via-foreground/90 to-transparent" />
+          <video
+            className="h-full w-full object-cover brightness-[1.35] contrast-[1.04] saturate-[1.05]"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={approvedImages.safety}
+            aria-hidden="true"
+          >
+            <source src={safetyVideo} type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#17191c]/85 via-[#17191c]/55 to-[#17191c]/15" />
         </div>
         <div className="site-container relative z-10 max-w-4xl">
           <p className="eyebrow mb-5 !text-white/70">Protective systems</p>
