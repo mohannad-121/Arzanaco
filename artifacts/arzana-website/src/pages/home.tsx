@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDown,
@@ -11,11 +11,9 @@ import {
 } from "lucide-react";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import { useLanguage } from "../contexts/LanguageContext";
-import { Button } from "../components/ui/button";
 import { ClientProximityOrbit } from "../components/ClientProximityOrbit";
 import { clients } from "../data/clients";
 import { approvedImages } from "../data/assets";
-import { useCatalog } from "../contexts/CatalogContext";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
 
 const areas = [
@@ -68,11 +66,8 @@ const areas = [
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function Home() {
-  const { t, language } = useLanguage();
-  const [, setLocation] = useLocation();
-  const { categories } = useCatalog();
+  const { t } = useLanguage();
   const reduced = useReducedMotion();
-  const featured = categories.slice(0, 4);
   return (
     <PageWrapper>
       <section className="relative flex min-h-[84svh] items-end overflow-hidden bg-[#1f2022] pb-14 pt-28 text-white md:min-h-[91svh] md:pb-20">
@@ -171,75 +166,35 @@ export default function Home() {
               >
                 <Link
                   href={area.href}
-                  className="corner-card corner-card--media group flex min-h-[17rem] overflow-hidden text-white lg:h-full"
+                  className="group block min-h-[254px] rounded-[20px] bg-[linear-gradient(163deg,#8d1936_0%,#4c0b1c_52%,#b42348_100%)] p-[2px] text-white transition-shadow duration-300 hover:shadow-[0_0_30px_1px_rgba(141,25,54,.58)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8d1936] lg:h-full"
                 >
-                  <span className="corner-card__corner" aria-hidden="true">
-                    <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-                  </span>
-                  <img
-                    src={area.image}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover opacity-65 transition-transform duration-500 group-hover:scale-[1.045]"
-                  />
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,21,22,.15),rgba(20,21,22,.9))]" />
-                  <div className="corner-card__content relative flex h-full w-full flex-col p-6">
-                    <div className="flex items-center justify-between text-xs font-bold tracking-[.16em] text-white/70">
-                      <span>{area.number}</span>
-                      <area.icon className="h-5 w-5 text-[#e4aab6]" />
-                    </div>
-                    <div className="mt-auto">
-                      <p className="text-xs font-semibold uppercase tracking-[.12em] text-white/65">
-                        {area.detail}
-                      </p>
-                      <h3 className="mt-2 text-2xl font-bold leading-tight">
-                        {t(area.key)}
-                      </h3>
-                      <span className="mt-5 inline-flex items-center text-sm font-bold text-white">
-                        {t("common.readMore")}
-                        <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
-                      </span>
+                  <div className="relative flex min-h-[250px] w-full overflow-hidden rounded-[18px] bg-[#1a1a1a] transition-transform duration-200 group-hover:scale-[.98] group-focus-visible:scale-[.98] lg:h-full">
+                    <img
+                      src={area.image}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover opacity-65 transition-transform duration-500 group-hover:scale-[1.045]"
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,21,22,.15),rgba(20,21,22,.9))]" />
+                    <div className="relative flex h-full w-full flex-col p-6">
+                      <div className="flex items-center justify-end text-xs font-bold tracking-[.16em] text-white/70">
+                        <area.icon className="h-5 w-5 text-[#e4aab6]" />
+                      </div>
+                      <div className="mt-auto">
+                        <p className="text-xs font-semibold uppercase tracking-[.12em] text-white/65">
+                          {area.detail}
+                        </p>
+                        <h3 className="mt-2 text-2xl font-bold leading-tight">
+                          {t(area.key)}
+                        </h3>
+                        <span className="mt-5 inline-flex items-center text-sm font-bold text-white">
+                          {t("common.readMore")}
+                          <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </Link>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="bg-[#babcc0] py-20 md:py-24">
-        <div className="site-container">
-          <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="eyebrow mb-4">Product families</p>
-              <h2 className="section-title">
-                Solutions that stay clear from specification to site.
-              </h2>
-            </div>
-            <Button variant="outline" onClick={() => setLocation("/products")}>
-              {t("mvlv.view")}
-              <ArrowRight className="ms-2" />
-            </Button>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {featured.map((category) => (
-              <Link
-                key={category.id}
-                href={`/products/${category.slug}`}
-                className="corner-card corner-card--product group block min-h-48 bg-[#f6f3ee] p-7"
-              >
-                <span className="corner-card__corner" aria-hidden="true">
-                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-                </span>
-                <div className="corner-card__content flex h-full flex-col justify-end">
-                  <h3 className="max-w-sm text-2xl font-bold leading-tight">
-                    {language === "ar" ? category.nameAr : category.nameEn}
-                  </h3>
-                  <span className="corner-card__accent mt-5 inline-flex items-center text-sm font-bold text-primary">
-                    {t("common.viewDetails")}
-                    <ArrowRight className="ms-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
-                  </span>
-                </div>
-              </Link>
             ))}
           </div>
         </div>

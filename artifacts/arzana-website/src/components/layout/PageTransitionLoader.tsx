@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import loaderLogo from '@photos/arzana-arabia-logo-transparent.png';
+import loaderBackdrop from '@pages/saudi.png';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 const TRANSITION_DURATION = 2_000;
@@ -42,7 +43,14 @@ export function PageTransitionLoader() {
   const status = language === 'ar' ? LOADING_PAGE_ARABIC : 'Loading page';
 
   return (
-    <div className="page-loader" role="status" aria-label={status}>
+    <div
+      className="page-loader"
+      role="status"
+      aria-label={status}
+      style={{
+        backgroundImage: `linear-gradient(rgba(31, 32, 34, .28), rgba(31, 32, 34, .28)), url(${loaderBackdrop})`,
+      }}
+    >
       <div className="loader-wrapper" dir={language === 'ar' ? 'rtl' : 'ltr'} aria-hidden="true">
         <div className="loader-word">
           <img className="loader-logo" src={loaderLogo} alt="" />
