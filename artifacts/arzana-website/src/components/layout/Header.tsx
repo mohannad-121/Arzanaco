@@ -25,6 +25,9 @@ export const Header = () => {
   const [productsOpen, setProductsOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
   const menuCloseRef = React.useRef<HTMLButtonElement>(null);
+  const menuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const scrollPositionRef = React.useRef(0);
+  const shouldRestoreMenuFocusRef = React.useRef(false);
   const reducedMotion = useReducedMotion();
   const isFloating = location === "/" && !scrolled && !mobileOpen;
 
@@ -35,13 +38,53 @@ export const Header = () => {
     return () => window.removeEventListener("scroll", update);
   }, []);
   React.useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (!mobileOpen) return;
+
+    const bodyStyle = document.body.style;
+    const previousStyles = {
+      overflow: bodyStyle.overflow,
+      position: bodyStyle.position,
+      top: bodyStyle.top,
+      width: bodyStyle.width,
+    };
+
+    scrollPositionRef.current = window.scrollY;
+    bodyStyle.overflow = "hidden";
+    bodyStyle.position = "fixed";
+    bodyStyle.top = `-${scrollPositionRef.current}px`;
+    bodyStyle.width = "100%";
+
     return () => {
-      document.body.style.overflow = "";
+      bodyStyle.overflow = previousStyles.overflow;
+      bodyStyle.position = previousStyles.position;
+      bodyStyle.top = previousStyles.top;
+      bodyStyle.width = previousStyles.width;
+      window.scrollTo(0, scrollPositionRef.current);
     };
   }, [mobileOpen]);
   React.useEffect(() => {
-    if (mobileOpen) menuCloseRef.current?.focus();
+    if (mobileOpen) {
+      menuCloseRef.current?.focus();
+      return;
+    }
+
+    if (shouldRestoreMenuFocusRef.current) {
+      menuButtonRef.current?.focus();
+      shouldRestoreMenuFocusRef.current = false;
+    }
+  }, [mobileOpen]);
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        shouldRestoreMenuFocusRef.current = true;
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
   React.useEffect(() => {
     setMobileOpen(false);
@@ -56,12 +99,16 @@ export const Header = () => {
         : "text-foreground/72 hover:text-primary",
       location === href && (isFloating ? "text-white" : "text-primary"),
     );
-  const close = () => setMobileOpen(false);
+  const open = () => setMobileOpen(true);
+  const close = () => {
+    shouldRestoreMenuFocusRef.current = true;
+    setMobileOpen(false);
+  };
 
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 h-[76px] transition-[background-color,border-color,box-shadow] duration-300 md:h-[84px]",
+        "fixed inset-x-0 top-0 z-[70] h-[76px] transition-[background-color,border-color,box-shadow] duration-300 md:h-[84px]",
         isFloating
           ? "border-b border-white/10 bg-gradient-to-b from-black/30 to-transparent"
           : "border-b border-[#d5d1c9] bg-[#f7f4ef]/95 text-foreground shadow-[0_7px_26px_rgba(31,32,34,.09)] backdrop-blur-md",
@@ -172,9 +219,12 @@ export const Header = () => {
             {language === "en" ? "AR" : "EN"}
           </button>
           <button
+            ref={menuButtonRef}
             type="button"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
+            onClick={mobileOpen ? close : open}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="responsive-navigation"
             className={cn(
               "grid h-11 w-11 place-items-center border transition",
               isFloating
@@ -182,7 +232,7 @@ export const Header = () => {
                 : "border-foreground/20 bg-transparent text-foreground",
             )}
           >
-            <Menu className="h-5 w-5" />
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
@@ -193,33 +243,36 @@ export const Header = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-[60] bg-[#1f2022]/55 backdrop-blur-[2px] xl:hidden"
+            className="fixed inset-x-0 bottom-0 top-[76px] z-[60] bg-[#1f2022]/55 backdrop-blur-[2px] md:top-[84px] xl:hidden"
+            onClick={close}
           >
             <motion.div
+              id="responsive-navigation"
               role="dialog"
               aria-modal="true"
               aria-label="Mobile navigation"
               initial={
                 reducedMotion
                   ? false
-                  : { x: language === "ar" ? "-100%" : "100%" }
+                  : { opacity: 0, y: -12 }
               }
-              animate={{ x: 0 }}
-              exit={{ x: language === "ar" ? "-100%" : "100%" }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className="ms-auto flex h-full w-[min(100%,25rem)] flex-col overflow-y-auto bg-[#f7f4ef] p-6 text-foreground shadow-2xl"
+              className="flex h-[calc(100dvh-76px)] max-h-[calc(100dvh-76px)] w-full flex-col overflow-x-hidden overflow-y-auto bg-[#f7f4ef] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 text-foreground shadow-[0_18px_36px_rgba(31,32,34,.22)] md:h-[calc(100dvh-84px)] md:max-h-[calc(100dvh-84px)] md:px-8 md:pt-6"
+              onClick={(event) => event.stopPropagation()}
             >
-              <div className="mb-8 flex items-center justify-between border-b border-border pb-5">
+              <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
                 <img
                   src={headerLogo}
                   alt="Arzana Arabia"
-                  className="h-14 w-44 object-contain mix-blend-multiply"
+                  className="h-12 w-36 object-contain mix-blend-multiply sm:h-14 sm:w-44"
                 />
                 <button
                   ref={menuCloseRef}
                   type="button"
                   onClick={close}
-                  className="grid h-11 w-11 place-items-center border border-border"
+                  className="grid h-11 w-11 shrink-0 place-items-center border border-border transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   aria-label="Close menu"
                 >
                   <X className="h-5 w-5" />
@@ -232,7 +285,7 @@ export const Header = () => {
                     href={item.href}
                     onClick={close}
                     className={cn(
-                      "border-b border-border py-4 text-sm font-bold",
+                      "flex min-h-12 items-center border-b border-border py-3 text-sm font-bold",
                       location === item.href && "text-primary",
                     )}
                   >
@@ -242,7 +295,9 @@ export const Header = () => {
                 <button
                   type="button"
                   onClick={() => setProductsOpen(!productsOpen)}
-                  className="flex min-h-14 items-center justify-between border-b border-border text-start text-sm font-bold"
+                  aria-expanded={productsOpen}
+                  aria-controls="responsive-products-submenu"
+                  className="flex min-h-12 items-center justify-between border-b border-border py-3 text-start text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
                 >
                   <span>{t("nav.products")}</span>
                   <ChevronDown
@@ -263,6 +318,7 @@ export const Header = () => {
                       animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
                       exit={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
                       transition={{ duration: 0.2 }}
+                      id="responsive-products-submenu"
                       className="border-b border-border bg-[#ece8e1] px-3"
                     >
                       {categories.map((category) => (
@@ -270,7 +326,7 @@ export const Header = () => {
                           key={category.id}
                           href={`/products/${category.slug}`}
                           onClick={close}
-                          className="block py-3 text-sm font-medium text-foreground/75"
+                          className="flex min-h-11 items-center py-2.5 text-sm font-medium text-foreground/75 hover:text-primary"
                         >
                           {language === "ar"
                             ? category.nameAr
@@ -286,7 +342,7 @@ export const Header = () => {
                     href={item.href}
                     onClick={close}
                     className={cn(
-                      "border-b border-border py-4 text-sm font-bold",
+                      "flex min-h-12 items-center border-b border-border py-3 text-sm font-bold",
                       location === item.href && "text-primary",
                     )}
                   >
@@ -294,7 +350,7 @@ export const Header = () => {
                   </Link>
                 ))}
               </nav>
-              <div className="mt-auto pt-8">
+              <div className="mt-auto pt-6">
                 <RequestQuoteButton size="md" className="w-full" onClick={close} />
               </div>
             </motion.div>
