@@ -248,9 +248,11 @@
   .arzana-ai-input:focus-within .arzana-ai-input__dots span:nth-child(2) { animation-delay: .05s; } .arzana-ai-input:focus-within .arzana-ai-input__dots span:nth-child(3) { animation-delay: .1s; } .arzana-ai-input:focus-within .arzana-ai-input__dots span:nth-child(4) { animation-delay: .15s; }
   @keyframes arzana-ai-dot { 0% { opacity: 0; transform: translateY(0) scale(.6); } 45% { opacity: .75; } 100% { opacity: 0; transform: translateY(-.6rem) scale(1); } }
   .arzana-checkbox-option {
-    --checkbox-primary: #a8163f;
-    --checkbox-primary-dark: #78112f;
-    --checkbox-primary-light: #f3d6df;
+    --checkbox-primary: #8f1f35;
+    --checkbox-primary-bright: #ae263c;
+    --checkbox-primary-dark: #661426;
+    --checkbox-glow: #e4aab6;
+    --checkbox-spark: #f3d6df;
     --checkbox-surface: #fffdfb;
     --checkbox-text: #202124;
     position: relative;
@@ -258,7 +260,7 @@
     min-height: 4rem;
     align-items: center;
     gap: .85rem;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid rgba(120, 17, 47, .18);
     border-radius: .65rem;
     background: var(--checkbox-surface);
@@ -272,21 +274,44 @@
   .arzana-checkbox-option[data-checked="true"] { border-color: var(--checkbox-primary); background: #fbecef; box-shadow: inset 0 0 0 1px rgba(168, 22, 63, .08); }
   .arzana-checkbox-option[data-disabled="true"] { cursor: not-allowed; opacity: .52; }
   .arzana-checkbox-option[data-disabled="true"]:hover { border-color: rgba(120, 17, 47, .18); background: var(--checkbox-surface); box-shadow: none; }
-  .arzana-checkbox-control { position: relative; display: grid; width: 1.625rem; height: 1.625rem; flex: 0 0 1.625rem; place-items: center; }
+  .arzana-checkbox-control { position: relative; z-index: 1; display: grid; width: 1.75rem; height: 1.75rem; flex: 0 0 1.75rem; place-items: center; }
   .arzana-checkbox-input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
   .arzana-checkbox-frame { position: relative; display: grid; width: 100%; height: 100%; place-items: center; }
-  .arzana-checkbox-frame::after { position: absolute; inset: -.25rem; border: 1px solid var(--checkbox-primary); border-radius: .55rem; content: ''; opacity: 0; pointer-events: none; transform: scale(.7); }
-  .arzana-checkbox-box { position: relative; display: grid; width: 100%; height: 100%; place-items: center; overflow: hidden; border: 2px solid var(--checkbox-primary); border-radius: .42rem; background: var(--checkbox-surface); box-shadow: inset 0 1px 1px rgba(32, 33, 36, .08); transition: transform .2s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease; }
-  .arzana-checkbox-check { width: 1.25rem; height: 1.25rem; fill: none; stroke: white; stroke-width: 3.1; stroke-linecap: round; stroke-linejoin: round; }
-  .arzana-checkbox-check path { stroke-dasharray: 28; stroke-dashoffset: 28; transition: stroke-dashoffset .26s cubic-bezier(.16, 1, .3, 1); }
-  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-box { border-color: var(--checkbox-primary-dark); background: var(--checkbox-primary); box-shadow: 0 0 0 3px rgba(168, 22, 63, .10), inset 0 1px 1px rgba(255, 255, 255, .2); }
+  .arzana-checkbox-box { position: relative; display: grid; width: 100%; height: 100%; place-items: center; overflow: visible; border: 2px solid #9a7d84; border-radius: .5rem; background: var(--checkbox-surface); box-shadow: inset 0 1px 1px rgba(32, 33, 36, .08); transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), border-color .3s ease, box-shadow .3s ease; }
+  .arzana-checkbox-box::before, .arzana-checkbox-box::after { position: absolute; border-radius: inherit; content: ''; pointer-events: none; }
+  .arzana-checkbox-box::before { inset: -.25rem; z-index: -1; background: radial-gradient(circle, rgba(174, 38, 60, .16), transparent 70%); opacity: 0; transform: scale(.95); transition: opacity .3s ease, transform .3s ease; }
+  .arzana-checkbox-box::after { z-index: 3; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.28), transparent 50%, rgba(255,255,255,.1)); opacity: 0; transition: opacity .4s .12s ease; }
+  .arzana-checkbox-bg { position: absolute; z-index: 1; inset: 0; border-radius: .34rem; background: linear-gradient(135deg, var(--checkbox-primary-dark), var(--checkbox-primary-bright)); opacity: 0; transform: scale(.5); transition: opacity .35s ease, transform .4s cubic-bezier(.34, 1.56, .64, 1); }
+  .arzana-checkbox-check { position: relative; z-index: 4; width: 1.125rem; height: 1.125rem; fill: none; stroke: #fff; stroke-width: 3.1; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0) rotate(-20deg); transition: opacity .25s ease, transform .4s cubic-bezier(.34, 1.56, .64, 1); }
+  .arzana-checkbox-check path { stroke-dasharray: 28; stroke-dashoffset: 28; transition: stroke-dashoffset .5s cubic-bezier(.65, 0, .35, 1) .12s; }
+  .arzana-checkbox-particle, .arzana-checkbox-spark { position: absolute; z-index: 5; top: 50%; left: 50%; opacity: 0; pointer-events: none; }
+  .arzana-checkbox-particle { width: .3rem; height: .3rem; border-radius: 999px; background: var(--checkbox-spark); }
+  .arzana-checkbox-ring { position: absolute; z-index: 0; inset: -.48rem; border: 1.5px solid var(--checkbox-glow); border-radius: 999px; opacity: 0; pointer-events: none; }
+  .arzana-checkbox-spark { width: 2px; height: .62rem; border-radius: 2px; background: linear-gradient(to top, var(--checkbox-spark), transparent); transform-origin: center; }
+  .arzana-checkbox-spark--1 { --spark-rotation: 0deg; } .arzana-checkbox-spark--2 { --spark-rotation: 45deg; } .arzana-checkbox-spark--3 { --spark-rotation: 90deg; } .arzana-checkbox-spark--4 { --spark-rotation: 135deg; }
+  .arzana-checkbox-spark--5 { --spark-rotation: 180deg; } .arzana-checkbox-spark--6 { --spark-rotation: 225deg; } .arzana-checkbox-spark--7 { --spark-rotation: 270deg; } .arzana-checkbox-spark--8 { --spark-rotation: 315deg; }
+  .arzana-checkbox-particle--1 { --particle-angle: -45deg; --particle-distance: 1.35rem; } .arzana-checkbox-particle--2 { --particle-angle: -90deg; --particle-distance: 1.6rem; } .arzana-checkbox-particle--3 { --particle-angle: 0deg; --particle-distance: 1.25rem; }
+  .arzana-checkbox-particle--4 { --particle-angle: 45deg; --particle-distance: 1.5rem; } .arzana-checkbox-particle--5 { --particle-angle: 135deg; --particle-distance: 1.15rem; } .arzana-checkbox-particle--6 { --particle-angle: -135deg; --particle-distance: 1.4rem; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-box { border-color: var(--checkbox-primary-dark); box-shadow: 0 0 .75rem rgba(143, 31, 53, .35), 0 0 1.75rem rgba(174, 38, 60, .16); animation: arzana-checkbox-pulse .5s ease; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-box::before { opacity: .75; transform: scale(1.25); }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-box::after { opacity: 1; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-bg { opacity: 1; transform: scale(1); }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-check { opacity: 1; transform: scale(1) rotate(0); }
   .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-check path { stroke-dashoffset: 0; }
-  .arzana-checkbox-input:checked + .arzana-checkbox-frame::after { animation: arzana-checkbox-ring .45s ease-out; }
-  .arzana-checkbox-option:hover .arzana-checkbox-box { border-color: var(--checkbox-primary); transform: scale(1.03); }
-  .arzana-checkbox-input:focus-visible + .arzana-checkbox-frame .arzana-checkbox-box { outline: 2px solid white; outline-offset: 2px; box-shadow: 0 0 0 4px var(--checkbox-primary-dark), 0 0 0 7px var(--checkbox-primary-light); }
-  .arzana-checkbox-label { min-width: 0; font-size: .875rem; font-weight: 600; line-height: 1.45; transition: color .2s ease; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-particle { animation: arzana-checkbox-particle .65s ease-out both; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-particle--2 { animation-delay: .05s; } .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-particle--3 { animation-delay: .08s; } .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-particle--4 { animation-delay: .03s; } .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-particle--5 { animation-delay: .1s; } .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-particle--6 { animation-delay: .06s; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-ring { animation: arzana-checkbox-shockwave .7s ease-out both; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-ring--2 { animation-delay: .12s; } .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-ring--3 { animation-delay: .24s; }
+  .arzana-checkbox-input:checked + .arzana-checkbox-frame .arzana-checkbox-spark { animation: arzana-checkbox-spark .52s ease-out both; }
+  .arzana-checkbox-option:hover .arzana-checkbox-box { border-color: var(--checkbox-primary-bright); transform: scale(1.04); }
+  .arzana-checkbox-input:focus-visible + .arzana-checkbox-frame .arzana-checkbox-box { outline: 2px solid var(--checkbox-glow); outline-offset: 3px; }
+  .arzana-checkbox-label { min-width: 0; font-size: .875rem; font-weight: 600; line-height: 1.45; transition: color .25s ease; }
   .arzana-checkbox-option[data-checked="true"] .arzana-checkbox-label { color: var(--checkbox-primary-dark); }
-  @keyframes arzana-checkbox-ring { from { opacity: .5; transform: scale(.72); } to { opacity: 0; transform: scale(1.35); } }
+  @keyframes arzana-checkbox-pulse { 0%, 100% { transform: scale(1); } 30% { transform: scale(.85); } 60% { transform: scale(1.15); } }
+  @keyframes arzana-checkbox-particle { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--particle-angle)) translateY(0) scale(1); } 70% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--particle-angle)) translateY(calc(var(--particle-distance) * -1)) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--particle-angle)) translateY(calc(var(--particle-distance) * -1.4)) scale(0); } }
+  @keyframes arzana-checkbox-shockwave { 0% { opacity: .7; transform: scale(.5); } 100% { opacity: 0; transform: scale(2.15); border-color: transparent; } }
+  @keyframes arzana-checkbox-spark { 0% { opacity: 1; transform: rotate(var(--spark-rotation)) translateY(-.25rem) scaleY(.5); } 55% { opacity: .9; transform: rotate(var(--spark-rotation)) translateY(-1.2rem) scaleY(1.2); } 100% { opacity: 0; transform: rotate(var(--spark-rotation)) translateY(-1.8rem) scaleY(.3); } }
+  @media (prefers-reduced-motion: reduce) { .arzana-checkbox-option *, .arzana-checkbox-option *::before, .arzana-checkbox-option *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
 
   /* Branded page-transition loader */
   .page-loader { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; background: #1f2022 center / cover no-repeat; animation: page-loader-in .16s ease-out both; }
