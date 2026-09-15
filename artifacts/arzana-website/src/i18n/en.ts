@@ -7,6 +7,7 @@ export const en: Translations = {
   "nav.about": "About Us",
   "nav.products": "Products & Solutions",
   "nav.testing": "Testing & Commissioning",
+  "nav.engineering": "Engineering Design",
   "nav.safety": "Safety Systems",
   "nav.clients": "Clients",
   "nav.contact": "Contact",
@@ -27,6 +28,8 @@ export const en: Translations = {
   "areas.automation": "Power Quality Solutions",
   "areas.safety": "Safety & Fall Protection",
   "areas.testing": "Testing & Commissioning",
+  "areas.engineering": "Engineering Design & Calculations",
+  "areas.engineeringDetail": "Engineering support across structural, mechanical, civil and lighting design.",
 
   // Common
   "common.readMore": "Read More",

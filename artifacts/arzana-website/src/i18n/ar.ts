@@ -2,6 +2,9 @@ import { Translations } from './en';
 
 export const ar: Translations = {
   // Navigation
+  "nav.engineering": "التصميم الهندسي",
+  "areas.engineering": "التصميم والحسابات الهندسية",
+  "areas.engineeringDetail": "دعم هندسي في التصميم الإنشائي والميكانيكي والمدني وتصميم الإضاءة.",
   "nav.home": "الرئيسية",
   "nav.about": "من نحن",
   "nav.products": "المنتجات والحلول",

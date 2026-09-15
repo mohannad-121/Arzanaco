@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowRight,
   FileText,
+  Ruler,
   Hammer,
   Settings,
   Shield,
@@ -15,6 +16,7 @@ import { ClientProximityOrbit } from "../components/ClientProximityOrbit";
 import { clients } from "../data/clients";
 import { approvedImages } from "../data/assets";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
+import engineeringImage from '@engineering/structural/01-steel-truss-framework.jpg';
 
 const areas = [
   {
@@ -24,7 +26,7 @@ const areas = [
     href: "/products/mv-lv-solutions",
     number: "01",
     image: approvedImages.electricalSystems,
-    tone: "lg:col-span-2 lg:row-span-2",
+    tone: "lg:col-span-2",
   },
   {
     icon: FileText,
@@ -62,6 +64,7 @@ const areas = [
     image: approvedImages.testingDetail,
     tone: "",
   },
+  { icon: Ruler, key: 'areas.engineering', detail: 'areas.engineeringDetail', href: '/engineering-design-calculations', number: '06', image: engineeringImage, tone: 'lg:col-span-2' },
 ];
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -150,7 +153,7 @@ export default function Home() {
               systems and commissioning support.
             </p>
           </div>
-          <div className="grid gap-4 lg:grid-cols-4 lg:grid-rows-2">
+          <div className="grid gap-4 lg:grid-cols-4">
             {areas.map((area, index) => (
               <motion.div
                 key={area.number}
@@ -181,7 +184,7 @@ export default function Home() {
                       </div>
                       <div className="mt-auto">
                         <p className="text-xs font-semibold uppercase tracking-[.12em] text-white/65">
-                          {area.detail}
+                          {area.number === '06' ? t(area.detail) : area.detail}
                         </p>
                         <h3 className="mt-2 text-2xl font-bold leading-tight">
                           {t(area.key)}

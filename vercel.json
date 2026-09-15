@@ -4,5 +4,8 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "PORT=3000 BASE_PATH=/ pnpm --filter @workspace/arzana-website run build",
   "outputDirectory": "artifacts/arzana-website/dist/public",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/engineering-design-calculations", "destination": "/engineering-design-calculations.html" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }

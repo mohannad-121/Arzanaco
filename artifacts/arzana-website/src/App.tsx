@@ -22,6 +22,9 @@ import Privacy from './pages/privacy';
 import Admin from './pages/admin';
 import ArzanaAi from './pages/arzana-ai';
 import NotFound from './pages/not-found';
+import { lazy, Suspense } from 'react';
+
+const EngineeringDesignCalculations = lazy(() => import('./pages/engineering-design-calculations'));
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,9 @@ function Router() {
       </Route>
       
       <Route path="/testing-commissioning" component={TestingCommissioning} />
+      <Route path="/engineering-design-calculations">
+        <Suspense fallback={<div role="status" className="min-h-screen bg-background pt-32 text-center">Loading / جارٍ التحميل…</div>}><EngineeringDesignCalculations /></Suspense>
+      </Route>
       <Route path="/safety-systems" component={SafetySystems} />
       <Route path="/clients" component={Clients} />
       <Route path="/contact" component={Contact} />

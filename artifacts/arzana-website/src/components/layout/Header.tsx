@@ -12,6 +12,7 @@ const navItems = [
   { href: "/", label: "nav.home" },
   { href: "/about", label: "nav.about" },
   { href: "/testing-commissioning", label: "nav.testing" },
+  { href: "/engineering-design-calculations", label: "nav.engineering" },
   { href: "/safety-systems", label: "nav.safety" },
   { href: "/clients", label: "nav.clients" },
   { href: "/contact", label: "nav.contact" },
@@ -93,7 +94,7 @@ export const Header = () => {
 
   const navClass = (href: string) =>
     cn(
-      "relative flex min-h-11 items-center px-2.5 text-[.72rem] font-bold uppercase tracking-[.11em] transition-colors",
+      "relative flex min-h-11 items-center px-2 text-[.72rem] font-bold uppercase tracking-[.07em] transition-colors",
       isFloating
         ? "text-white/80 hover:text-white"
         : "text-foreground/72 hover:text-primary",
@@ -120,7 +121,7 @@ export const Header = () => {
       >
         Skip to content
       </a>
-      <div className="site-container flex h-full items-center justify-between gap-4">
+      <div className="site-container flex h-full items-center justify-between gap-4 xl:gap-2">
         <Link
           href="/"
           className="flex h-12 w-32 shrink-0 items-center sm:h-14 sm:w-36"

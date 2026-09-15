@@ -2,6 +2,7 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
+import { engineeringSeoPlugin } from './engineering-seo-plugin';
 
 const rawPort = process.env.PORT;
 
@@ -27,10 +28,11 @@ if (!basePath) {
 
 export default defineConfig({
   base: basePath,
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), engineeringSeoPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
+      '@engineering': path.resolve(import.meta.dirname, '..', '..', 'Engineering Design & Calculations photos'),
       '@assets': path.resolve(
         import.meta.dirname,
         '..',

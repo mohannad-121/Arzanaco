@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { engineeringAnswer, engineeringPage } from '../lib/arzana-catalog/src/engineering.js';
 
 /** Vercel compiles root API functions independently of workspace tsconfig files. */
 declare const process: { env: Record<string, string | undefined> };
@@ -42,15 +43,15 @@ async function getLiveCatalog(): Promise<PublicCatalog | null> {
 
 function actions(language: Language, keys: string[], catalog?: PublicCatalog): Action[] {
   const labels = language === 'ar'
-    ? { quote: 'طلب عرض سعر', contact: 'تواصل مع أرزانا', whatsapp: 'تواصل عبر واتساب', map: 'عرض الموقع على الخريطة', phone: 'اتصل بأرزانا', email: 'إرسال بريد إلكتروني', products: 'استعرض المنتجات', testing: 'الاختبار والتشغيل', safety: 'أنظمة السلامة' }
-    : { quote: 'Request a Quote', contact: 'Contact Arzana', whatsapp: 'Contact Arzana on WhatsApp', map: 'View on Map', phone: 'Call Arzana', email: 'Email Arzana', products: 'Explore Products', testing: 'Testing & Commissioning', safety: 'Safety Systems' };
-  const fixed: Record<string, string> = { quote: '/request-quote', contact: '/contact', whatsapp: 'https://wa.me/966566676600', map: 'https://maps.app.goo.gl/nPuY2zpt2Gx1axCY9', phone: 'tel:+966566676600', email: 'mailto:m.saadi@arzanaco.com', products: '/products', testing: '/testing-commissioning', safety: '/safety-systems' };
+    ? { quote: 'طلب عرض سعر', contact: 'تواصل مع أرزانا', whatsapp: 'تواصل عبر واتساب', map: 'عرض الموقع على الخريطة', phone: 'اتصل بأرزانا', email: 'إرسال بريد إلكتروني', products: 'استعرض المنتجات', testing: 'الاختبار والتشغيل', safety: 'أنظمة السلامة', engineering: engineeringPage.titleAr }
+    : { quote: 'Request a Quote', contact: 'Contact Arzana', whatsapp: 'Contact Arzana on WhatsApp', map: 'View on Map', phone: 'Call Arzana', email: 'Email Arzana', products: 'Explore Products', testing: 'Testing & Commissioning', safety: 'Safety Systems', engineering: engineeringPage.title };
+  const fixed: Record<string, string> = { quote: '/request-quote', contact: '/contact', whatsapp: 'https://wa.me/966566676600', map: 'https://maps.app.goo.gl/nPuY2zpt2Gx1axCY9', phone: 'tel:+966566676600', email: 'mailto:m.saadi@arzanaco.com', products: '/products', testing: '/testing-commissioning', safety: '/safety-systems', engineering: engineeringPage.route };
   const result: Action[] = [];
   for (const key of keys) {
     if (fixed[key]) result.push({ label: labels[key as keyof typeof labels], url: fixed[key], type: 'link' });
     if (key.startsWith('product:') && catalog) { const product = catalog.products.find((item) => item.slug === key.slice(8)); const category = product && catalog.categories.find((item) => item.id === product.categoryId); if (product && category) result.push({ label: language === 'ar' ? product.nameAr : product.nameEn, url: `/products/${category.slug}/${product.slug}`, type: 'link' }); }
   }
-  return result.filter((item, index, all) => all.findIndex((other) => other.url === item.url) === index).slice(0, 3);
+  return result.filter((item, index, all) => all.findIndex((other) => other.url === item.url) === index).slice(0, keys.includes('engineering') ? 4 : 3);
 }
 
 function has(text: string, expressions: string[]) { return expressions.some((expression) => text.includes(expression)); }
@@ -78,6 +79,8 @@ function productSearch(query: string, language: Language, catalog: PublicCatalog
 function answer(message: string, language: Language, catalog: PublicCatalog): { message: string; actions: Action[] } {
   const query = message.toLowerCase();
   const ar = language === 'ar';
+  const engineering = engineeringAnswer(message, language);
+  if (engineering) return { message: engineering, actions: actions(language, ['engineering', 'quote']) };
   if (has(query, ['hello', 'hi', 'welcome', 'مرحبا', 'اهلا', 'السلام'])) return { message: welcome(language), actions: actions(language, ['products', 'quote']) };
   if (has(query, ['founder', 'founders', 'owner', 'مؤسس', 'المؤسسين', 'المالك'])) return { message: ar ? 'لا تتوفر معلومات عن المؤسسين ضمن معرفة الموقع العامة المتحقق منها حاليًا. يمكنني مساعدتك في المنتجات والخدمات وطرق التواصل.' : 'Verified founder information is not currently available in the public website knowledge. I can help with products, services, and contact details.', actions: actions(language, ['contact']) };
   if (has(query, ['whatsapp', 'واتساب', 'واتس'])) return { message: ar ? `رقم واتساب أرزانا المعتمد هو ${CONTACTS.whatsapp}.` : `Arzana’s approved WhatsApp number is ${CONTACTS.whatsapp}.`, actions: actions(language, ['whatsapp', 'quote']) };
@@ -89,7 +92,7 @@ function answer(message: string, language: Language, catalog: PublicCatalog): { 
   if (has(query, ['safety', 'fall', 'protection', 'سلامة', 'حماية', 'سقوط'])) return { message: ar ? 'تشمل أنظمة السلامة والحماية من السقوط شبكات السلامة وأنظمة حماية الحواف ومنصات التحميل وبوابات المناور ودعامات ربط الرافعات البرجية.' : 'Safety and fall-protection systems include safety nets, edge-protection systems, loading platforms, shaft gates, and tower-crane tie supports.', actions: actions(language, ['safety', 'quote']) };
   const matches = productSearch(query, language, catalog);
   if (matches.length > 0) { const summary = matches.map((product) => `${ar ? product.nameAr : product.nameEn}: ${ar ? product.descriptionAr : product.descriptionEn}`).join('\n\n'); return { message: summary, actions: actions(language, matches.map((product) => `product:${product.slug}`), catalog) }; }
-  if (has(query, ['product', 'products', 'service', 'services', 'everything', 'منتج', 'منتجات', 'خدمات', 'كل'])) { const categories = catalog.categories.map((category) => ar ? category.nameAr : category.nameEn).join(ar ? '، ' : ', '); return { message: ar ? `تشمل فئات منتجات أرزانا: ${categories}. كما نقدم أنظمة السلامة وخدمات الاختبار والتشغيل.` : `Arzana’s product categories include: ${categories}. The company also provides safety systems and testing and commissioning services.`, actions: actions(language, ['products', 'testing', 'safety']) }; }
+  if (has(query, ['product', 'products', 'service', 'services', 'everything', 'منتج', 'منتجات', 'خدمات', 'كل'])) { const categories = catalog.categories.map((category) => ar ? category.nameAr : category.nameEn).join(ar ? '، ' : ', '); return { message: ar ? `تشمل فئات منتجات أرزانا: ${categories}. كما نقدم أنظمة السلامة وخدمات الاختبار والتشغيل والتصميم والحسابات الهندسية في التخصصات الإنشائية والميكانيكية والمدنية وتصميم الإضاءة.` : `Arzana’s product categories include: ${categories}. The company also provides safety systems, testing and commissioning, and engineering design and calculations across structural, mechanical, civil and lighting disciplines.`, actions: actions(language, ['products', 'testing', 'safety', 'engineering']) }; }
   return { message: ar ? 'أستطيع مساعدتك بمعلومات الموقع المتحقق منها عن أرزانا: المنتجات والفئات والخدمات والعملاء والعنوان والخرائط والأرقام والبريد وواتساب وطلب عرض السعر.' : 'I can help with verified website information about Arzana: products, categories, services, clients, address, map, phone, email, WhatsApp, and quote requests.', actions: actions(language, ['products', 'contact']) };
 }
 
