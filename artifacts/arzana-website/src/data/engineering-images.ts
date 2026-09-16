@@ -5,7 +5,7 @@ import s3 from '@engineering/structural/03-commercial-building.jpg';
 import s4 from '@engineering/structural/04-concrete-frame-construction.jpg';
 import h1 from '@engineering/hvac/01-commercial-ductwork.jpg';
 import h2 from '@engineering/hvac/02-ventilation-louvre.jpg';
-import h3 from '@engineering/hvac/03-air-conditioning-unit.jpg';
+import h3 from '@engineering/hvac/HVACNEW.png';
 import h4 from '@engineering/hvac/04-ceiling-air-distribution.jpg';
 import f1 from '@engineering/foundations/01-foundation-excavation.jpg';
 import f2 from '@engineering/foundations/02-reinforcement-mat.jpg';
