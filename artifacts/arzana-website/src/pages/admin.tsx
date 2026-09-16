@@ -1,352 +1,53 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { Edit2, FolderCog, LogOut, Package, Plus, Trash2, X } from 'lucide-react';
+import { Edit2, FolderCog, HardHat, ImagePlus, LogOut, Package, Plus, Trash2, X } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { createSlug, useCatalog, type ManagedProduct } from '@/contexts/CatalogContext';
+import { createSlug, useCatalog, type ManagedEngineeringService, type ManagedProduct } from '@/contexts/CatalogContext';
 import type { Category } from '@/data/categories';
 
-const FIELD_CLASS = 'mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-ring';
-
-type ProductForm = {
-  nameEn: string;
-  nameAr: string;
-  slug: string;
-  categoryId: string;
-  descriptionEn: string;
-  descriptionAr: string;
-  types: string;
-  imageUrls: string;
-};
-
-type CategoryForm = { nameEn: string; nameAr: string; slug: string };
-
-const emptyProductForm: ProductForm = {
-  nameEn: '', nameAr: '', slug: '', categoryId: '', descriptionEn: '', descriptionAr: '', types: '', imageUrls: '',
-};
-const emptyCategoryForm: CategoryForm = { nameEn: '', nameAr: '', slug: '' };
+const field = 'mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring';
+type Tab = 'products' | 'categories' | 'engineering';
+type ProductForm = Omit<ManagedProduct, 'id' | 'types' | 'imageUrls'> & { id?: string; types: string; imageUrls: string[] };
+type EngineeringForm = Omit<ManagedEngineeringService, 'software' | 'capabilities' | 'capabilitiesAr'> & { software: string; capabilities: string; capabilitiesAr: string };
+const newProduct = (): ProductForm => ({ slug: '', categoryId: '', nameEn: '', nameAr: '', descriptionEn: '', descriptionAr: '', types: '', imageUrls: [] });
+const newCategory = (): Category => ({ id: '', slug: '', nameEn: '', nameAr: '', imageUrl: '' });
+const newEngineering = (): EngineeringForm => ({ id: '', number: '', shortTitle: '', shortTitleAr: '', title: '', titleAr: '', category: '', categoryAr: '', software: '', softwareNote: '', softwareNoteAr: '', description: '', descriptionAr: '', capabilities: '', capabilitiesAr: '', imageUrls: [] });
 
 export default function AdminPanel() {
-  const { language } = useLanguage();
   const [, setLocation] = useLocation();
-  const { products, categories, catalogError, authenticateAdmin, saveProduct, deleteProduct, saveCategory, deleteCategory } = useCatalog();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [activeTab, setActiveTab] = useState<'products' | 'solutions'>('products');
-  const [productForm, setProductForm] = useState<ProductForm>(emptyProductForm);
-  const [categoryForm, setCategoryForm] = useState<CategoryForm>(emptyCategoryForm);
-  const [editingProductId, setEditingProductId] = useState<string | null>(null);
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-  const [productModalOpen, setProductModalOpen] = useState(false);
-  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ kind: 'product' | 'category'; id: string } | null>(null);
-  const [formError, setFormError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (!productForm.categoryId && categories[0]) {
-      setProductForm((current) => ({ ...current, categoryId: categories[0].id }));
-    }
-  }, [categories, productForm.categoryId]);
-
-  const copy = language === 'ar'
-    ? {
-        admin: 'إدارة محتوى أرزانة', login: 'تسجيل الدخول', password: 'كلمة مرور المسؤول', invalid: 'كلمة المرور غير صحيحة.', serviceError: 'خدمة الكتالوج المشتركة غير متاحة. شغّل إعداد Supabase ثم حاول مرة أخرى.',
-        logout: 'تسجيل الخروج', products: 'المنتجات', solutions: 'الحلول / الفئات', addProduct: 'إضافة منتج', addSolution: 'إضافة حل',
-        editProduct: 'تعديل المنتج', editSolution: 'تعديل الحل', englishName: 'الاسم بالإنجليزية', arabicName: 'الاسم بالعربية',
-        slug: 'رابط الصفحة', category: 'الحل / الفئة', englishDescription: 'الوصف بالإنجليزية', arabicDescription: 'الوصف بالعربية',
-        options: 'الخيارات (افصل بينها بفواصل)', images: 'روابط الصور (رابط في كل سطر)', edit: 'تعديل', remove: 'حذف', save: 'حفظ', cancel: 'إلغاء',
-        required: 'يرجى إكمال جميع الحقول المطلوبة.', duplicateSlug: 'رابط الصفحة مستخدم بالفعل.', noProducts: 'لا توجد منتجات.', noSolutions: 'لا توجد حلول.',
-        deleteProduct: 'هل تريد حذف هذا المنتج؟ سيختفي من الموقع.', deleteSolution: 'هل تريد حذف هذا الحل؟ سيتم أيضاً حذف جميع المنتجات التابعة له.',
-      }
-    : {
-        admin: 'Arzana Content Manager', login: 'Log in', password: 'Admin password', invalid: 'Incorrect password.', serviceError: 'The shared catalog service is unavailable. Run the Supabase catalog setup and try again.',
-        logout: 'Log out', products: 'Products', solutions: 'Solutions / Categories', addProduct: 'Add product', addSolution: 'Add solution',
-        editProduct: 'Edit product', editSolution: 'Edit solution', englishName: 'English name', arabicName: 'Arabic name',
-        slug: 'Page URL', category: 'Solution / category', englishDescription: 'English description', arabicDescription: 'Arabic description',
-        options: 'Options (comma separated)', images: 'Image URLs (one per line)', edit: 'Edit', remove: 'Delete', save: 'Save', cancel: 'Cancel',
-        required: 'Complete all required fields.', duplicateSlug: 'That page URL is already in use.', noProducts: 'No products available.', noSolutions: 'No solutions available.',
-        deleteProduct: 'Delete this product? It will disappear from the website.', deleteSolution: 'Delete this solution? All products inside it will also be deleted.',
-      };
-
-  const categoryById = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
-
-  const handleLogin = async (event: FormEvent) => {
-    event.preventDefault();
-    setLoginError('');
-    try {
-      const authenticated = await authenticateAdmin(password);
-      if (!authenticated) {
-        setLoginError(copy.invalid);
-        setPassword('');
-        return;
-      }
-      setAdminPassword(password);
-      setIsAuthenticated(true);
-      setPassword('');
-    } catch {
-      setLoginError(copy.serviceError);
-    }
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setAdminPassword('');
-    setLocation('/');
-  };
-
-  const openNewProduct = () => {
-    setEditingProductId(null);
-    setProductForm({ ...emptyProductForm, categoryId: categories[0]?.id ?? '' });
-    setFormError('');
-    setProductModalOpen(true);
-  };
-
-  const openProduct = (product: ManagedProduct) => {
-    setEditingProductId(product.id);
-    setProductForm({
-      nameEn: product.nameEn,
-      nameAr: product.nameAr,
-      slug: product.slug,
-      categoryId: product.categoryId,
-      descriptionEn: product.descriptionEn ?? '',
-      descriptionAr: product.descriptionAr ?? '',
-      types: product.types?.join(', ') ?? '',
-      imageUrls: product.imageUrls?.join('\n') ?? '',
-    });
-    setFormError('');
-    setProductModalOpen(true);
-  };
-
-  const submitProduct = async (event: FormEvent) => {
-    event.preventDefault();
-    const slug = createSlug(productForm.slug || productForm.nameEn);
-    if (!productForm.nameEn.trim() || !productForm.nameAr.trim() || !slug || !productForm.categoryId) {
-      setFormError(copy.required);
-      return;
-    }
-    if (products.some((product) => product.slug === slug && product.id !== editingProductId)) {
-      setFormError(copy.duplicateSlug);
-      return;
-    }
-    setFormError('');
-    setSuccessMessage('');
-    setIsSaving(true);
-    try {
-      await saveProduct({
-        id: editingProductId ?? createId('product'),
-        slug,
-        categoryId: productForm.categoryId,
-        nameEn: productForm.nameEn.trim(),
-        nameAr: productForm.nameAr.trim(),
-        descriptionEn: productForm.descriptionEn.trim() || undefined,
-        descriptionAr: productForm.descriptionAr.trim() || undefined,
-        types: productForm.types.split(',').map((item) => item.trim()).filter(Boolean),
-        imageUrls: productForm.imageUrls.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
-      }, adminPassword);
-      setProductModalOpen(false);
-      setSuccessMessage(language === 'ar' ? 'تم حفظ المنتج.' : 'Product saved.');
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : copy.serviceError);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const openNewCategory = () => {
-    setEditingCategoryId(null);
-    setCategoryForm(emptyCategoryForm);
-    setFormError('');
-    setCategoryModalOpen(true);
-  };
-
-  const openCategory = (category: Category) => {
-    setEditingCategoryId(category.id);
-    setCategoryForm({ nameEn: category.nameEn, nameAr: category.nameAr, slug: category.slug });
-    setFormError('');
-    setCategoryModalOpen(true);
-  };
-
-  const submitCategory = async (event: FormEvent) => {
-    event.preventDefault();
-    const slug = createSlug(categoryForm.slug || categoryForm.nameEn);
-    if (!categoryForm.nameEn.trim() || !categoryForm.nameAr.trim() || !slug) {
-      setFormError(copy.required);
-      return;
-    }
-    if (categories.some((category) => category.slug === slug && category.id !== editingCategoryId)) {
-      setFormError(copy.duplicateSlug);
-      return;
-    }
-    setFormError('');
-    setSuccessMessage('');
-    setIsSaving(true);
-    try {
-      await saveCategory({ id: editingCategoryId ?? createId('category'), slug, nameEn: categoryForm.nameEn.trim(), nameAr: categoryForm.nameAr.trim() }, adminPassword);
-      setCategoryModalOpen(false);
-      setSuccessMessage(language === 'ar' ? 'تم حفظ الحل.' : 'Category saved.');
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : copy.serviceError);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setIsSaving(true);
-    try {
-      if (deleteTarget.kind === 'product') await deleteProduct(deleteTarget.id, adminPassword);
-      else await deleteCategory(deleteTarget.id, adminPassword);
-      setDeleteTarget(null);
-    } catch {
-      setFormError(copy.serviceError);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <PageWrapper>
-        <main className="flex min-h-[70vh] items-center justify-center bg-muted/40 px-4 py-16">
-          <Card className="w-full max-w-md">
-            <CardHeader><CardTitle className="text-center text-2xl">{copy.admin}</CardTitle></CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <label className="sr-only" htmlFor="admin-password">{copy.password}</label>
-                <input id="admin-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={copy.password} className="w-full rounded-md border bg-background px-3 py-2" required />
-                {loginError && <p role="alert" className="text-sm text-destructive">{loginError}</p>}
-                {!loginError && catalogError && <p role="alert" className="text-sm text-destructive">{copy.serviceError}</p>}
-                <Button type="submit" className="w-full">{copy.login}</Button>
-              </form>
-            </CardContent>
-          </Card>
-        </main>
-      </PageWrapper>
-    );
-  }
-
-  return (
-    <PageWrapper>
-      <main className="container mx-auto space-y-8 px-4 py-12">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div><h1 className="text-3xl font-bold md:text-4xl">{copy.admin}</h1><p className="mt-2 text-muted-foreground">{products.length} {copy.products.toLocaleLowerCase()} · {categories.length} {copy.solutions.toLocaleLowerCase()}</p></div>
-          <Button variant="outline" onClick={logout}><LogOut className="me-2 h-4 w-4" />{copy.logout}</Button>
-        </div>
-        {successMessage && <p role="status" className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{successMessage}</p>}
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Card><CardContent className="flex items-center gap-4 p-6"><Package className="h-9 w-9 text-primary" /><div><p className="text-3xl font-bold">{products.length}</p><p className="text-sm text-muted-foreground">{copy.products}</p></div></CardContent></Card>
-          <Card><CardContent className="flex items-center gap-4 p-6"><FolderCog className="h-9 w-9 text-primary" /><div><p className="text-3xl font-bold">{categories.length}</p><p className="text-sm text-muted-foreground">{copy.solutions}</p></div></CardContent></Card>
-        </div>
-
-        <div className="flex gap-2 border-b">
-          <TabButton active={activeTab === 'products'} onClick={() => setActiveTab('products')}>{copy.products}</TabButton>
-          <TabButton active={activeTab === 'solutions'} onClick={() => setActiveTab('solutions')}>{copy.solutions}</TabButton>
-        </div>
-
-        {activeTab === 'products' ? (
-          <ContentTable title={`${copy.products} (${products.length})`} actionLabel={copy.addProduct} onAction={openNewProduct} empty={products.length === 0 ? copy.noProducts : undefined}>
-            {products.map((product) => (
-              <div key={product.id} className="grid gap-3 border-b px-5 py-4 last:border-0 md:grid-cols-[2fr_1.4fr_auto] md:items-center">
-                <div><p className="font-semibold">{product.nameEn}</p><p className="text-sm text-muted-foreground">{product.nameAr}</p></div>
-                <p className="text-sm text-muted-foreground">{categoryById.get(product.categoryId)?.nameEn ?? '—'}</p>
-                <RowActions editLabel={copy.edit} deleteLabel={copy.remove} onEdit={() => openProduct(product)} onDelete={() => setDeleteTarget({ kind: 'product', id: product.id })} />
-              </div>
-            ))}
-          </ContentTable>
-        ) : (
-          <ContentTable title={`${copy.solutions} (${categories.length})`} actionLabel={copy.addSolution} onAction={openNewCategory} empty={categories.length === 0 ? copy.noSolutions : undefined}>
-            {categories.map((category) => (
-              <div key={category.id} className="grid gap-3 border-b px-5 py-4 last:border-0 md:grid-cols-[2fr_1fr_auto] md:items-center">
-                <div><p className="font-semibold">{category.nameEn}</p><p className="text-sm text-muted-foreground">{category.nameAr}</p></div>
-                <p className="text-sm text-muted-foreground">{products.filter((product) => product.categoryId === category.id).length} {copy.products.toLocaleLowerCase()}</p>
-                <RowActions editLabel={copy.edit} deleteLabel={copy.remove} onEdit={() => openCategory(category)} onDelete={() => setDeleteTarget({ kind: 'category', id: category.id })} />
-              </div>
-            ))}
-          </ContentTable>
-        )}
-      </main>
-
-      {productModalOpen && (
-        <Modal title={editingProductId ? copy.editProduct : copy.addProduct} onClose={() => setProductModalOpen(false)}>
-          <form onSubmit={submitProduct} className="space-y-4">
-            <TwoColumns>
-              <Field label={copy.englishName} required><input value={productForm.nameEn} onChange={(event) => setProductForm({ ...productForm, nameEn: event.target.value, slug: editingProductId ? productForm.slug : createSlug(event.target.value) })} className={FIELD_CLASS} /></Field>
-              <Field label={copy.arabicName} required><input dir="rtl" value={productForm.nameAr} onChange={(event) => setProductForm({ ...productForm, nameAr: event.target.value })} className={FIELD_CLASS} /></Field>
-            </TwoColumns>
-            <TwoColumns>
-              <Field label={copy.slug} required><input value={productForm.slug} onChange={(event) => setProductForm({ ...productForm, slug: event.target.value })} className={FIELD_CLASS} /></Field>
-              <Field label={copy.category} required><select value={productForm.categoryId} onChange={(event) => setProductForm({ ...productForm, categoryId: event.target.value })} className={FIELD_CLASS}>{categories.map((category) => <option key={category.id} value={category.id}>{category.nameEn}</option>)}</select></Field>
-            </TwoColumns>
-            <Field label={copy.englishDescription}><textarea rows={3} value={productForm.descriptionEn} onChange={(event) => setProductForm({ ...productForm, descriptionEn: event.target.value })} className={FIELD_CLASS} /></Field>
-            <Field label={copy.arabicDescription}><textarea dir="rtl" rows={3} value={productForm.descriptionAr} onChange={(event) => setProductForm({ ...productForm, descriptionAr: event.target.value })} className={FIELD_CLASS} /></Field>
-            <Field label={copy.options}><input value={productForm.types} onChange={(event) => setProductForm({ ...productForm, types: event.target.value })} className={FIELD_CLASS} /></Field>
-            <Field label={copy.images}><textarea rows={3} value={productForm.imageUrls} onChange={(event) => setProductForm({ ...productForm, imageUrls: event.target.value })} className={FIELD_CLASS} /></Field>
-            {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-            <ModalActions cancel={copy.cancel} save={isSaving ? (language === 'ar' ? 'جارٍ الحفظ…' : 'Saving…') : copy.save} onCancel={() => setProductModalOpen(false)} disabled={isSaving} />
-          </form>
-        </Modal>
-      )}
-
-      {categoryModalOpen && (
-        <Modal title={editingCategoryId ? copy.editSolution : copy.addSolution} onClose={() => setCategoryModalOpen(false)}>
-          <form onSubmit={submitCategory} className="space-y-4">
-            <TwoColumns>
-              <Field label={copy.englishName} required><input value={categoryForm.nameEn} onChange={(event) => setCategoryForm({ ...categoryForm, nameEn: event.target.value, slug: editingCategoryId ? categoryForm.slug : createSlug(event.target.value) })} className={FIELD_CLASS} /></Field>
-              <Field label={copy.arabicName} required><input dir="rtl" value={categoryForm.nameAr} onChange={(event) => setCategoryForm({ ...categoryForm, nameAr: event.target.value })} className={FIELD_CLASS} /></Field>
-            </TwoColumns>
-            <Field label={copy.slug} required><input value={categoryForm.slug} onChange={(event) => setCategoryForm({ ...categoryForm, slug: event.target.value })} className={FIELD_CLASS} /></Field>
-            {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-            <ModalActions cancel={copy.cancel} save={isSaving ? (language === 'ar' ? 'جارٍ الحفظ…' : 'Saving…') : copy.save} onCancel={() => setCategoryModalOpen(false)} disabled={isSaving} />
-          </form>
-        </Modal>
-      )}
-
-      {deleteTarget && (
-        <Modal title={deleteTarget.kind === 'product' ? copy.deleteProduct : copy.deleteSolution} onClose={() => setDeleteTarget(null)} compact>
-          {formError && <p role="alert" className="mb-4 text-sm text-destructive">{formError}</p>}
-          <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={isSaving}>{copy.cancel}</Button><Button variant="destructive" onClick={confirmDelete} disabled={isSaving}>{copy.remove}</Button></div>
-        </Modal>
-      )}
-    </PageWrapper>
-  );
+  const { products, categories, engineeringServices, catalogError, authenticateAdmin, saveProduct, deleteProduct, saveCategory, deleteCategory, saveEngineeringService, deleteEngineeringService } = useCatalog();
+  const [password, setPassword] = useState(''); const [adminPassword, setAdminPassword] = useState(''); const [loggedIn, setLoggedIn] = useState(false); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<Tab>('products'); const [product, setProduct] = useState<ProductForm | null>(null); const [category, setCategory] = useState<Category | null>(null); const [engineering, setEngineering] = useState<EngineeringForm | null>(null); const [deleteItem, setDeleteItem] = useState<{ kind: Tab; id: string; label: string } | null>(null);
+  const grouped = useMemo(() => categories.map((item) => ({ item, records: products.filter((record) => record.categoryId === item.id) })), [categories, products]);
+  const login = async (event: FormEvent) => { event.preventDefault(); setError(''); try { if (!await authenticateAdmin(password)) return setError('Incorrect password.'); setAdminPassword(password); setPassword(''); setLoggedIn(true); } catch { setError('The catalog service is unavailable. Check Supabase configuration.'); } };
+  const upload = async (files: FileList | null): Promise<string[]> => { if (!files?.length) return []; const urls: string[] = []; for (const file of Array.from(files)) { if (!file.type.startsWith('image/') || file.size > 3_500_000) throw new Error('Choose PNG, JPG, or WebP images up to 3.5 MB each.'); const dataUrl = await readFile(file); const response = await fetch('/api/admin-upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: adminPassword, filename: file.name, contentType: file.type, dataUrl }) }); const body = await response.json().catch(() => ({})); if (!response.ok || typeof body.url !== 'string') throw new Error(body.message || 'Image upload failed.'); urls.push(body.url); } return urls; };
+  const addImages = async (event: ChangeEvent<HTMLInputElement>, current: string[], set: (urls: string[]) => void) => { setBusy(true); setError(''); try { set([...current, ...await upload(event.target.files)]); } catch (cause) { setError(text(cause)); } finally { event.target.value = ''; setBusy(false); } };
+  const saveProductForm = async (event: FormEvent) => { event.preventDefault(); if (!product) return; const slug = createSlug(product.slug || product.nameEn); if (!product.nameEn.trim() || !product.nameAr.trim() || !product.categoryId || !slug) return setError('Complete all required fields.'); setBusy(true); try { await saveProduct({ ...product, id: product.id || makeId('product'), slug, types: tokens(product.types), imageUrls: product.imageUrls }, adminPassword); setProduct(null); setNotice('Product saved.'); } catch (cause) { setError(text(cause)); } finally { setBusy(false); } };
+  const saveCategoryForm = async (event: FormEvent) => { event.preventDefault(); if (!category) return; const slug = createSlug(category.slug || category.nameEn); if (!category.nameEn.trim() || !category.nameAr.trim() || !slug) return setError('Complete all required fields.'); setBusy(true); try { await saveCategory({ ...category, id: category.id || makeId('category'), slug, imageUrl: category.imageUrl || undefined }, adminPassword); setCategory(null); setNotice('Category saved.'); } catch (cause) { setError(text(cause)); } finally { setBusy(false); } };
+  const saveEngineeringForm = async (event: FormEvent) => { event.preventDefault(); if (!engineering) return; if (!engineering.id || !engineering.title || !engineering.titleAr || !engineering.category || !engineering.categoryAr) return setError('Complete the ID, titles, and category fields.'); setBusy(true); try { await saveEngineeringService({ ...engineering, number: engineering.number || String(engineeringServices.length + 1).padStart(2, '0'), software: tokens(engineering.software), capabilities: tokens(engineering.capabilities), capabilitiesAr: tokens(engineering.capabilitiesAr) }, adminPassword); setEngineering(null); setNotice('Engineering service saved.'); } catch (cause) { setError(text(cause)); } finally { setBusy(false); } };
+  const remove = async () => { if (!deleteItem) return; setBusy(true); try { if (deleteItem.kind === 'products') await deleteProduct(deleteItem.id, adminPassword); else if (deleteItem.kind === 'categories') await deleteCategory(deleteItem.id, adminPassword); else await deleteEngineeringService(deleteItem.id, adminPassword); setNotice(`${deleteItem.label} deleted.`); setDeleteItem(null); } catch (cause) { setError(text(cause)); } finally { setBusy(false); } };
+  if (!loggedIn) return <PageWrapper><main className="flex min-h-[70vh] items-center justify-center bg-muted/40 px-4 py-16"><Card className="w-full max-w-md"><CardHeader><CardTitle className="text-center text-2xl">Arzana Content Manager</CardTitle></CardHeader><CardContent><form onSubmit={login} className="space-y-4"><Field label="Admin password"><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className={field} required /></Field>{(error || catalogError) && <p role="alert" className="text-sm text-destructive">{error || 'The catalog service is unavailable.'}</p>}<Button className="w-full">Log in</Button></form></CardContent></Card></main></PageWrapper>;
+  return <PageWrapper><main className="container mx-auto space-y-7 px-4 py-10"><header className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-bold">Arzana Content Manager</h1><p className="mt-2 text-muted-foreground">Manage content by category and publish changes to the website.</p></div><Button variant="outline" onClick={() => { setLoggedIn(false); setAdminPassword(''); setLocation('/'); }}><LogOut className="me-2 h-4 w-4" />Log out</Button></header>{notice && <p role="status" className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{notice}</p>}{error && <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-destructive">{error}</p>}<div className="grid gap-4 sm:grid-cols-3"><Stat icon={<Package />} value={products.length} label="Products" /><Stat icon={<FolderCog />} value={categories.length} label="Product categories" /><Stat icon={<HardHat />} value={engineeringServices.length} label="Engineering services" /></div><div className="flex flex-wrap gap-2 border-b" role="tablist"><Tab active={tab === 'products'} onClick={() => setTab('products')}>Products by category</Tab><Tab active={tab === 'categories'} onClick={() => setTab('categories')}>Categories</Tab><Tab active={tab === 'engineering'} onClick={() => setTab('engineering')}>Engineering Design</Tab></div>
+    {tab === 'products' && <Card><CardHeader className="flex flex-row items-center justify-between gap-3"><div><CardTitle>Products by category</CardTitle><p className="mt-1 text-sm text-muted-foreground">Each category contains its related products.</p></div><Button onClick={() => setProduct({ ...newProduct(), categoryId: categories[0]?.id ?? '' })}><Plus className="me-2 h-4 w-4" />Add product</Button></CardHeader><CardContent className="space-y-3">{grouped.map(({ item, records }) => <details key={item.id} className="rounded-lg border" open><summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4"><span className="flex items-center gap-3">{item.imageUrl && <img src={item.imageUrl} alt="" className="h-10 w-10 rounded object-cover" />}<span><b>{item.nameEn}</b><small className="block text-muted-foreground">{item.nameAr}</small></span></span><span className="text-sm text-muted-foreground">{records.length} products</span></summary><div className="border-t">{records.length ? records.map((record) => <Row key={record.id} name={record.nameEn} subtitle={record.nameAr} image={record.imageUrls?.[0]} onEdit={() => setProduct({ ...record, types: record.types?.join(', ') ?? '', imageUrls: record.imageUrls ?? [] })} onDelete={() => setDeleteItem({ kind: 'products', id: record.id, label: record.nameEn })} />) : <p className="px-4 py-5 text-sm text-muted-foreground">No products in this category yet.</p>}</div></details>)}</CardContent></Card>}
+    {tab === 'categories' && <List title="Product categories" action="Add category" onAction={() => setCategory(newCategory())}>{categories.map((record) => <Row key={record.id} name={record.nameEn} subtitle={record.nameAr} image={record.imageUrl} extra={`${products.filter((product) => product.categoryId === record.id).length} products`} onEdit={() => setCategory(record)} onDelete={() => setDeleteItem({ kind: 'categories', id: record.id, label: record.nameEn })} />)}</List>}
+    {tab === 'engineering' && <List title="Engineering Design & Calculations" action="Add engineering service" onAction={() => setEngineering(newEngineering())}>{engineeringServices.map((record) => <Row key={record.id} name={`${record.number} · ${record.title}`} subtitle={`${record.category} · ${record.titleAr}`} image={record.imageUrls[0]} extra={`${record.imageUrls.length} images`} onEdit={() => setEngineering({ ...record, software: record.software.join(', '), capabilities: record.capabilities.join('\n'), capabilitiesAr: record.capabilitiesAr.join('\n') })} onDelete={() => setDeleteItem({ kind: 'engineering', id: record.id, label: record.title })} />)}</List>}
+  </main>{product && <Modal title={product.id ? 'Edit product' : 'Add product'} close={() => setProduct(null)}><form onSubmit={saveProductForm} className="space-y-4"><Two><Field label="English name"><input value={product.nameEn} onChange={(e) => setProduct({ ...product, nameEn: e.target.value, slug: product.id ? product.slug : createSlug(e.target.value) })} className={field} required /></Field><Field label="Arabic name"><input dir="rtl" value={product.nameAr} onChange={(e) => setProduct({ ...product, nameAr: e.target.value })} className={field} required /></Field></Two><Two><Field label="Page URL"><input value={product.slug} onChange={(e) => setProduct({ ...product, slug: e.target.value })} className={field} required /></Field><Field label="Category"><select value={product.categoryId} onChange={(e) => setProduct({ ...product, categoryId: e.target.value })} className={field}>{categories.map((item) => <option key={item.id} value={item.id}>{item.nameEn}</option>)}</select></Field></Two><Field label="English description"><textarea rows={3} value={product.descriptionEn} onChange={(e) => setProduct({ ...product, descriptionEn: e.target.value })} className={field} /></Field><Field label="Arabic description"><textarea dir="rtl" rows={3} value={product.descriptionAr} onChange={(e) => setProduct({ ...product, descriptionAr: e.target.value })} className={field} /></Field><Field label="Options (comma-separated)"><input value={product.types} onChange={(e) => setProduct({ ...product, types: e.target.value })} className={field} /></Field><Images urls={product.imageUrls} busy={busy} add={(e) => addImages(e, product.imageUrls, (urls) => setProduct({ ...product, imageUrls: urls }))} remove={(url) => setProduct({ ...product, imageUrls: product.imageUrls.filter((item) => item !== url) })} /><Actions close={() => setProduct(null)} busy={busy} /></form></Modal>}
+  {category && <Modal title={category.id ? 'Edit category' : 'Add category'} close={() => setCategory(null)}><form onSubmit={saveCategoryForm} className="space-y-4"><Two><Field label="English name"><input value={category.nameEn} onChange={(e) => setCategory({ ...category, nameEn: e.target.value, slug: category.id ? category.slug : createSlug(e.target.value) })} className={field} required /></Field><Field label="Arabic name"><input dir="rtl" value={category.nameAr} onChange={(e) => setCategory({ ...category, nameAr: e.target.value })} className={field} required /></Field></Two><Field label="Page URL"><input value={category.slug} onChange={(e) => setCategory({ ...category, slug: e.target.value })} className={field} required /></Field><Images urls={category.imageUrl ? [category.imageUrl] : []} busy={busy} add={(e) => addImages(e, category.imageUrl ? [category.imageUrl] : [], (urls) => setCategory({ ...category, imageUrl: urls.at(-1) }))} remove={() => setCategory({ ...category, imageUrl: '' })} /><Actions close={() => setCategory(null)} busy={busy} /></form></Modal>}
+  {engineering && <Modal title={engineering.id ? 'Edit engineering service' : 'Add engineering service'} close={() => setEngineering(null)}><form onSubmit={saveEngineeringForm} className="space-y-4"><Two><Field label="Service ID"><input value={engineering.id} onChange={(e) => setEngineering({ ...engineering, id: createSlug(e.target.value) })} placeholder="hvac" className={field} required /></Field><Field label="Display number"><input value={engineering.number} onChange={(e) => setEngineering({ ...engineering, number: e.target.value })} placeholder="01" className={field} /></Field></Two><Two><Field label="English title"><input value={engineering.title} onChange={(e) => setEngineering({ ...engineering, title: e.target.value })} className={field} required /></Field><Field label="Arabic title"><input dir="rtl" value={engineering.titleAr} onChange={(e) => setEngineering({ ...engineering, titleAr: e.target.value })} className={field} required /></Field></Two><Two><Field label="English category"><input value={engineering.category} onChange={(e) => setEngineering({ ...engineering, category: e.target.value })} className={field} required /></Field><Field label="Arabic category"><input dir="rtl" value={engineering.categoryAr} onChange={(e) => setEngineering({ ...engineering, categoryAr: e.target.value })} className={field} required /></Field></Two><Two><Field label="Short English title"><input value={engineering.shortTitle} onChange={(e) => setEngineering({ ...engineering, shortTitle: e.target.value })} className={field} /></Field><Field label="Short Arabic title"><input dir="rtl" value={engineering.shortTitleAr} onChange={(e) => setEngineering({ ...engineering, shortTitleAr: e.target.value })} className={field} /></Field></Two><Field label="English description"><textarea rows={4} value={engineering.description} onChange={(e) => setEngineering({ ...engineering, description: e.target.value })} className={field} /></Field><Field label="Arabic description"><textarea dir="rtl" rows={4} value={engineering.descriptionAr} onChange={(e) => setEngineering({ ...engineering, descriptionAr: e.target.value })} className={field} /></Field><Field label="Software (comma-separated)"><input value={engineering.software} onChange={(e) => setEngineering({ ...engineering, software: e.target.value })} className={field} /></Field><Field label="Software note"><input value={engineering.softwareNote} onChange={(e) => setEngineering({ ...engineering, softwareNote: e.target.value })} className={field} /></Field><Field label="Arabic software note"><input dir="rtl" value={engineering.softwareNoteAr} onChange={(e) => setEngineering({ ...engineering, softwareNoteAr: e.target.value })} className={field} /></Field><Two><Field label="Service scope (one per line)"><textarea rows={5} value={engineering.capabilities} onChange={(e) => setEngineering({ ...engineering, capabilities: e.target.value })} className={field} /></Field><Field label="Arabic scope (one per line)"><textarea dir="rtl" rows={5} value={engineering.capabilitiesAr} onChange={(e) => setEngineering({ ...engineering, capabilitiesAr: e.target.value })} className={field} /></Field></Two><Images urls={engineering.imageUrls} busy={busy} add={(e) => addImages(e, engineering.imageUrls, (urls) => setEngineering({ ...engineering, imageUrls: urls }))} remove={(url) => setEngineering({ ...engineering, imageUrls: engineering.imageUrls.filter((item) => item !== url) })} /><Actions close={() => setEngineering(null)} busy={busy} /></form></Modal>}
+  {deleteItem && <Modal title={`Delete ${deleteItem.label}?`} close={() => setDeleteItem(null)} compact><p className="mb-5 text-sm text-muted-foreground">This will be removed from the public website. Deleting a category also deletes its products.</p><div className="flex justify-end gap-3"><Button type="button" variant="outline" onClick={() => setDeleteItem(null)}>Cancel</Button><Button type="button" variant="destructive" disabled={busy} onClick={remove}>Delete</Button></div></Modal>}</PageWrapper>;
 }
-
-function createId(prefix: string) {
-  return `${prefix}-${typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now().toString(36)}`;
-}
-
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-  return <button type="button" onClick={onClick} className={`border-b-2 px-4 py-3 font-medium ${active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}>{children}</button>;
-}
-
-function ContentTable({ title, actionLabel, onAction, empty, children }: { title: string; actionLabel: string; onAction: () => void; empty?: string; children: ReactNode }) {
-  return <Card><CardHeader className="flex flex-row items-center justify-between gap-3"><CardTitle>{title}</CardTitle><Button onClick={onAction}><Plus className="me-2 h-4 w-4" />{actionLabel}</Button></CardHeader><CardContent className="p-0">{empty ? <p className="p-10 text-center text-muted-foreground">{empty}</p> : children}</CardContent></Card>;
-}
-
-function RowActions({ editLabel, deleteLabel, onEdit, onDelete }: { editLabel: string; deleteLabel: string; onEdit: () => void; onDelete: () => void }) {
-  return <div className="flex gap-2 md:justify-end"><Button size="sm" variant="outline" onClick={onEdit}><Edit2 className="me-1 h-3 w-3" />{editLabel}</Button><Button size="sm" variant="destructive" onClick={onDelete}><Trash2 className="me-1 h-3 w-3" />{deleteLabel}</Button></div>;
-}
-
-function Modal({ title, onClose, compact, children }: { title: string; onClose: () => void; compact?: boolean; children: ReactNode }) {
-  return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4" role="dialog" aria-modal="true" aria-label={title}><Card className={`max-h-[92vh] w-full overflow-y-auto ${compact ? 'max-w-lg' : 'max-w-3xl'}`}><CardHeader className="flex flex-row items-start justify-between gap-4"><CardTitle className="text-xl">{title}</CardTitle><button type="button" onClick={onClose} aria-label="Close"><X className="h-5 w-5 text-muted-foreground" /></button></CardHeader><CardContent>{children}</CardContent></Card></div>;
-}
-
-function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
-  return <label className="block space-y-1.5 text-sm font-medium">{label}{required && <span className="text-destructive"> *</span>}{children}</label>;
-}
-
-function TwoColumns({ children }: { children: ReactNode }) {
-  return <div className="grid gap-4 md:grid-cols-2">{children}</div>;
-}
-
-function ModalActions({ cancel, save, onCancel, disabled }: { cancel: string; save: string; onCancel: () => void; disabled?: boolean }) {
-  return <div className="flex justify-end gap-3 border-t pt-4"><Button type="button" variant="outline" onClick={onCancel} disabled={disabled}>{cancel}</Button><Button type="submit" disabled={disabled}>{save}</Button></div>;
-}
+function makeId(prefix: string) { return `${prefix}-${crypto.randomUUID?.() ?? Date.now().toString(36)}`; }
+function tokens(value: string) { return value.split(/\n|,/).map((item) => item.trim()).filter(Boolean); }
+function text(cause: unknown) { return cause instanceof Error ? cause.message : 'Could not save your changes.'; }
+function readFile(file: File) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('Could not read the selected image.')); reader.readAsDataURL(file); }); }
+function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block text-sm font-medium">{label}{children}</label>; }
+function Two({ children }: { children: ReactNode }) { return <div className="grid gap-4 md:grid-cols-2">{children}</div>; }
+function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) { return <button type="button" role="tab" aria-selected={active} onClick={onClick} className={`border-b-2 px-4 py-3 font-medium ${active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}>{children}</button>; }
+function Stat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) { return <Card><CardContent className="flex items-center gap-4 p-5"><span className="text-primary">{icon}</span><div><p className="text-2xl font-bold">{value}</p><p className="text-sm text-muted-foreground">{label}</p></div></CardContent></Card>; }
+function List({ title, action, onAction, children }: { title: string; action: string; onAction: () => void; children: ReactNode }) { return <Card><CardHeader className="flex flex-row items-center justify-between gap-3"><CardTitle>{title}</CardTitle><Button onClick={onAction}><Plus className="me-2 h-4 w-4" />{action}</Button></CardHeader><CardContent className="p-0">{children}</CardContent></Card>; }
+function Row({ name, subtitle, image, extra, onEdit, onDelete }: { name: string; subtitle: string; image?: string; extra?: string; onEdit: () => void; onDelete: () => void }) { return <div className="grid gap-3 border-t px-5 py-4 md:grid-cols-[2fr_1fr_auto] md:items-center"><div className="flex min-w-0 items-center gap-3">{image ? <img src={image} alt="" className="h-12 w-12 rounded object-cover" /> : <span className="grid h-12 w-12 place-items-center rounded bg-muted"><ImagePlus className="h-5 w-5 text-muted-foreground" /></span>}<div className="min-w-0"><p className="truncate font-semibold">{name}</p><p className="truncate text-sm text-muted-foreground">{subtitle}</p></div></div><p className="text-sm text-muted-foreground">{extra}</p><div className="flex gap-2 md:justify-end"><Button size="sm" variant="outline" onClick={onEdit}><Edit2 className="me-1 h-3 w-3" />Edit</Button><Button size="sm" variant="destructive" onClick={onDelete}><Trash2 className="me-1 h-3 w-3" />Delete</Button></div></div>; }
+function Images({ urls, busy, add, remove }: { urls: string[]; busy: boolean; add: (event: ChangeEvent<HTMLInputElement>) => void; remove: (url: string) => void }) { return <Field label="Images"><div className="mt-2 rounded-lg border border-dashed p-4"><label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium"><ImagePlus className="h-4 w-4" />{busy ? 'Uploading…' : 'Choose images from device'}<input type="file" accept="image/png,image/jpeg,image/webp" multiple className="sr-only" disabled={busy} onChange={add} /></label><p className="mt-2 text-xs text-muted-foreground">PNG, JPG, or WebP — up to 3.5 MB each.</p>{urls.length > 0 && <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">{urls.map((url) => <div key={url} className="relative"><img src={url} alt="Selected upload" className="aspect-video w-full rounded border object-cover" /><button type="button" onClick={() => remove(url)} className="absolute right-1 top-1 rounded bg-black/70 p-1 text-white" aria-label="Remove image"><X className="h-4 w-4" /></button></div>)}</div>}</div></Field>; }
+function Actions({ close, busy }: { close: () => void; busy: boolean }) { return <div className="flex justify-end gap-3 border-t pt-4"><Button type="button" variant="outline" onClick={close} disabled={busy}>Cancel</Button><Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</Button></div>; }
+function Modal({ title, close, compact, children }: { title: string; close: () => void; compact?: boolean; children: ReactNode }) { return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4" role="dialog" aria-modal="true" aria-label={title}><Card className={`max-h-[92vh] w-full overflow-y-auto ${compact ? 'max-w-lg' : 'max-w-3xl'}`}><CardHeader className="flex flex-row items-start justify-between gap-4"><CardTitle className="text-xl">{title}</CardTitle><button type="button" onClick={close} aria-label="Close"><X className="h-5 w-5 text-muted-foreground" /></button></CardHeader><CardContent>{children}</CardContent></Card></div>; }

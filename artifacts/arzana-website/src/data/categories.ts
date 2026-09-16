@@ -3,6 +3,7 @@ export interface Category {
   slug: string;
   nameEn: string;
   nameAr: string;
+  imageUrl?: string;
 }
 
 export const categories: Category[] = [

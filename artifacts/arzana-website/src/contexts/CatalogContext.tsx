@@ -8,7 +8,9 @@ import {
   type ReactNode,
 } from 'react';
 import { catalogProducts } from '@workspace/arzana-catalog';
+import { engineeringServices as defaultEngineeringServices } from '@workspace/arzana-catalog/engineering';
 import { categories as defaultCategories, type Category } from '../data/categories';
+import { engineeringImages } from '../data/engineering-images';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 export interface ManagedProduct {
@@ -25,9 +27,16 @@ export interface ManagedProduct {
   imageUrls?: string[];
 }
 
+export interface ManagedEngineeringService {
+  id: string; number: string; shortTitle: string; shortTitleAr: string; title: string; titleAr: string;
+  category: string; categoryAr: string; software: string[]; softwareNote: string; softwareNoteAr: string;
+  description: string; descriptionAr: string; capabilities: string[]; capabilitiesAr: string[]; imageUrls: string[];
+}
+
 export interface CatalogState {
   products: ManagedProduct[];
   categories: Category[];
+  engineeringServices: ManagedEngineeringService[];
 }
 
 interface CatalogSnapshot {
@@ -45,6 +54,8 @@ interface CatalogContextValue extends CatalogState {
   deleteProduct: (id: string, password: string) => Promise<void>;
   saveCategory: (category: Category, password: string) => Promise<void>;
   deleteCategory: (id: string, password: string) => Promise<void>;
+  saveEngineeringService: (service: ManagedEngineeringService, password: string) => Promise<void>;
+  deleteEngineeringService: (id: string, password: string) => Promise<void>;
 }
 
 function createInitialCatalog(): CatalogState {
@@ -57,6 +68,10 @@ function createInitialCatalog(): CatalogState {
       imageUrls: product.imageUrls ? [...product.imageUrls] : undefined,
     })),
     categories: defaultCategories.map((category) => ({ ...category })),
+    engineeringServices: defaultEngineeringServices.map((service) => ({
+      ...service, software: [...service.software], capabilities: [...service.capabilities], capabilitiesAr: [...service.capabilitiesAr],
+      imageUrls: engineeringImages[service.id].map((image) => image.src),
+    })),
   };
 }
 
@@ -77,6 +92,10 @@ function includeRequiredFallbackProducts(catalog: CatalogState): CatalogState {
   return missingProducts.length > 0
     ? { ...catalog, products: [...catalog.products, ...missingProducts] }
     : catalog;
+}
+
+function includeEngineeringFallback(catalog: CatalogState): CatalogState {
+  return catalog.engineeringServices.length > 0 ? catalog : { ...catalog, engineeringServices: createInitialCatalog().engineeringServices };
 }
 
 const CatalogContext = createContext<CatalogContextValue | null>(null);
@@ -135,11 +154,16 @@ export function normalizeCatalog(value: unknown): CatalogState | null {
     };
   });
 
-  if (categories.some((category) => category === null) || products.some((product) => product === null)) {
+  const engineeringServices = Array.isArray(candidate.engineeringServices) ? candidate.engineeringServices.map((service) => {
+    if (!service || typeof service.id !== 'string' || typeof service.number !== 'string' || typeof service.shortTitle !== 'string' || typeof service.shortTitleAr !== 'string' || typeof service.title !== 'string' || typeof service.titleAr !== 'string' || typeof service.category !== 'string' || typeof service.categoryAr !== 'string' || typeof service.softwareNote !== 'string' || typeof service.softwareNoteAr !== 'string' || typeof service.description !== 'string' || typeof service.descriptionAr !== 'string' || !isStringArray(service.software) || !isStringArray(service.capabilities) || !isStringArray(service.capabilitiesAr) || !isStringArray(service.imageUrls)) return null;
+    return { ...service, software: [...service.software], capabilities: [...service.capabilities], capabilitiesAr: [...service.capabilitiesAr], imageUrls: [...service.imageUrls] } as ManagedEngineeringService;
+  }) : [];
+
+  if (categories.some((category) => category === null) || products.some((product) => product === null) || engineeringServices.some((service) => service === null)) {
     return null;
   }
 
-  return { categories: categories as Category[], products: products as ManagedProduct[] };
+  return { categories: categories as Category[], products: products as ManagedProduct[], engineeringServices: engineeringServices as ManagedEngineeringService[] };
 }
 
 function getCatalogServiceError() {
@@ -168,7 +192,7 @@ async function fetchRemoteCatalog(): Promise<CatalogSnapshot | null> {
 
   const catalog = normalizeCatalog(data?.data);
   return catalog
-    ? { catalog: includeRequiredFallbackProducts(catalog), updatedAt: typeof data?.updated_at === 'string' ? data.updated_at : null }
+    ? { catalog: includeEngineeringFallback(includeRequiredFallbackProducts(catalog)), updatedAt: typeof data?.updated_at === 'string' ? data.updated_at : null }
     : null;
 }
 
@@ -179,7 +203,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
   const acceptRemoteCatalog = useCallback((snapshot: CatalogSnapshot) => {
-    setCatalog(includeRequiredFallbackProducts(snapshot.catalog));
+    setCatalog(includeEngineeringFallback(includeRequiredFallbackProducts(snapshot.catalog)));
     setCatalogUpdatedAt(snapshot.updatedAt);
     setCatalogError(null);
   }, []);
@@ -338,6 +362,21 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       await updateCatalog(password, (current) => ({
         categories: current.categories.filter((category) => category.id !== id),
         products: current.products.filter((product) => product.categoryId !== id),
+        engineeringServices: current.engineeringServices,
+      }));
+    },
+    saveEngineeringService: async (service, password) => {
+      await updateCatalog(password, (current) => ({
+        ...current,
+        engineeringServices: current.engineeringServices.some((item) => item.id === service.id)
+          ? current.engineeringServices.map((item) => item.id === service.id ? service : item)
+          : [...current.engineeringServices, service],
+      }));
+    },
+    deleteEngineeringService: async (id, password) => {
+      await updateCatalog(password, (current) => ({
+        ...current,
+        engineeringServices: current.engineeringServices.filter((service) => service.id !== id),
       }));
     },
   }), [acceptRemoteCatalog, catalog, catalogError, isLoading, persistCatalog, updateCatalog]);
