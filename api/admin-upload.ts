@@ -22,14 +22,32 @@ function extension(contentType: string) {
   return contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : 'jpg';
 }
 
+function decodeBase64(value: string): Uint8Array {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const result: number[] = [];
+  let buffer = 0;
+  let bits = 0;
+  for (const character of value) {
+    if (character === '=') break;
+    const index = alphabet.indexOf(character);
+    if (index < 0) throw new Error('Invalid base64 data.');
+    buffer = (buffer << 6) | index;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      result.push((buffer >> bits) & 0xff);
+    }
+  }
+  return new Uint8Array(result);
+}
+
 export default async function handler(req: Request, res: Response) {
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); send(res, 405, { message: 'Method not allowed.' }); return; }
   if (!isBody(req.body) || typeof req.body.password !== 'string' || typeof req.body.dataUrl !== 'string' || typeof req.body.contentType !== 'string') { send(res, 400, { message: 'Invalid image upload.' }); return; }
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(req.body.contentType)) { send(res, 400, { message: 'Use a PNG, JPG, or WebP image.' }); return; }
   const match = /^data:[^;]+;base64,([A-Za-z0-9+/=]+)$/.exec(req.body.dataUrl);
   if (!match) { send(res, 400, { message: 'Invalid image data.' }); return; }
-  const decoded = atob(match[1]);
-  const bytes = Uint8Array.from(decoded, (character) => character.charCodeAt(0));
+  const bytes = decodeBase64(match[1]);
   if (!bytes.length || bytes.length > MAX_BYTES) { send(res, 400, { message: 'Images must be 3.5 MB or smaller.' }); return; }
   const url = process.env.SUPABASE_URL?.trim();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
