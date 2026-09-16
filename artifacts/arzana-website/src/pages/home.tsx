@@ -17,6 +17,7 @@ import { clients } from "../data/clients";
 import { approvedImages } from "../data/assets";
 import { RequestQuoteButton } from "../components/RequestQuoteButton";
 import engineeringImage from '@engineering/structural/01-steel-truss-framework.jpg';
+import heroVideo from '@videos/herovideo2.mp4';
 
 const areas = [
   {
@@ -83,7 +84,7 @@ export default function Home() {
           />
         ) : (
           <video
-            className="absolute inset-0 h-full w-full object-cover opacity-95"
+            className="absolute inset-0 h-full w-full object-cover brightness-125 contrast-105"
             autoPlay
             muted
             loop
@@ -92,7 +93,7 @@ export default function Home() {
             poster={approvedImages.engineering}
             aria-hidden="true"
           >
-            <source src="/herovideo.mp4" type="video/mp4" />
+            <source src={heroVideo} type="video/mp4" />
           </video>
         )}
         <div className="absolute inset-0 bg-[linear-gradient(104deg,rgba(18,19,20,.78)_0%,rgba(28,29,30,.5)_38%,rgba(31,32,34,.13)_70%,rgba(31,32,34,.18)_100%)]" />
