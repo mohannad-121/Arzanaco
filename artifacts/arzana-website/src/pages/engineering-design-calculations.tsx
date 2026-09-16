@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { ArrowDown, ArrowRight, ChevronRight } from 'lucide-react';
-import { engineeringPage, engineeringServices, type EngineeringServiceId } from '@workspace/arzana-catalog/engineering';
+import { engineeringPage } from '@workspace/arzana-catalog/engineering';
 import heroImage from '@engineering/structural/01-steel-truss-framework.jpg';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { RequestQuoteButton } from '../components/RequestQuoteButton';
 import { EngineeringServiceSection } from '../components/EngineeringServiceSection';
 import { EngineeringSeo } from '../components/EngineeringSeo';
+import { useCatalog } from '../contexts/CatalogContext';
 import './engineering.css';
 
 export default function EngineeringDesignCalculations() {
   const { language } = useLanguage();
   const ar = language === 'ar';
-  const [active, setActive] = useState<EngineeringServiceId>('structural');
+  const { engineeringServices } = useCatalog();
+  const [active, setActive] = useState('structural');
   useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
       const navigation = document.querySelector('.engineering-navigator');
       const activationLine = (navigation?.getBoundingClientRect().bottom ?? 180) + 80;
-      let current: EngineeringServiceId = 'structural';
+      let current = engineeringServices[0]?.id ?? 'structural';
       for (const service of engineeringServices) {
         if ((document.getElementById(service.id)?.getBoundingClientRect().top ?? Infinity) <= activationLine) current = service.id;
       }
@@ -35,7 +37,7 @@ export default function EngineeringDesignCalculations() {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
     };
-  }, []);
+  }, [engineeringServices]);
 
   return (
     <PageWrapper>

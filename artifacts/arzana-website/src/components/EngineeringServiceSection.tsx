@@ -1,20 +1,23 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, Check } from 'lucide-react';
-import type { EngineeringService } from '@workspace/arzana-catalog/engineering';
 import { useLanguage } from '../contexts/LanguageContext';
-import { engineeringImages } from '../data/engineering-images';
+import { type EngineeringImage } from '../data/engineering-images';
+import type { ManagedEngineeringService } from '../contexts/CatalogContext';
 import { EngineeringImageGallery } from './EngineeringImageGallery';
 
 export function EngineeringSoftwareBadge({ name }: { name: string }) {
   return <span className="engineering-software" dir="ltr"><span aria-hidden="true" />{name}</span>;
 }
 
-export function EngineeringServiceSection({ service }: { service: EngineeringService }) {
+export function EngineeringServiceSection({ service }: { service: ManagedEngineeringService }) {
   const { language } = useLanguage();
   const ar = language === 'ar';
   const reduced = useReducedMotion();
   const title = ar ? service.titleAr : service.title;
   const lighting = service.id === 'lighting';
+  const images: EngineeringImage[] = service.imageUrls.map((src, index) => ({
+    file: `${service.id}-${index}`, src, alt: `${service.title} image ${index + 1}`, altAr: `${service.titleAr} ${index + 1}`, width: 1600, height: 1200,
+  }));
 
   return (
     <section id={service.id} className={`engineering-service engineering-service--${service.id}`} aria-labelledby={`${service.id}-title`}>
@@ -41,7 +44,7 @@ export function EngineeringServiceSection({ service }: { service: EngineeringSer
               <ul>{(ar ? service.capabilitiesAr : service.capabilities).map(item => <li key={item}><Check size={14} aria-hidden="true" /><span>{item}</span></li>)}</ul>
             </div>
           </div>
-          <EngineeringImageGallery images={engineeringImages[service.id]} title={title} layout={lighting ? 'lighting' : service.id === 'hvac' ? 'grid' : 'featured'} />
+          <EngineeringImageGallery images={images} title={title} layout={lighting ? 'lighting' : service.id === 'hvac' ? 'grid' : 'featured'} />
         </motion.div>
       </div>
     </section>
