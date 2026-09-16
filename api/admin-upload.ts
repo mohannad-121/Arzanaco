@@ -28,7 +28,8 @@ export default async function handler(req: Request, res: Response) {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(req.body.contentType)) { send(res, 400, { message: 'Use a PNG, JPG, or WebP image.' }); return; }
   const match = /^data:[^;]+;base64,([A-Za-z0-9+/=]+)$/.exec(req.body.dataUrl);
   if (!match) { send(res, 400, { message: 'Invalid image data.' }); return; }
-  const bytes = Buffer.from(match[1], 'base64');
+  const decoded = atob(match[1]);
+  const bytes = Uint8Array.from(decoded, (character) => character.charCodeAt(0));
   if (!bytes.length || bytes.length > MAX_BYTES) { send(res, 400, { message: 'Images must be 3.5 MB or smaller.' }); return; }
   const url = process.env.SUPABASE_URL?.trim();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -41,7 +42,7 @@ export default async function handler(req: Request, res: Response) {
     const created = await supabase.storage.createBucket(BUCKET, { public: true, allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'], fileSizeLimit: `${MAX_BYTES}` });
     if (created.error) { send(res, 500, { message: 'Could not prepare image storage.' }); return; }
   } else if (bucket.error) { send(res, 500, { message: 'Could not access image storage.' }); return; }
-  const filename = `content/${Date.now()}-${crypto.randomUUID()}.${extension(req.body.contentType)}`;
+  const filename = `content/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}.${extension(req.body.contentType)}`;
   const uploaded = await supabase.storage.from(BUCKET).upload(filename, bytes, { contentType: req.body.contentType, upsert: false, cacheControl: '31536000' });
   if (uploaded.error) { send(res, 500, { message: 'The image could not be stored.' }); return; }
   const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(filename).data.publicUrl;
